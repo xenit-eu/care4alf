@@ -12,7 +12,10 @@
     <tbody>
     <tr ng-repeat="document in invalidTypes">
         <form ng-submit="save(module)">
-            <td><a href="{{document.url}}">{{document.name}}</a></td>
+            <td>
+                <a ng-hide="document.error" href="{{document.url}}">{{document.name}}</a>
+                <span ng-show="document.error" class="alert alert-danger">{{document.error}}</span>
+            </td>
             <td>{{document.type}}</td>
             <td><button class="button" ng-click="delete(document)">delete</button></td>
         </form>

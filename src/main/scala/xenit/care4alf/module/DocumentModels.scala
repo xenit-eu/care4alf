@@ -8,7 +8,7 @@ import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
 import org.alfresco.service.cmr.repository.{NodeRef, NodeService}
-import nl.runnable.alfresco.annotations.{ServiceType, AlfrescoService}
+import nl.runnable.alfresco.annotations.{Transactional, ServiceType, AlfrescoService}
 
 import xenit.care4alf.spring.ContextAware
 import xenit.care4alf.Logger
@@ -19,7 +19,16 @@ import org.alfresco.model.ContentModel
 import org.alfresco.repo.admin.SysAdminParams
 import org.alfresco.util.UrlUtil
 import java.sql.ResultSet
-import xenit.care4alf.jdbc.JdbcTemplateExtensions._
+import xenit.care4alf.jdbc.Implicits._
+import java.util
+import org.alfresco.service.namespace.QName
+import java.io.Serializable
+import org.springframework.extensions.webscripts.WebScriptResponse
+import org.alfresco.repo.security.authentication.AuthenticationUtil._
+import xenit.care4alf.alfresco.Implicits._
+import org.alfresco.repo.policy.BehaviourFilter
+import javax.annotation.Resource
+import org.alfresco.repo.transaction.{RetryingTransactionHelper, TransactionUtil}
 
 /**
  * Tools for validating/cleaning document models.
@@ -32,12 +41,17 @@ class DocumentModels @Autowired()(
             dataSource: DataSource,
             @AlfrescoService(ServiceType.LOW_LEVEL) nodeService: NodeService,
             dictionaryService: DictionaryService,
-            sysAdminParams: SysAdminParams
+            sysAdminParams: SysAdminParams,
+            transactionHelper: RetryingTransactionHelper
         ) extends ContextAware with Logger with Json {
+
+    // cannot specify @Resource parameters on constructor
+    @Autowired @Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter = null
 
     private[this] val jdbc = new JdbcTemplate(dataSource)
 
     @Uri(value = Array("/invalidtypes"))
+    @Transaction(readOnly = true)
     def list(@Attribute jsonHelper: JsonHelper) {
         implicit val json = jsonHelper.json
         val nodeIds = jdbc.query("select id from alf_node", (set: ResultSet) => {set.getLong(1)})
@@ -51,8 +65,27 @@ class DocumentModels @Autowired()(
     }
 
     @Uri(value = Array("/node/{id}"), method = HttpMethod.DELETE)
-    def deleteDocument(@UriVariable id: Long) {
-        nodeService.deleteNode(nodeService.getNodeRef(id))
+    @Transaction(TransactionType.NONE)
+    def deleteDocument(@UriVariable id: Long, response: WebScriptResponse) {
+        val nodeRef = nodeService.getNodeRef(id)
+        if (nodeRef != null) {
+            try {
+                runAsSystem {
+                    behaviourFilter.disableBehaviour()
+                    transactionHelper.doInTransaction {
+                        nodeService.addAspect(nodeRef, ContentModel.ASPECT_TEMPORARY, new util.HashMap[QName, Serializable](0))
+                        nodeService.deleteNode(nodeRef)
+                    }
+                }
+            }
+            catch {
+                case e: Exception => {
+                    logger.error(s"failed to delete invalid node $nodeRef", e)
+                    response.getWriter.append(e.getMessage)
+                    response.setStatus(500)
+                }
+            }
+        }
     }
 
     def scanNode(node: NodeRef)(implicit json: JSONWriter) {

@@ -9,11 +9,12 @@ import xenit.care4alf._
 
 /**
  * Find module webscripts by familiy
+ *
  * @author Laurent Van der Linden
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf")
-class Care4Alf extends ContextAware with Json {
+class Care4Alf extends ContextAware with Json with Versioned {
     @Uri(value = Array("/"), defaultFormat = "html")
     def index = {
         JavaMap("modules" -> JavaList(getModuleWebScripts.map((entry) => {

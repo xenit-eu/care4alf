@@ -23,13 +23,23 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
             $http.delete('documentmodels/node/' + document.id).success(function () {
                 $scope.invalidTypes.splice($scope.invalidTypes.indexOf(document), 1);
                 deferred.resolve();
+            }).error(function(data, status, headers, config) {
+                console.log("failed to delete %o because of %o", document, data);
+                document.error = data;
+                deferred.resolve();
             });
             return deferred.promise;
         };
 
         $scope.deleteAll = function() {
-            if ($scope.documents.length > 0) {
-                $scope.delete($scope.documents[0]).then($scope.deleteAll);
+            var index = 0;
+            while ($scope.invalidTypes.length > 0) {
+                if (angular.isUndefined($scope.invalidTypes[index].error)) {
+                    $scope.delete($scope.invalidTypes[index]).then($scope.deleteAll);
+                    break;
+                } else {
+                    index++;
+                }
             }
         };
     })

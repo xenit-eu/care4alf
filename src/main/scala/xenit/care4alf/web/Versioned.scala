@@ -13,7 +13,7 @@ import java.util
 trait Versioned extends BundleContextAware {
     var bundleContext: BundleContext = null
 
-    @Before def setResourceVersion(@Attribute model: util.Map[String,Object]) {
+    @Before def setResourceVersion(model: util.Map[String,Object]) {
         val lastModified = bundleContext.getBundle.getHeaders.get("Bnd-LastModified")
 
         if (lastModified != null) {

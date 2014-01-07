@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="care4alf">
 <head>
+	<#assign cached = url.serviceContext + "/xenit/care4alf/cached/" + version?c!"1">
+	<#assign resources = url.serviceContext + "/xenit/care4alf/resources">
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Care4Alf</title>
-    <script type="text/javascript" src="${url.serviceContext}/xenit/care4alf/resources/js/underscore.1.5.2.cache.min.js"></script>
-    <script type="text/javascript" src="${url.serviceContext}/xenit/care4alf/resources/js/angular.1.2.7.cached.js"></script>
-    <script type="text/javascript" src="${url.serviceContext}/xenit/care4alf/resources/js/angular-resource.1.2.7.cached.js"></script>
-    <script type="text/javascript" src="${url.serviceContext}/xenit/care4alf/resources/js/angular-route.1.2.7.cached.js"></script>
-    <script type="text/javascript" src="${url.serviceContext}/xenit/care4alf/resources/js/care4alf.js"></script>
+    <script type="text/javascript" src="${resources}/js/underscore.1.5.2.cached.min.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular.1.2.7.cached.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-resource.1.2.7.cached.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-route.1.2.7.cached.js"></script>
+    <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
     	var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];
     </script>
-    <link rel="stylesheet" href="${url.serviceContext}/xenit/care4alf/resources/css/bootstrap.3.0.0.cache.min.css">
-    <link rel="stylesheet" href="${url.serviceContext}/xenit/care4alf/resources/css/care4alf.css">
+    <link rel="stylesheet" href="${resources}/css/bootstrap.3.0.0.cached.min.css">
+    <link rel="stylesheet" href="${cached}/css/care4alf.css">
 </head>
 <body>
 <div class="title">

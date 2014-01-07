@@ -30,7 +30,7 @@ class Resources extends AbstractBundleResourceHandler {
     }
 
     private def checkCacheOptions(path: String, response: WebScriptResponse) {
-        if (path.indexOf(".cache.") > 0) {
+        if (path.indexOf(".cached.") > 0) {
             setInfinateCache(response)
         }
         handleResource(path, response)

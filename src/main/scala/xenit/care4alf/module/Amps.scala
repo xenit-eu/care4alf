@@ -1,7 +1,7 @@
 package xenit.care4alf.module
 
 import org.springframework.stereotype.Component
-import nl.runnable.alfresco.webscripts.annotations.{Attribute, HttpMethod, Uri, WebScript}
+import nl.runnable.alfresco.webscripts.annotations._
 import org.json.JSONObject
 import org.springframework.extensions.webscripts.WebScriptRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,7 +14,7 @@ import org.alfresco.service.namespace.QName
 import nl.runnable.alfresco.annotations.{ServiceType, AlfrescoService}
 import java.sql.ResultSet
 
-import xenit.care4alf.jdbc.JdbcTemplateExtensions._
+import xenit.care4alf.jdbc.Implicits._
 import xenit.care4alf.spring.ContextAware
 import xenit.care4alf.Logger
 import xenit.care4alf.web.{JsonHelper, Json}
@@ -36,6 +36,7 @@ class Amps @Autowired()(
     private[this] val jdbc = new JdbcTemplate(dataSource)
 
     @Uri(value = Array("/list"), defaultFormat = "json")
+    @Transaction(readOnly = true)
     def list(@Attribute jsonHelper: JsonHelper) {
         implicit  val json = jsonHelper.json
         json.array()

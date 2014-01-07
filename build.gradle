@@ -18,13 +18,11 @@ useDynamicExtensionsVersion('1.0.0.M6')
 buildscript {
     repositories {
         maven {
-            url "https://artifacts.alfresco.com/nexus/content/groups/public/"
             url 'https://raw.github.com/lfridael/dynamic-extensions-for-alfresco/mvn-repo/'
         }
-        mavenCentral()
     }
     dependencies {
-        classpath group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0.M5-SNAPSHOT'
+        classpath(group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0.M6') {transitive = false}
     }
 }
 
@@ -38,6 +36,7 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.5"
     compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
     compile('nl.runnable.alfresco.dynamicextensions:webscript-support:1.0.0.M6') {transitive = false}
+    compile('javax.transaction:transaction-api:1.1') {transitive = false}
 }
 
 jar {
@@ -51,5 +50,9 @@ installBundle {
 }
 
 repositories {
+    maven {
+        url "https://artifacts.alfresco.com/nexus/content/groups/public/"
+        url 'https://raw.github.com/lfridael/dynamic-extensions-for-alfresco/mvn-repo/'
+    }
     mavenCentral()
 }

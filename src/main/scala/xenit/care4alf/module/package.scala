@@ -1,6 +1,6 @@
 package xenit.care4alf
 
-import xenit.care4alf.jdbc.JdbcTemplateExtensions._
+import xenit.care4alf.jdbc.Implicits._
 /**
  * @author Laurent Van der Linden
  */
