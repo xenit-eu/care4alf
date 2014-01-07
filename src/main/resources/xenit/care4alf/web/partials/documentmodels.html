@@ -1,0 +1,24 @@
+<h3>Documents without a valid type</h3>
+<div class="alert alert-info" ng-show="!invalidTypes">scanning all nodes, please wait</div>
+<div class="alert alert-success" ng-show="invalidTypes.length == 0">no invalid types detected</div>
+<table class="table" ng-show="invalidTypes.length > 0">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="document in invalidTypes">
+        <form ng-submit="save(module)">
+            <td><a href="{{document.url}}">{{document.name}}</a></td>
+            <td>{{document.type}}</td>
+            <td><button class="button" ng-click="delete(document)">delete</button></td>
+        </form>
+    </tr>
+    </tbody>
+</table>
+<div ng-show="invalidTypes.length > 0">
+    <button ng-click="deleteAll()" class="btn btn-danger">delete all invalid documents</button>
+</div>

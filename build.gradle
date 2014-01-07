@@ -1,0 +1,55 @@
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'alfresco-dynamic-extension'
+
+[compileJava, compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
+
+[compileJava,compileScala]*.sourceCompatibility = 1.6
+[compileJava,compileScala]*.targetCompatibility = 1.6
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.useAnt = false
+    scalaCompileOptions.additionalParameters = ['feature']
+}
+
+project.ext.springVersion = '3.0.5.RELEASE'
+useDynamicExtensionsVersion('1.0.0.M6')
+
+buildscript {
+    repositories {
+        maven {
+            url "https://artifacts.alfresco.com/nexus/content/groups/public/"
+            url 'https://raw.github.com/lfridael/dynamic-extensions-for-alfresco/mvn-repo/'
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0.M5-SNAPSHOT'
+    }
+}
+
+dependencies {
+    compile "org.springframework:spring-context:${project.springVersion}"
+    compile "org.springframework:spring-jdbc:${project.springVersion}"
+    compile "org.osgi:org.osgi.core:4.3.1"
+    compile 'org.json:json:20090211'
+    compile "org.scala-lang:scala-library:2.10.3"
+    compile("acegisecurity:acegi-security:0.8.2") {transitive = false}
+    compile "org.slf4j:slf4j-api:1.7.5"
+    compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
+    compile('nl.runnable.alfresco.dynamicextensions:webscript-support:1.0.0.M6') {transitive = false}
+}
+
+jar {
+    manifest {
+        instruction 'Alfresco-Spring-Configuration', 'xenit.care4alf'
+    }
+}
+
+installBundle {
+    toRepository(username: username ?: 'admin', password: password ?: 'admin')
+}
+
+repositories {
+    mavenCentral()
+}
