@@ -13,7 +13,6 @@ tasks.withType(ScalaCompile) {
 }
 
 project.ext.springVersion = '3.0.5.RELEASE'
-useDynamicExtensionsVersion('1.0.0.M6')
 
 buildscript {
     repositories {
@@ -22,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0.M6') {transitive = false}
+        classpath(group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0-SNAPSHOT')
     }
 }
 
@@ -39,20 +38,6 @@ dependencies {
     compile('javax.transaction:transaction-api:1.1') {transitive = false}
 }
 
-jar {
-    manifest {
-        instruction 'Alfresco-Spring-Configuration', 'xenit.care4alf'
-    }
-}
-
 installBundle {
     toRepository(username: username ?: 'admin', password: password ?: 'admin')
-}
-
-repositories {
-    maven {
-        url "https://artifacts.alfresco.com/nexus/content/groups/public/"
-        url 'https://raw.github.com/lfridael/dynamic-extensions-for-alfresco/mvn-repo/'
-    }
-    mavenCentral()
 }
