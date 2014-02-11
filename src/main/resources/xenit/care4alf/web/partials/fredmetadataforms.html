@@ -1,0 +1,48 @@
+<form class="form-search">
+    <input ng-model="file" type="text" class="input-xlarge"/>
+    <button class="btn btn-primary" ng-click="loadConfig()">load</button>
+    <button class="btn btn-success" ng-click="saveConfig(formconfig)">save</button>
+</form>
+<div class="row">
+    <div class="span8">
+        <div ng-repeat="type in formconfig" class="type">
+            <h3>{{type.Id}} <span class="label label-info">{{type.Evaluator}}</span> <i class="icon-trash" ng-click="removeConfig(type)"></i></h3>
+            <div ng-repeat="form in type.Forms">
+                <form class="form-horizontal">
+                    <div ng-repeat="field in form.FieldVisibility" class="control-group">
+                        <label class="control-label">{{field.Id}} <i class="icon-trash" ng-click="removeField(form.FieldVisibility, field)"></i></label>
+                        <div class="controls">
+                            <select ng-model="field.Mode" multiple>
+                                <option>View</option>
+                                <option>Edit</option>
+                                <option>Create</option>
+                            </select>
+                            <label class="checkbox">
+                            force
+                                <input type="checkbox" ng-model="field.Force">
+                                </label>
+                                <div ng-controller="setController">
+                                    <select ng-change="addFieldToSet(field,fieldset,form)" ng-model="fieldset" ng-options="set for set in getFieldSet(form,field)">
+                                        <option value="">default set</option>
+                                    </select>
+                                    <div><a ng-click="addToNewSet(field,form)">add to new set</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div><a ng-click="addNewProperty(form.FieldVisibility)"><i class="icon-plus"></i> add new property</a></div>
+                </div>
+                <zippy title="json">
+                    <pre>{{type | json}}</pre>
+                </zippy>
+            </div>
+        </div>
+        <div class="span4">
+            <form ng-submit="findTypes()">
+                <input ng-model="filter" type="search" placeholder="document type"/>
+            </form>
+            <ul class="possibleTypes">
+                <li ng-repeat="type in possibleTypes" ng-click="addType(type)">{{type.name}}</li>
+            </ul>
+        </div>
+    </div>

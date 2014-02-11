@@ -1,13 +1,10 @@
 package xenit.care4alf.web
 
-import nl.runnable.alfresco.webscripts.annotations._
+import com.github.dynamicextensionsalfresco.webscripts.annotations._
 import org.springframework.stereotype.Component
 import java.lang.String
-import scala.Predef.String
-import java.util.Date
-import java.text.SimpleDateFormat
 import org.springframework.extensions.webscripts.WebScriptResponse
-import nl.runnable.alfresco.webscripts.support.AbstractBundleResourceHandler
+import com.github.dynamicextensionsalfresco.webscripts.support.AbstractBundleResourceHandler
 
 /**
  * @author Laurent Van der Linden

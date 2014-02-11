@@ -1,7 +1,7 @@
 package xenit.care4alf.web
 
 import org.springframework.extensions.webscripts.WebScriptResponse
-import nl.runnable.alfresco.webscripts.annotations.Attribute
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Attribute
 import org.json.JSONWriter
 import org.alfresco.service.cmr.repository.{NodeService, NodeRef}
 import scala.collection.JavaConversions._

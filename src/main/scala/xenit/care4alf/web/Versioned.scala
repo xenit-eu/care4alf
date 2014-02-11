@@ -1,6 +1,6 @@
 package xenit.care4alf.web
 
-import nl.runnable.alfresco.webscripts.annotations.{Attribute, Before}
+import com.github.dynamicextensionsalfresco.webscripts.annotations.{Attribute, Before}
 import java.lang.{Long, String}
 import scala.Predef.String
 import org.eclipse.gemini.blueprint.context.BundleContextAware

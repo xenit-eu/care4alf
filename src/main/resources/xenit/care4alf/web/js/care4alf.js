@@ -52,4 +52,18 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
             $http.post("amps/save", module);
         };
     })
+    .controller('dictionary', function($scope,$http) {
+        $http.get('dictionary/namespaces').success(function(namespaces) {
+           $scope.namespaces = namespaces;
+        });
+    })
+    .controller('workflow', function($scope,$resource) {
+        var Definition = $resource('workflow/:workflowId', {workflowId:'@id'});
+
+        $scope.definitions = Definition.query();
+
+        $scope.deleteDefinition = function(definition) {
+            definition.$delete();
+        };
+    })
 ;

@@ -1,14 +1,14 @@
 package xenit.care4alf.module
 
 import org.springframework.stereotype.Component
-import nl.runnable.alfresco.webscripts.annotations._
+import com.github.dynamicextensionsalfresco.webscripts.annotations._
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
 import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
 import org.alfresco.service.cmr.repository.{NodeRef, NodeService}
-import nl.runnable.alfresco.annotations.{Transactional, ServiceType, AlfrescoService}
+import com.github.dynamicextensionsalfresco.annotations.{Transactional, ServiceType, AlfrescoService}
 
 import xenit.care4alf.spring.ContextAware
 import xenit.care4alf.Logger

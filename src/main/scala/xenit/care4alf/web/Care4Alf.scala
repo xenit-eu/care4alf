@@ -1,6 +1,6 @@
 package xenit.care4alf.web
 
-import nl.runnable.alfresco.webscripts.annotations.{Attribute, Uri, WebScript}
+import com.github.dynamicextensionsalfresco.webscripts.annotations.{Attribute, Uri, WebScript}
 import org.springframework.stereotype.Component
 import scala.collection.JavaConversions._
 import xenit.care4alf.spring.ContextAware

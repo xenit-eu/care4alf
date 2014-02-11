@@ -21,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'nl.runnable.alfresco.dynamicextensions', name: 'gradle-plugin', version: '1.0.0-SNAPSHOT')
+        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.0.0-SNAPSHOT')
     }
 }
 
@@ -34,10 +34,10 @@ dependencies {
     compile("acegisecurity:acegi-security:0.8.2") {transitive = false}
     compile "org.slf4j:slf4j-api:1.7.5"
     compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
-    compile('nl.runnable.alfresco.dynamicextensions:webscript-support:1.0.0.M6') {transitive = false}
+    compile('com.github.dynamicextensionsalfresco:webscript-support:1.0.0-SNAPSHOT') {transitive = false}
     compile('javax.transaction:transaction-api:1.1') {transitive = false}
 }
 
 installBundle {
-    toRepository(username: username ?: 'admin', password: password ?: 'admin')
+    toRepository(username: username ?: 'admin', password: password ?: 'admin', host: 'localhost', port: '8080')
 }

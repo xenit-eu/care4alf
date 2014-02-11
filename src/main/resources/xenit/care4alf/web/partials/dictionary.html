@@ -1,0 +1,15 @@
+<h3>Dictionary namespaces</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Prefixes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="(namespace,prefixes) in namespaces">
+        <td>{{namespace}}</td>
+        <td><span ng-repeat="prefix in prefixes" class="label label-info">{{prefix}}</span></td>
+    </tr>
+    </tbody>
+</table>

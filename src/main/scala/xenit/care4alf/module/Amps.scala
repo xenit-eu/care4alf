@@ -1,7 +1,7 @@
 package xenit.care4alf.module
 
 import org.springframework.stereotype.Component
-import nl.runnable.alfresco.webscripts.annotations._
+import com.github.dynamicextensionsalfresco.webscripts.annotations._
 import org.json.JSONObject
 import org.springframework.extensions.webscripts.WebScriptRequest
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +11,7 @@ import javax.sql.DataSource
 import scala.collection.JavaConversions._
 import org.alfresco.service.cmr.repository.NodeService
 import org.alfresco.service.namespace.QName
-import nl.runnable.alfresco.annotations.{ServiceType, AlfrescoService}
+import com.github.dynamicextensionsalfresco.annotations.{ServiceType, AlfrescoService}
 import java.sql.ResultSet
 
 import xenit.care4alf.jdbc.Implicits._
