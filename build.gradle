@@ -17,7 +17,7 @@ project.ext.springVersion = '3.0.5.RELEASE'
 buildscript {
     repositories {
         maven {
-            url 'https://raw.github.com/lfridael/dynamic-extensions-for-alfresco/mvn-repo/'
+            url 'https://raw.github.com/laurentvdl/dynamic-extensions-for-alfresco/mvn-repo/'
         }
     }
     dependencies {
@@ -39,5 +39,5 @@ dependencies {
 }
 
 installBundle {
-    toRepository(username: username ?: 'admin', password: password ?: 'admin', host: 'localhost', port: '8080')
+    toRepository(username: username ?: 'admin', password: password ?: 'admin', host: host ?: 'localhost', port: port ?: '8080')
 }
