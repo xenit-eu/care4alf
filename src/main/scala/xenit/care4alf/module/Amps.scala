@@ -16,10 +16,10 @@ import java.sql.ResultSet
 
 import xenit.care4alf.jdbc.Implicits._
 import xenit.care4alf.spring.ContextAware
-import xenit.care4alf.Logger
 import xenit.care4alf.web.{JsonHelper, Json}
 import org.alfresco.util.VersionNumber
 import xenit.care4alf.web.Json._
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * Update Alfresco's AMP version in case you want to downgrade.
@@ -31,7 +31,7 @@ import xenit.care4alf.web.Json._
 class Amps @Autowired()(
             dataSource: DataSource,
             @AlfrescoService(ServiceType.LOW_LEVEL) nodeService: NodeService
-        ) extends ContextAware with Logger with Json {
+        ) extends ContextAware with Logging with Json {
 
     private[this] val jdbc = new JdbcTemplate(dataSource)
 

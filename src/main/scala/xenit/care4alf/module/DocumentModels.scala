@@ -11,7 +11,6 @@ import org.alfresco.service.cmr.repository.{NodeRef, NodeService}
 import com.github.dynamicextensionsalfresco.annotations.{Transactional, ServiceType, AlfrescoService}
 
 import xenit.care4alf.spring.ContextAware
-import xenit.care4alf.Logger
 import xenit.care4alf.web.{JsonHelper, Json}
 import org.alfresco.service.cmr.dictionary.DictionaryService
 import org.json.JSONWriter
@@ -29,6 +28,8 @@ import xenit.care4alf.alfresco.Implicits._
 import org.alfresco.repo.policy.BehaviourFilter
 import javax.annotation.Resource
 import org.alfresco.repo.transaction.{RetryingTransactionHelper, TransactionUtil}
+import com.typesafe.scalalogging.slf4j.Logging
+import org.alfresco.repo.dictionary.DictionaryDAO
 
 /**
  * Tools for validating/cleaning document models.
@@ -43,10 +44,11 @@ class DocumentModels @Autowired()(
             dictionaryService: DictionaryService,
             sysAdminParams: SysAdminParams,
             transactionHelper: RetryingTransactionHelper
-        ) extends ContextAware with Logger with Json {
+        ) extends ContextAware with Logging with Json {
 
     // cannot specify @Resource parameters on constructor
     @Autowired @Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter = null
+    @Autowired var dictionaryDAO: DictionaryDAO = null
 
     private[this] val jdbc = new JdbcTemplate(dataSource)
 
@@ -98,5 +100,20 @@ class DocumentModels @Autowired()(
                 .key("url").value(UrlUtil.getShareUrl(sysAdminParams) + "/page/folder-details?nodeRef=" + node)
                 .endObject()
         }
+    }
+
+    @Uri(value = Array("/models"), defaultFormat = "json", method = HttpMethod.GET)
+    def listModels(@Attribute jsonHelper: JsonHelper) {
+        val json = jsonHelper.json
+        json.array()
+        for (model <- dictionaryDAO.getModels) {
+            json.value(model.toString)
+        }
+        json.endArray()
+    }
+
+    @Uri(value = Array("/models/{modelQName}"), defaultFormat = "json", method = HttpMethod.DELETE)
+    def removeModel(@UriVariable modelQName: String) {
+        dictionaryDAO.removeModel(QName.createQName(modelQName))
     }
 }

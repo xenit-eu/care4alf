@@ -8,14 +8,14 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations._
 import scala.collection.JavaConversions._
 import org.springframework.stereotype.Component
 import org.alfresco.service.cmr.workflow.{WorkflowInstance, WorkflowService}
-import xenit.care4alf.Logger
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Laurent Van der Linden
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/workflow", families = Array("care4alf"), description = "Workflow tools")
-class Workflow @Autowired() (namespaceService: NamespaceService) extends Json with Logger
+class Workflow @Autowired() (namespaceService: NamespaceService) extends Json with Logging
 {
     @Autowired var workflowService: WorkflowService = null
 

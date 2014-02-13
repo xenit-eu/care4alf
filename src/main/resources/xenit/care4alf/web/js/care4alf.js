@@ -42,6 +42,18 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
                 }
             }
         };
+
+        $http.get('documentmodels/models').success(function(models) {
+            $scope.models = models;
+        });
+
+        $scope.removeModel = function(model) {
+            $http.delete('documentmodels/models/' + model).success(function () {
+                $scope.models.splice($scope.models.indexOf(model), 1);
+            }).error(function(error) {
+                alert("Failed to remove model: " + error);
+            });
+        };
     })
     .controller('amps', function($scope, $http) {
         $http.get("amps/list").success(function(modules) {
@@ -64,6 +76,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
 
         $scope.deleteDefinition = function(definition) {
             definition.$delete();
+            $scope.definitions = Definition.query();
         };
     })
 ;

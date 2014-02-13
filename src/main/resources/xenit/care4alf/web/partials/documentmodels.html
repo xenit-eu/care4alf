@@ -11,17 +11,31 @@
     </thead>
     <tbody>
     <tr ng-repeat="document in invalidTypes">
-        <form ng-submit="save(module)">
-            <td>
-                <a ng-hide="document.error" href="{{document.url}}">{{document.name}}</a>
-                <span ng-show="document.error" class="alert alert-danger">{{document.error}}</span>
-            </td>
-            <td>{{document.type}}</td>
-            <td><button class="button" ng-click="delete(document)">delete</button></td>
-        </form>
+        <td>
+            <a ng-hide="document.error" href="{{document.url}}">{{document.name}}</a>
+            <span ng-show="document.error" class="alert alert-danger">{{document.error}}</span>
+        </td>
+        <td>{{document.type}}</td>
+        <td><button class="button" ng-click="delete(document)">delete</button></td>
     </tr>
     </tbody>
 </table>
 <div ng-show="invalidTypes.length > 0">
     <button ng-click="deleteAll()" class="btn btn-danger">delete all invalid documents</button>
 </div>
+
+<h3>Document models</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>QName</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="model in models">
+        <td>{{model}}</td>
+        <td><button ng-click="removeModel(model)" class="btn btn-danger">remove</button></td>
+    </tr>
+    </tbody>
+</table>

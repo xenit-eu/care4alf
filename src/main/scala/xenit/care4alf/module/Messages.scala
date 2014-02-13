@@ -7,17 +7,16 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations._
 
 import scala.collection.JavaConversions._
 import org.springframework.stereotype.Component
-import org.alfresco.service.cmr.workflow.WorkflowService
-import xenit.care4alf.Logger
 import org.alfresco.repo.i18n.{MessageServiceImpl, MessageService}
 import org.springframework.extensions.webscripts.WebScriptResponse
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Laurent Van der Linden
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/messages", families = Array("care4alf"), description = "Message service diagnostic")
-class Messages @Autowired() (namespaceService: NamespaceService) extends Json with Logger
+class Messages @Autowired() (namespaceService: NamespaceService) extends Json with Logging
 {
     @Autowired var messageService: MessageService = null
 
