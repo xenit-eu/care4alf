@@ -75,8 +75,9 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
         $scope.definitions = Definition.query();
 
         $scope.deleteDefinition = function(definition) {
-            definition.$delete();
-            $scope.definitions = Definition.query();
+            definition.$delete(function() {
+                $scope.definitions = Definition.query();
+            });
         };
     })
 ;
