@@ -19,6 +19,7 @@
 </head>
 <body>
 <div class="title">
+	<span class="version" title="build time">${version?number_to_datetime}</span>
 	<a href="#/"><h1>Care4Alf</h1></a>
 </div>
 <ul class="menu">
