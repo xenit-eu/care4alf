@@ -41,6 +41,5 @@ dependencies {
 }
 
 installBundle {
-    toRepository(username: username ?: 'admin', password: password ?: 'admin',
-            host: project.hasProperty('host') ? host : 'localhost', port: project.hasProperty('port') ? port : '8080')
+    toRepository(username: username ?: 'admin', password: password ?: 'admin', host: host ?:'localhost', port: port ?: '8080')
 }
