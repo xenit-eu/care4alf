@@ -41,23 +41,29 @@ class Workflow @Autowired() (namespaceService: NamespaceService) extends Json wi
 
     @Uri(value = Array("/{workflowId}"), defaultFormat = "json", method = HttpMethod.DELETE)
     def deleteNameless(@UriVariable workflowId: String) {
-        for (list <- Seq(workflowService.getCompletedWorkflows,workflowService.getActiveWorkflows)) {
-            if (list != null) {
-                list.filter((wf) => wf.getDefinition != null && wf.getDefinition.getId == workflowId)
-                    .foreach((workflow) => workflowService.cancelWorkflow(workflow.getId))
-            }
-        }
+        logger.warn(s"Delete workflow definition and instances for id $workflowId.")
 
-        val name = workflowService.getDefinitionById(workflowId).getName
-        val query = "@bpm\\:definitionName:\"" + name + "\""
-        val definitionFiles = searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_LUCENE, query)
-        if (definitionFiles.length() > 0) {
-            for (defFile <- definitionFiles) {
-                nodeService.addAspect(defFile.getNodeRef, ContentModel.ASPECT_TEMPORARY, null)
-                nodeService.deleteNode(defFile.getNodeRef)
+        val definition = workflowService.getDefinitionById(workflowId)
+        if (definition != null) {
+            for (active <- workflowService.getActiveWorkflows(workflowId)) {
+                workflowService.cancelWorkflow(active.getId)
+            }
+            for (complete <- workflowService.getCompletedWorkflows(workflowId)) {
+                workflowService.deleteWorkflow(complete.getId)
+            }
+            val name = definition.getName
+            val query = "@bpm\\:definitionName:\"" + name + "\""
+            val definitionFiles = searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_LUCENE, query)
+            if (definitionFiles.length() > 0) {
+                for (defFile <- definitionFiles) {
+                    nodeService.addAspect(defFile.getNodeRef, ContentModel.ASPECT_TEMPORARY, null)
+                    nodeService.deleteNode(defFile.getNodeRef)
+                }
+            } else {
+                workflowService.undeployDefinition(workflowId)
             }
         } else {
-            workflowService.undeployDefinition(workflowId)
+            logger.error(s"Could not find workflow definition $workflowId.")
         }
     }
 }
