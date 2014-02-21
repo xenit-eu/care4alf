@@ -1,3 +1,29 @@
+<h3>Workflow instances</h3>
+<fieldset ng-repeat="instance in instances" class="workflow-instance">
+    <legend>{{instance.id}}: {{instance.description}}</legend>
+    <p>
+        <label class="control-label">Initiator</label> {{instance.initiator}}
+        <label class="control-label">Start date</label> {{instance.start | date : 'dd/MM/yyyy HH:mm:ss'}}
+    </p>
+    <h5>Files: {{instance.files.length}}</h5>
+    <ul>
+        <li ng-repeat="file in instance.files">
+            {{file}}
+        </li>
+    </ul>
+    <h5>Tasks: {{instance.tasks.length}}</h5>
+    <ul>
+        <li ng-repeat="task in instance.tasks">
+            <p>{{task.id}}: {{task.description}}</p>
+            <pre>{{task.properties | json}}</pre>
+        </li>
+    </ul>
+    <div class="btn-group">
+        <button ng-click="cancelWorkflow(instance)" class="btn btn-warning">cancel</button>
+        <button ng-click="deleteWorkflow(instance)" class="btn btn-danger">delete</button>
+    </div>
+</fieldset>
+
 <h3>Workflow definitions</h3>
 <table class="table">
     <thead>

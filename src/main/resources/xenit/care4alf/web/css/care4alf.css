@@ -64,3 +64,6 @@ body > .title .version {
 .alert {
   display: inline-block;
 }
+.workflow-instance {
+  margin-bottom: 20px;
+}

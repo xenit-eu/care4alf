@@ -69,14 +69,34 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
            $scope.namespaces = namespaces;
         });
     })
-    .controller('workflow', function($scope,$resource) {
+    .controller('workflow', function($scope,$resource,$http,$window) {
         var Definition = $resource('workflow/:workflowId', {workflowId:'@id'});
 
+        var Instance = $resource('workflow/instances/active/:workflowId', {instanceId:'@id'});
+
         $scope.definitions = Definition.query();
+
+        $scope.instances = Instance.query();
 
         $scope.deleteDefinition = function(definition) {
             definition.$delete(function() {
                 $scope.definitions.splice($scope.definitions.indexOf(definition), 1);
+            });
+        };
+
+        $scope.cancelWorkflow = function(instance) {
+            $http.delete('workflow/instances/' + instance.id + '/cancel').success(function() {
+               $scope.instances.splice($scope.instances.indexOf(instance), 1);
+            }).error(function(error) {
+                $window.alert(error);
+            });
+        };
+
+        $scope.deleteWorkflow = function(instance) {
+            $http.delete('workflow/instances/' + instance.id + '/delete').success(function() {
+                $scope.instances.splice($scope.instances.indexOf(instance), 1);
+            }).error(function(error) {
+                $window.alert(error);
             });
         };
     })

@@ -38,6 +38,7 @@ import org.alfresco.repo.dictionary.DictionaryDAO
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/documentmodels", families = Array("care4alf"), description = "validate document models")
+@Authentication(AuthenticationType.ADMIN)
 class DocumentModels @Autowired()(
             dataSource: DataSource,
             @AlfrescoService(ServiceType.LOW_LEVEL) nodeService: NodeService,

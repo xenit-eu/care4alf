@@ -14,8 +14,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 /**
  * @author Laurent Van der Linden
  */
-@Component
+//@Component
 @WebScript(baseUri = "/xenit/care4alf/messages", families = Array("care4alf"), description = "Message service diagnostic")
+@Authentication(AuthenticationType.ADMIN)
 class Messages @Autowired() (namespaceService: NamespaceService) extends Json with Logging
 {
     @Autowired var messageService: MessageService = null

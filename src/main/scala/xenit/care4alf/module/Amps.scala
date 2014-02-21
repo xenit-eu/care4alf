@@ -28,6 +28,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/amps", families = Array("care4alf"), description = "update AMP module versions")
+@Authentication(AuthenticationType.ADMIN)
 class Amps @Autowired()(
             dataSource: DataSource,
             @AlfrescoService(ServiceType.LOW_LEVEL) nodeService: NodeService

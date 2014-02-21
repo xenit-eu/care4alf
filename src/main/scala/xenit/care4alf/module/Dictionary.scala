@@ -3,7 +3,7 @@ package xenit.care4alf.module
 import org.springframework.beans.factory.annotation.Autowired
 import org.alfresco.service.namespace.NamespaceService
 import xenit.care4alf.web.{JsonHelper, Json}
-import com.github.dynamicextensionsalfresco.webscripts.annotations.{WebScript, Uri, Attribute}
+import com.github.dynamicextensionsalfresco.webscripts.annotations._
 
 import scala.collection.JavaConversions._
 import org.springframework.stereotype.Component
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/dictionary", families = Array("care4alf"), description = "Dictionary info")
+@Authentication(AuthenticationType.ADMIN)
 class Dictionary @Autowired() (namespaceService: NamespaceService) extends Json
 {
     @Uri(value = Array("namespaces"), defaultFormat = "json")
