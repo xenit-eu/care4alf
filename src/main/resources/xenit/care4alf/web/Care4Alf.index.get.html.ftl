@@ -7,9 +7,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Care4Alf</title>
     <script type="text/javascript" src="${resources}/js/underscore.1.5.2.cached.min.js"></script>
-    <script type="text/javascript" src="${resources}/js/angular.1.2.7.cached.js"></script>
-    <script type="text/javascript" src="${resources}/js/angular-resource.1.2.7.cached.js"></script>
-    <script type="text/javascript" src="${resources}/js/angular-route.1.2.7.cached.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-resource.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-route.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-sanitize.js"></script>
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
     	var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];

@@ -1,4 +1,4 @@
-angular.module('care4alf', ['ngRoute', 'ngResource'])
+angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize'])
     .filter('stripPrefix', function() {
         return function(input) {
             return input.replace('cm:', '');
@@ -99,5 +99,10 @@ angular.module('care4alf', ['ngRoute', 'ngResource'])
                 $window.alert(error);
             });
         };
+    })
+    .controller('dummymail', function($http,$scope) {
+        $http.get('smtp/list').success(function(messages) {
+            $scope.messages = messages;
+        })
     })
 ;
