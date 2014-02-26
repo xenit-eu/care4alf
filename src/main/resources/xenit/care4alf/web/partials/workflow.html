@@ -12,6 +12,7 @@
         </li>
     </ul>
     <h5>Tasks: {{instance.tasks.length}}</h5>
+    <button ng-click="loadTasks(instance)" class="btn btn-info" ng-hide="instance.tasks">load tasks</button>
     <ul>
         <li ng-repeat="task in instance.tasks">
             <p>{{task.id}}: {{task.description}}</p>

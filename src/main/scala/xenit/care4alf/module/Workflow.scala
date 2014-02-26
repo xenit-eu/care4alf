@@ -73,7 +73,6 @@ class Workflow extends Json with Logging with HasNodeService with HasNamespaceSe
         val json = jsonHelper.json
         json.array()
         for (instance <- workflowService.getActiveWorkflows.filter(_.getDefinition != null)) {
-            val tasks = getTasksForInstance(instance)
 
             val initiator = instance.getInitiator()
             val initiatorUsername = if (nodeService.exists(initiator)) initiator(ContentModel.PROP_USERNAME).asInstanceOf[String] else "-"
@@ -87,21 +86,26 @@ class Workflow extends Json with Logging with HasNodeService with HasNamespaceSe
                     json.value(assoc.getChildRef.path)
                 }
                 json.endArray()
-            json.key("tasks").array()
-            for (task <- tasks) {
-                json.`object`()
-                    .key("id").value(task.getId)
-                    .key("description").value(task.getDescription)
-                    .key("properties").`object`()
-                     for (prop <- task.getProperties) {
-                         json.key(prop._1.toString).value(prop._2)
-                     }
-                     json.endObject()
-                .endObject()
-            }
-            json.endArray()
-            
             json.endObject()
+        }
+        json.endArray()
+    }
+
+    @Uri(value = Array("/{workflowid}/tasks"), defaultFormat = "json")
+    def tasksForInstance(@Attribute jsonHelper: JsonHelper, @UriVariable workflowid: String) {
+        val json = jsonHelper.json
+        val tasks = getTasksForInstance(workflowService.getWorkflowById(workflowid))
+        json.array()
+        for (task <- tasks) {
+            json.`object`()
+                .key("id").value(task.getId)
+                .key("description").value(task.getDescription)
+                .key("properties").`object`()
+            for (prop <- task.getProperties) {
+                json.key(prop._1.toString).value(prop._2)
+            }
+            json.endObject()
+                .endObject()
         }
         json.endArray()
     }

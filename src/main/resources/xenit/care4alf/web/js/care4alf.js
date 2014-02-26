@@ -99,6 +99,12 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize'])
                 $window.alert(error);
             });
         };
+
+        $scope.loadTasks = function(instance) {
+            $http.get('workflow/' + instance.id + "/tasks").success(function(tasks) {
+               instance.tasks = tasks;
+            });
+        };
     })
     .controller('dummymail', function($http,$scope) {
         $http.get('smtp/list').success(function(messages) {
