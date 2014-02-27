@@ -83,6 +83,8 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         };
     })
     .controller('workflowinstances', function($scope,$resource,$http,$window) {
+        $scope.idpattern = /^\w+\$\d+$/;
+
         var instanceResultHandler = function (instances) {
             $scope.instances = instances;
         };

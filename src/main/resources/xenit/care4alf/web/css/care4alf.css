@@ -67,3 +67,7 @@ body > .title .version {
 .workflow-instance {
   margin-bottom: 20px;
 }
+
+input.ng-invalid {
+    color: red;
+}

@@ -1,12 +1,18 @@
-<form>
-    Find workflow by:
-    Task-ID <input ng-model="taskid">
-    Instance-ID <input ng-model="instanceid">
+<form class="form-inline" role="form" name="search">
+    <div class="form-group">
+        <label for="taskid">Task-ID</label>
+        <input type="text" class="form-control" id="taskid" ng-model="taskid" ng-pattern="idpattern">
+    </div>
+    <div class="form-group">
+        <label for="instanceid">Instance-ID</label>
+        <input type="text" class="form-control" id="instanceid" ng-model="instanceid" ng-pattern="idpattern">
+    </div>
     <div class="btn-group">
         <button ng-click="findInstances()" class="btn btn-warning">find</button>
         <button ng-click="findAllActive()" class="btn btn-danger">show all active</button>
     </div>
 </form>
+
 <fieldset ng-repeat="instance in instances" class="workflow-instance">
     <legend>{{instance.id}}: {{instance.description}}</legend>
     <p>
