@@ -11,11 +11,12 @@
     <script type="text/javascript" src="${resources}/js/angular-resource.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-route.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-sanitize.js"></script>
+    <script type="text/javascript" src="${resources}/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
     	var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];
     </script>
-    <link rel="stylesheet" href="${resources}/css/bootstrap.3.0.0.cached.min.css">
+    <link rel="stylesheet" href="${resources}/css/bootstrap.3.1.1.cached.min.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
 </head>
 <body>

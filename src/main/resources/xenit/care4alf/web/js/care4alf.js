@@ -1,4 +1,4 @@
-angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize'])
+angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap'])
     .filter('stripPrefix', function() {
         return function(input) {
             return input.replace('cm:', '');
@@ -69,19 +69,22 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize'])
            $scope.namespaces = namespaces;
         });
     })
-    .controller('workflow', function($scope,$resource,$http,$window) {
-        var Definition = $resource('workflow/:workflowId', {workflowId:'@id'});
-
-        var Instance = $resource('workflow/instances/active/:workflowId', {instanceId:'@id'});
+    .controller('workflowdefinitions', function($scope,$resource,$http,$window) {
+        var Definition = $resource('workflow/definitions/:workflowId', {workflowId:'@id'});
 
         $scope.definitions = Definition.query();
 
-        $scope.instances = Instance.query();
-
         $scope.deleteDefinition = function(definition) {
-            definition.$delete(function() {
+            $http.delete('workflow/definitions', {params: {workflowId: definition.id}}).success(function() {
                 $scope.definitions.splice($scope.definitions.indexOf(definition), 1);
+            }, function(error) {
+                alert(error.data);
             });
+        };
+    })
+    .controller('workflowinstances', function($scope,$resource,$http,$window) {
+        var instanceResultHandler = function (instances) {
+            $scope.instances = instances;
         };
 
         $scope.cancelWorkflow = function(instance) {
@@ -101,9 +104,21 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize'])
         };
 
         $scope.loadTasks = function(instance) {
-            $http.get('workflow/' + instance.id + "/tasks").success(function(tasks) {
+            $http.get('workflow/instances/' + instance.id + "/tasks").success(function(tasks) {
                instance.tasks = tasks;
             });
+        };
+
+        $scope.findInstances = function() {
+            if (angular.isDefined($scope.taskid) && $scope.taskid.length > 0) {
+                $http.get('workflow/instances/find/task/' + $scope.taskid).success(instanceResultHandler);
+            } else if (angular.isDefined($scope.instanceid) && $scope.instanceid.length > 0) {
+                $http.get('workflow/instances/' + $scope.instanceid).success(instanceResultHandler);
+            }
+        };
+
+        $scope.findAllActive = function() {
+            $http.get('workflow/instances/active').success(instanceResultHandler);
         };
     })
     .controller('dummymail', function($http,$scope) {
