@@ -7,6 +7,7 @@ import xenit.care4alf.dumbster.smtp.{ServerOptions, SmtpServer, SmtpServerFactor
 import xenit.care4alf.web.{Json, JsonHelper}
 
 import scala.collection.JavaConversions._
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Laurent Van der Linden
@@ -14,7 +15,7 @@ import scala.collection.JavaConversions._
 @Component
 @WebScript(baseUri = "/xenit/care4alf/smtp", families = Array("care4alf"), description = "dummy SMTP viewer")
 @Authentication(AuthenticationType.ADMIN)
-class DummyMail extends InitializingBean with DisposableBean with Json {
+class DummyMail extends InitializingBean with DisposableBean with Json with Logging {
     private var smtpServer: SmtpServer = null
 
     @Uri(Array("/list"))
@@ -37,10 +38,22 @@ class DummyMail extends InitializingBean with DisposableBean with Json {
     def afterPropertiesSet() {
         val options = new ServerOptions()
         options.port = 2500
-        smtpServer = SmtpServerFactory.startServer(options)
+        try {
+            smtpServer = SmtpServerFactory.startServer(options)
+        }
+        catch {
+            case ex: Exception => logger.warn("Failed to start SMTP server", ex)
+        }
     }
 
     def destroy() {
-        smtpServer.stop()
+        if (smtpServer != null) {
+            try {
+                smtpServer.stop()
+            }
+            catch {
+                case ex: Exception => logger.warn("Failed to stop SMTP server", ex)
+            }
+        }
     }
 }

@@ -1,0 +1,22 @@
+<h3>Spring beannames</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="bean in beans track by bean.name">
+        <td>{{bean.name}}</td>
+        <td>
+            <span ng-switch on="bean.type">
+                <a ng-switch-when="org.alfresco.repo.management.subsystems.ChildApplicationContextFactory" href="#/spring/{{bean.name}}">{{bean.type}}</a>
+                <span ng-switch-default>
+                    {{bean.type}}
+                </span>
+            </span>
+        </td>
+    </tr>
+    </tbody>
+</table>

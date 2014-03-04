@@ -6,7 +6,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
     })
     .config(['$routeProvider', function ($routeProvider) {
         angular.forEach(care4alfModules, function(module) {
-            $routeProvider.when('/' + module.id, {templateUrl: 'resources/partials/' + module.id + '.html', controller: module.id});
+            $routeProvider.when('/' + module.id + '/:subtoken?', {templateUrl: 'resources/partials/' + module.id + '.html', controller: module.id});
         });
         $routeProvider.otherwise({templateUrl: 'resources/partials/default.html', controller:'default'});
     }])
@@ -115,7 +115,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             if (angular.isDefined($scope.taskid) && $scope.taskid.length > 0) {
                 $http.get('workflow/instances/find/task/' + $scope.taskid).success(instanceResultHandler);
             } else if (angular.isDefined($scope.instanceid) && $scope.instanceid.length > 0) {
-                $http.get('workflow/instances/' + $scope.instanceid).success(instanceResultHandler);
+                $http.get('workflow/instances/find/instance/' + $scope.instanceid).success(instanceResultHandler);
             }
         };
 
@@ -127,5 +127,15 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         $http.get('smtp/list').success(function(messages) {
             $scope.messages = messages;
         })
+    })
+    .controller('spring', function($http,$scope,$routeParams) {
+        var subToken = $routeParams.subtoken;
+        var subUrl = '';
+        if (angular.isDefined(subToken)) {
+            subUrl = '/' + subToken;
+        }
+        $http.get('spring/beannames' + subUrl).success(function(beans) {
+           $scope.beans = beans;
+        });
     })
 ;

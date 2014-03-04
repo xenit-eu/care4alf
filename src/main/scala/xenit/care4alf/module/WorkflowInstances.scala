@@ -10,6 +10,12 @@ import org.alfresco.service.cmr.workflow.{WorkflowTaskQuery, WorkflowInstance, W
 import com.typesafe.scalalogging.slf4j.Logging
 import org.alfresco.model.ContentModel
 import xenit.care4alf.alfresco.{HasNamespaceService, HasNodeService}
+import org.alfresco.repo.admin.SysAdminParams
+import org.alfresco.util.UrlUtil
+import org.springframework.util.StringUtils
+
+import org.alfresco.repo.security.authentication.AuthenticationUtil.runAsSystem
+import xenit.care4alf.alfresco.Implicits._
 
 /**
  * @author Laurent Van der Linden
@@ -19,6 +25,7 @@ import xenit.care4alf.alfresco.{HasNamespaceService, HasNodeService}
 @Authentication(AuthenticationType.ADMIN)
 class WorkflowInstances extends Json with Logging with HasNodeService with HasNamespaceService with RestErrorHandling {
     @Autowired var workflowService: WorkflowService = null
+    @Autowired var sysadminParams: SysAdminParams = null
 
     @Uri(value = Array("/active"), defaultFormat = "json")
     def activeInstances(@Attribute jsonHelper: JsonHelper, @RequestParam(defaultValue = "includeTasks") includeTasks: Boolean) {
@@ -33,21 +40,25 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
     @Uri(value = Array("/find/task/{taskid}"), defaultFormat = "json")
     def instanceByTask(@Attribute jsonHelper: JsonHelper, @UriVariable taskid: String) {
         val json = jsonHelper.json
-        val query = new WorkflowTaskQuery
-        query.setTaskId(taskid)
-        json.array()
-        for (task <- workflowService.queryTasks(query)) {
-            instanceToJson(task.getPath.getInstance(), jsonHelper, includeTasks = true)
+        val workflowTask = runAsSystem {
+            workflowService.getTaskById(taskid)
         }
+        json.array()
+        instanceToJson(workflowTask.getPath.getInstance(), jsonHelper, includeTasks = true)
         json.endArray()
     }
 
-    @Uri(value = Array("/{instanceid}"), defaultFormat = "json")
+    @Uri(value = Array("/find/instance/{instanceid}"), defaultFormat = "json")
     def instanceById(@Attribute jsonHelper: JsonHelper, @UriVariable instanceid: String) {
-        val json = jsonHelper.json
-        json.array()
-        instanceToJson(workflowService.getWorkflowById(instanceid), jsonHelper, true)
-        json.endArray()
+        val instance = workflowService.getWorkflowById(instanceid)
+        if (instance != null) {
+            val json = jsonHelper.json
+            json.array()
+            instanceToJson(instance, jsonHelper, includeTasks = true)
+            json.endArray()
+        } else {
+            throw new IllegalArgumentException(s"No workflow instance $instanceid found.")
+        }
     }
 
 
@@ -55,14 +66,18 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
         val json = jsonHelper.json
         val initiator = instance.getInitiator
         val initiatorUsername = if (nodeService.exists(initiator)) initiator(ContentModel.PROP_USERNAME).asInstanceOf[String] else "-"
+        val description = if (StringUtils.hasText(instance.getDescription)) instance.getDescription else instance.getDefinition.getDescription
         json.`object`()
-            .key("description").value(instance.getDefinition.getDescription)
+            .key("description").value(description)
             .key("id").value(instance.getId)
             .key("initiator").value(initiatorUsername)
             .key("start").value(instance.getStartDate.getTime)
             .key("files").array()
         for (assoc <- nodeService.getChildAssocs(instance.getWorkflowPackage)) {
-            json.value(assoc.getChildRef.path)
+            json.`object`()
+                .key("path").value(assoc.getChildRef.path)
+                .key("url").value(UrlUtil.getShareUrl(sysadminParams) + "/page/document-details?nodeRef=" + assoc.getChildRef)
+            .endObject()
         }
         json.endArray()
         if (includeTasks) {
@@ -75,7 +90,9 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
     @Uri(value = Array("/{workflowid}/tasks"), defaultFormat = "json")
     def tasksForInstance(@Attribute jsonHelper: JsonHelper, @UriVariable workflowid: String) {
         val json = jsonHelper.json
-        val tasks = getTasksForInstance(workflowService.getWorkflowById(workflowid))
+        val tasks = runAsSystem {
+            getTasksForInstance(workflowService.getWorkflowById(workflowid))
+        }
         json.array()
         for (task <- tasks) {
             json.`object`()
@@ -93,8 +110,9 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
 
     def getTasksForInstance(instance: WorkflowInstance) = {
         val query = new WorkflowTaskQuery
-        query.setActive(true)
         query.setProcessId(instance.getId)
+        query.setTaskState(null)
+        query.setActive(null)
         workflowService.queryTasks(query)
     }
 

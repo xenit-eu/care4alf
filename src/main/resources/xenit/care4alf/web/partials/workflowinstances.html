@@ -22,11 +22,11 @@
     <h5>Files: {{instance.files.length}}</h5>
     <ul>
         <li ng-repeat="file in instance.files">
-            {{file}}
+            <a target="_blank" href={{file.url}}>{{file.path}}</a>
         </li>
     </ul>
     <h5>Tasks: {{instance.tasks.length}}</h5>
-    <button ng-click="loadTasks(instance)" class="btn btn-info" ng-hide="instance.tasks">load tasks</button>
+    <button ng-click="loadTasks(instance)" class="btn btn-info" ng-hide="instance.tasks.length >= 0">load tasks</button>
     <ul>
         <li ng-repeat="task in instance.tasks">
             <p>{{task.id}}: {{task.description}}</p>
