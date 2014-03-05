@@ -22,7 +22,7 @@ class DummyMail extends InitializingBean with DisposableBean with Json with Logg
     def listMails(@Attribute jsonHelper: JsonHelper) {
         val json = jsonHelper.json
         json.array()
-        for (message <- smtpServer.getMessages) {
+        for (message <- smtpServer.getMessages.reverse) {
             json.`object`()
                 .key("headers").`object`()
             for (headerName <- message.getHeaderNames) {
@@ -33,6 +33,11 @@ class DummyMail extends InitializingBean with DisposableBean with Json with Logg
             json.endObject()
         }
         json.endArray()
+    }
+
+    @Uri(value = Array("/list"), method = HttpMethod.DELETE)
+    def clearMails() {
+        smtpServer.clearMessages()
     }
 
     def afterPropertiesSet() {

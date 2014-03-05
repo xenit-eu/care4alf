@@ -126,7 +126,13 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
     .controller('dummymail', function($http,$scope) {
         $http.get('smtp/list').success(function(messages) {
             $scope.messages = messages;
-        })
+        });
+
+        $scope.clear = function() {
+            $http.delete('smtp/list').success(function() {
+                $scope.messages = [];
+            });
+        };
     })
     .controller('spring', function($http,$scope,$routeParams) {
         var subToken = $routeParams.subtoken;
