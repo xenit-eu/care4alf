@@ -144,4 +144,19 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
            $scope.beans = beans;
         });
     })
+    .controller('tickets', function($scope,$http) {
+        var getUsers = function() {
+            $http.get('tickets/list').success(function (users) {
+                $scope.users = users;
+            });
+        };
+
+        getUsers();
+
+        $scope.expire = function(username) {
+            $http.delete('tickets/expire/' + username).success(function() {
+                getUsers();
+            })
+        };
+    })
 ;

@@ -1,0 +1,15 @@
+<h3>Session tickets</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="username in users">
+        <td>{{username}}</td>
+        <td><button class="btn btn-warning" ng-click="expire(username)">expire</button></td>
+    </tr>
+    </tbody>
+</table>
