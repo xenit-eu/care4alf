@@ -9,7 +9,7 @@ apply plugin: 'alfresco-dynamic-extension'
 
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.useAnt = false
-    scalaCompileOptions.additionalParameters = ['feature']
+    scalaCompileOptions.additionalParameters = ['-feature']
 }
 
 project.ext.springVersion = '3.0.5.RELEASE'
@@ -21,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.0.0-SNAPSHOT')
+        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.0.0')
     }
 }
 
@@ -35,7 +35,6 @@ dependencies {
     compile('com.typesafe:scalalogging-slf4j_2.10:1.0.1')
     compile "org.slf4j:slf4j-api:1.7.5"
     compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
-    compile('com.github.dynamicextensionsalfresco:webscript-support:1.0.0-SNAPSHOT') {transitive = false}
     compile('javax.transaction:transaction-api:1.1') {transitive = false}
     compile('org.jibx:jibx-run:1.2.3') {transitive = false}
 }
