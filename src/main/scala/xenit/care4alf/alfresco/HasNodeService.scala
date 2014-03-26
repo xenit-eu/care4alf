@@ -11,7 +11,7 @@ import org.alfresco.model.ContentModel
 
 trait HasNodeService extends HasNamespaceService {
     @Autowired
-    @AlfrescoService(ServiceType.DEFAULT)
+    @AlfrescoService(ServiceType.LOW_LEVEL)
     implicit var nodeService: NodeService = null
 
     implicit def toRichNode(nodeRef: NodeRef)(implicit nodeService: NodeService) = new RichNodeRef(nodeRef)

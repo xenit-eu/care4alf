@@ -4,6 +4,18 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             return input.replace('cm:', '');
         };
     })
+    .filter('humanBytes', function() {
+        return function(fileSizeInBytes) {
+            var i = -1;
+            var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+            do {
+                fileSizeInBytes = fileSizeInBytes / 1024;
+                i++;
+            } while (fileSizeInBytes > 1024);
+
+            return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+        }
+    })
     .config(['$routeProvider', function ($routeProvider) {
         angular.forEach(care4alfModules, function(module) {
             $routeProvider.when('/' + module.id + '/:subtoken?', {templateUrl: 'resources/partials/' + module.id + '.html', controller: module.id});
@@ -158,5 +170,14 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
                 getUsers();
             })
         };
+    })
+    .controller('diskusage', function($scope,$http) {
+        $http.get('diskusage/byowner').success(function(usage) {
+            var sortedUsage = [];
+            _.forEach(usage, function(bytes, owner) {
+                sortedUsage.push({owner: owner, bytes: bytes});
+            });
+           $scope.sortedUsage = _.sortBy(sortedUsage, 'bytes');
+        });
     })
 ;

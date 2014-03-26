@@ -1,0 +1,15 @@
+<h3>Disk usage by owner</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Owner</th>
+        <th>Bytes</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="usage in sortedUsage">
+        <td>{{usage.owner}}</td>
+        <td>{{usage.bytes | humanBytes}}</td>
+    </tr>
+    </tbody>
+</table>
