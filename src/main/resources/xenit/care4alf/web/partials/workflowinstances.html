@@ -8,8 +8,8 @@
         <input type="text" class="form-control" id="instanceid" ng-model="instanceid" ng-pattern="idpattern">
     </div>
     <div class="btn-group">
-        <button ng-click="findInstances()" class="btn btn-warning">find</button>
-        <button ng-click="findAllActive()" class="btn btn-danger">show all active</button>
+        <button ng-click="findInstances()" class="btn btn-warning" ng-disabled="loading">find</button>
+        <button ng-click="findAllActive()" class="btn btn-danger" ng-disabled="loading">show all active</button>
     </div>
 </form>
 
@@ -34,7 +34,7 @@
         </li>
     </ul>
     <div class="btn-group">
-        <button ng-click="cancelWorkflow(instance)" class="btn btn-warning">cancel</button>
-        <button ng-click="deleteWorkflow(instance)" class="btn btn-danger">delete</button>
+        <button ng-click="cancelWorkflow(instance)" class="btn btn-warning" ng-disabled="loading">cancel</button>
+        <button ng-click="deleteWorkflow(instance)" class="btn btn-danger" ng-disabled="loading">delete</button>
     </div>
 </fieldset>

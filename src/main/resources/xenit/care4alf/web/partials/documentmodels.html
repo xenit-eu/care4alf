@@ -35,7 +35,7 @@
     <tbody>
     <tr ng-repeat="model in models">
         <td>{{model}}</td>
-        <td><button ng-click="removeModel(model)" class="btn btn-danger">remove</button></td>
+        <td><button ng-click="removeModel(model)" class="btn btn-danger" ng-disabled="loading">remove</button></td>
     </tr>
     </tbody>
 </table>

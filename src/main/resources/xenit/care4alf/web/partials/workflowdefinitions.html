@@ -13,7 +13,7 @@
         <td>{{definition.name}}</td>
         <td>{{definition.version}}</td>
         <td>{{definition.description}}</td>
-        <td><button ng-click="deleteDefinition(definition)" class="btn btn-danger">delete</button></td>
+        <td><button ng-click="deleteDefinition(definition)" class="btn btn-danger" ng-disabled="loading">delete</button></td>
     </tr>
     </tbody>
 </table>

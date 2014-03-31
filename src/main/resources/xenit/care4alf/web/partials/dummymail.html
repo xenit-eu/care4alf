@@ -1,6 +1,6 @@
 <h3>Sent emails</h3>
 
-<button class="btn btn-warning" ng-click="clear()">Clear messages</button>
+<button class="btn btn-warning" ng-click="clear()" ng-disabled="loading">Clear messages</button>
 <div class="email" ng-repeat="message in messages">
     <table class="table">
         <thead>

@@ -3,13 +3,17 @@
     <thead>
     <tr>
         <th>Owner</th>
-        <th>Bytes</th>
+        <th>Workspace</th>
+        <th>Archive</th>
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="usage in sortedUsage">
-        <td>{{usage.owner}}</td>
-        <td>{{usage.bytes | humanBytes}}</td>
+    <tr ng-repeat="user in sortedUsage">
+        <td>{{user.username}}</td>
+        <td>{{user.workspace | humanBytes}}</td>
+        <td>{{user.archive | humanBytes}}</td>
     </tr>
     </tbody>
 </table>
+
+<btn class="btn btn-info" ng-click="updateStats()" ng-disabled="loading">Update statistics</btn>

@@ -1,4 +1,22 @@
 angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap'])
+    .config(function ($httpProvider,$provide) {
+        $provide.factory('loader', function($injector,$q,$rootScope) {
+            var loadOperations = 0;
+            return {
+                'request': function(request) {
+                    loadOperations++;
+                    $rootScope.loading = loadOperations > 0;
+                    return request;
+                },
+                response: function(response) {
+                    loadOperations--;
+                    $rootScope.loading = loadOperations > 0;
+                    return response;
+                }
+            }
+        });
+        $httpProvider.interceptors.push('loader');
+    })
     .filter('stripPrefix', function() {
         return function(input) {
             return input.replace('cm:', '');
@@ -35,7 +53,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             $http.delete('documentmodels/node/' + document.id).success(function () {
                 $scope.invalidTypes.splice($scope.invalidTypes.indexOf(document), 1);
                 deferred.resolve();
-            }).error(function(data, status, headers, config) {
+            }).error(function(data) {
                 console.log("failed to delete %o because of %o", document, data);
                 document.error = data;
                 deferred.resolve();
@@ -172,12 +190,18 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         };
     })
     .controller('diskusage', function($scope,$http) {
-        $http.get('diskusage/byowner').success(function(usage) {
-            var sortedUsage = [];
-            _.forEach(usage, function(bytes, owner) {
-                sortedUsage.push({owner: owner, bytes: bytes});
+        var get = function() {
+            $http.get('diskusage/byowner').success(function(usage) {
+                $scope.sortedUsage = _.sortBy(usage, 'workspace');
             });
-           $scope.sortedUsage = _.sortBy(sortedUsage, 'bytes');
-        });
+        };
+
+        get();
+
+        $scope.updateStats = function() {
+            $http.put('diskusage/update').success(function () {
+                get();
+            });
+        };
     })
 ;
