@@ -204,4 +204,16 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             });
         };
     })
+    .controller('actions', function($scope,$http) {
+        $http.get('actions/').success(function(actions) {
+            $scope.actions = actions;
+        });
+
+        $scope.execute = function(action) {
+            $http.post('actions/' + action.name + '/run', {noderef: $scope.noderef}).error(function(error) {
+                alert(error.message);
+                console.log("failed to execute %o", error);
+            });
+        };
+    })
 ;

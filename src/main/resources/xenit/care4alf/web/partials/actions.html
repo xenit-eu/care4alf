@@ -1,0 +1,27 @@
+<h3>Executable actions</h3>
+
+<form class="form" role="form">
+    <div class="form-group">
+        <label>Node reference</label>
+        <input class="form-control" ng-model="noderef" placeholder="workspace://SpacesStore/..." width="">
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Title</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="action in actions">
+        <td>{{action.name}}</td>
+        <td>{{action.description}}</td>
+        <td>{{action.title}}</td>
+        <td><button class="btn btn-info" ng-click="execute(action)" ng-disabled="loading">execute</button></td>
+    </tr>
+    </tbody>
+</table>

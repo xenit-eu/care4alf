@@ -26,6 +26,7 @@ buildscript {
 }
 
 dependencies {
+    compile ("com.github.dynamicextensionsalfresco:annotations-runtime:1.0.0") { transitive = false }
     compile "org.springframework:spring-context:${project.springVersion}"
     compile "org.springframework:spring-jdbc:${project.springVersion}"
     compile "org.osgi:org.osgi.core:4.3.1"
