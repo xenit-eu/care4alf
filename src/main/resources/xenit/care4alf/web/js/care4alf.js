@@ -44,7 +44,13 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         return{
             restrict: 'A',
             link:function(scope,element,attr){
-                element.innerHTML = attr.bindHtmlUnsafe;
+                var html = scope.$eval(attr.bindHtmlUnsafe);
+                try {
+                    var root = element[0].webkitCreateShadowRoot();
+                    root.innerHTML = html;
+                } catch (x) {
+                    element.innerHTML = html;
+                }
             }
         }
     })
