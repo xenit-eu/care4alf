@@ -40,6 +40,14 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         });
         $routeProvider.otherwise({templateUrl: 'resources/partials/default.html', controller:'default'});
     }])
+    .directive('bindHtmlUnsafe', function() {
+        return{
+            restrict: 'A',
+            link:function(scope,element,attr){
+                element.innerHTML = attr.bindHtmlUnsafe;
+            }
+        }
+    })
     .controller('default', function($scope,$http) {
         $scope.modules = care4alfModules;
     })

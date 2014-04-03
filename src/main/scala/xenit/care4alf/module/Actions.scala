@@ -49,7 +49,7 @@ class Actions extends ContextAware with Logging with HasNodeService {
     @Uri(value = Array("/{name}/run"), method = HttpMethod.POST)
     def update(@UriVariable name: String, request: WebScriptRequest) {
         try {
-            val content = request.getContent.ge tContent
+            val content = request.getContent.getContent
             val body = if ("" == content) new JSONObject() else new JSONObject(content)
             val action = actionService.createAction(name)
             val noderef = if (body.has("noderef")) new NodeRef(body.getString("noderef")) else null
