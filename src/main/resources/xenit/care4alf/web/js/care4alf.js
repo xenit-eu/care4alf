@@ -12,6 +12,11 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
                     loadOperations--;
                     $rootScope.loading = loadOperations > 0;
                     return response;
+                },
+                responseError: function(error) {
+                    loadOperations--;
+                    $rootScope.loading = loadOperations > 0;
+                    return error;
                 }
             }
         });
@@ -58,9 +63,11 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         $scope.modules = care4alfModules;
     })
     .controller('documentmodels', function($scope,$http,$q) {
-        $http.get('documentmodels/invalidtypes').success(function(invalidTypes) {
-            $scope.invalidTypes = invalidTypes;
-        });
+        $scope.getInvalid = function() {
+            $http.get('documentmodels/invalidtypes').success(function(invalidTypes) {
+                $scope.invalidTypes = invalidTypes;
+            });
+        };
 
         $scope.delete = function(document) {
             var deferred = $q.defer();
@@ -165,6 +172,12 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
 
         $scope.findAllActive = function() {
             $http.get('workflow/instances/active').success(instanceResultHandler);
+        };
+
+        $scope.deleteAllActive = function() {
+            if ($window.confirm('Are you sure you want to delete all active workflows ?')) {
+                $http.delete('workflow/instances/active');
+            }
         };
     })
     .controller('dummymail', function($http,$scope) {

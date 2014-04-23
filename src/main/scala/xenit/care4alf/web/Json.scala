@@ -5,6 +5,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Attribute
 import org.json.JSONWriter
 import org.alfresco.service.cmr.repository.{NodeService, NodeRef}
 import scala.collection.JavaConversions._
+import scala.language.implicitConversions
 
 /**
  * @author Laurent Van der Linden

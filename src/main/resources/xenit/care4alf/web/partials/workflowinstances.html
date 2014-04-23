@@ -8,8 +8,9 @@
         <input type="text" class="form-control" id="instanceid" ng-model="instanceid" ng-pattern="idpattern">
     </div>
     <div class="btn-group">
-        <button ng-click="findInstances()" class="btn btn-warning" ng-disabled="loading">find</button>
-        <button ng-click="findAllActive()" class="btn btn-danger" ng-disabled="loading">show all active</button>
+        <button ng-click="findInstances()" class="btn btn-info" ng-disabled="loading">find</button>
+        <button ng-click="findAllActive()" class="btn btn-primary" ng-disabled="loading">show all active</button>
+        <button class="btn btn-danger" ng-click="deleteAllActive()">Delete all active instances</button>
     </div>
 </form>
 

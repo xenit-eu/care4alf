@@ -125,4 +125,19 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
     def deleteWorkflow(@UriVariable("id") id: String) {
         workflowService.deleteWorkflow(id)
     }
+
+    @Uri(value = Array("/active"), method = HttpMethod.DELETE)
+    def deleteAllActive() {
+        for (wf <- workflowService.getActiveWorkflows) {
+            try {
+                workflowService.deleteWorkflow(wf.getId)
+                logger.debug(s"Deleted workflow instance ${wf.getId}.")
+            }
+            catch {
+                case ex: Exception => {
+                    logger.info(s"Failed to delete workflow instance ${wf.getId}: ${ex.getMessage}.")
+                }
+            }
+        }
+    }
 }

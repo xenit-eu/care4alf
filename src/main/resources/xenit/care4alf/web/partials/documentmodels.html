@@ -1,5 +1,23 @@
+<h3>Document models</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>QName</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="model in models">
+        <td>{{model}}</td>
+        <td><button ng-click="removeModel(model)" class="btn btn-danger" ng-disabled="loading">remove</button></td>
+    </tr>
+    </tbody>
+</table>
+
 <h3>Documents without a valid type</h3>
-<div class="alert alert-info" ng-show="!invalidTypes">scanning all nodes, please wait</div>
+<div>
+    <button class="btn btn-primary" ng-click="getInvalid()" ng-hide="typeof ">find nodes with invalid type</button>
+</div>
 <div class="alert alert-success" ng-show="invalidTypes.length == 0">no invalid types detected</div>
 <table class="table" ng-show="invalidTypes.length > 0">
     <thead>
@@ -23,19 +41,3 @@
 <div ng-show="invalidTypes.length > 0">
     <button ng-click="deleteAll()" class="btn btn-danger">delete all invalid documents</button>
 </div>
-
-<h3>Document models</h3>
-<table class="table">
-    <thead>
-    <tr>
-        <th>QName</th>
-        <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat="model in models">
-        <td>{{model}}</td>
-        <td><button ng-click="removeModel(model)" class="btn btn-danger" ng-disabled="loading">remove</button></td>
-    </tr>
-    </tbody>
-</table>
