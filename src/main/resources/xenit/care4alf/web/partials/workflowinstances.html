@@ -10,7 +10,7 @@
     <div class="btn-group">
         <button ng-click="findInstances()" class="btn btn-info" ng-disabled="loading">find</button>
         <button ng-click="findAllActive()" class="btn btn-primary" ng-disabled="loading">show all active</button>
-        <button class="btn btn-danger" ng-click="deleteAllActive()">Delete all active instances</button>
+        <button class="btn btn-danger" ng-click="deleteAllActive()">delete all active instances</button>
     </div>
 </form>
 
@@ -19,6 +19,7 @@
     <p>
         <label class="control-label">Initiator</label> {{instance.initiator}}
         <label class="control-label">Start date</label> {{instance.start | date : 'dd/MM/yyyy HH:mm:ss'}}
+        <label class="control-label">Definition</label> {{instance.definition.id}} - {{instance.definition.name}}
     </p>
     <h5>Files: {{instance.files.length}}</h5>
     <ul>

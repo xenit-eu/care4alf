@@ -72,6 +72,11 @@ class WorkflowInstances extends Json with Logging with HasNodeService with HasNa
             .key("id").value(instance.getId)
             .key("initiator").value(initiatorUsername)
             .key("start").value(instance.getStartDate.getTime)
+            .key("definition")
+              .`object`()
+                .key("id").value(instance.getDefinition.getId)
+                .key("name").value(instance.getDefinition.getName)
+              .endObject()
             .key("files").array()
         for (assoc <- nodeService.getChildAssocs(instance.getWorkflowPackage)) {
             json.`object`()
