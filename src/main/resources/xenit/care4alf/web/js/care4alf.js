@@ -16,11 +16,16 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
                 responseError: function(error) {
                     loadOperations--;
                     $rootScope.loading = loadOperations > 0;
-                    return error;
+                    return $q.reject(error);
                 }
             }
         });
         $httpProvider.interceptors.push('loader');
+    })
+    .filter('checkmark', function() {
+      return function(input) {
+        return input ? '\u2713' : '\u2718';
+      };
     })
     .filter('stripPrefix', function() {
         return function(input) {
@@ -116,8 +121,8 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         };
     })
     .controller('dictionary', function($scope,$http) {
-        $http.get('dictionary/namespaces').success(function(namespaces) {
-           $scope.namespaces = namespaces;
+        $http.get(serviceUrl + '/api/dictionary').success(function(types) {
+           $scope.types = types;
         });
     })
     .controller('workflowdefinitions', function($scope,$resource,$http,$window) {
@@ -216,9 +221,9 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             })
         };
     })
-    .controller('diskusage', function($scope,$http) {
+    .controller('contentstore', function($scope,$http) {
         var get = function() {
-            $http.get('diskusage/byowner').success(function(usage) {
+            $http.get('contentstore/diskusagebyowner').success(function(usage) {
                 $scope.sortedUsage = _.sortBy(usage, 'workspace');
             });
         };
@@ -226,10 +231,20 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         get();
 
         $scope.updateStats = function() {
-            $http.put('diskusage/update').success(function () {
+            $http.put('contentstore/updatediskusage').success(function () {
                 get();
             });
         };
+
+		var checkIntegrity = function() {
+			$http.get('contentstore/checkintegrity').success(function(missing) {
+				$scope.missing = missing;
+			})
+		}
+
+		$scope.checkIntegrity = function() {
+			checkIntegrity();
+		}
     })
     .controller('actions', function($scope,$http) {
         $http.get('actions/').success(function(actions) {

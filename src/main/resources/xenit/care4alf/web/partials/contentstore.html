@@ -1,0 +1,39 @@
+<h3>Disk usage by owner</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Owner</th>
+        <th>Workspace</th>
+        <th>Archive</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="user in sortedUsage">
+        <td>{{user.username}}</td>
+        <td>{{user.workspace | humanBytes}}</td>
+        <td>{{user.archive | humanBytes}}</td>
+    </tr>
+    </tbody>
+</table>
+
+<btn class="btn btn-info" ng-click="updateStats()" ng-disabled="loading">Update statistics</btn>
+
+<h3>Files missing from content store</h3>
+<table class="table">
+	<thead>
+	<tr>
+		<th>Noderef</th>
+		<th>ContentUrl</th>
+		<th>Message</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr ng-repeat="entry in missing">
+		<td>{{entry.noderef}}</td>
+		<td>{{entry.contenturl}}</td>
+		<td>{{user.message}}</td>
+	</tr>
+	</tbody>
+</table>
+
+<btn class="btn btn-info" ng-click="checkIntegrity()" ng-disabled="loading">Check integrity</btn>

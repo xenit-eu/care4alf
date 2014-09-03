@@ -15,6 +15,7 @@
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
     	var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];
+	    var serviceUrl = "${url.serviceContext}";
     </script>
     <link rel="stylesheet" href="${resources}/css/bootstrap.3.1.1.cached.min.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
