@@ -64,6 +64,17 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
             }
         }
     })
+	.directive('anchor', function() {
+		return {
+			restrict: 'A',
+			link: function(scope, elem, attrs) {
+				return elem.bind('click', function() {
+					var el = document.getElementById(attrs['anchor']);
+					return el.scrollIntoView();
+				});
+			}
+		};
+	})
     .controller('default', function($scope,$http) {
         $scope.modules = care4alfModules;
     })

@@ -71,3 +71,6 @@ body > .title .version {
 input.ng-invalid {
     color: red;
 }
+a[anchor] {
+  cursor: pointer;
+}
