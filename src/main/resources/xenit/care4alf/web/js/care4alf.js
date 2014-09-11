@@ -6,6 +6,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
                 'request': function(request) {
                     loadOperations++;
                     $rootScope.loading = loadOperations > 0;
+	                delete $rootScope.requestError;
                     return request;
                 },
                 response: function(response) {
@@ -16,6 +17,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
                 responseError: function(error) {
                     loadOperations--;
                     $rootScope.loading = loadOperations > 0;
+	                $rootScope.requestError = error.data;
                     return $q.reject(error);
                 }
             }

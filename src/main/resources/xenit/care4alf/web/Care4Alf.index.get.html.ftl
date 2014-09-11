@@ -31,6 +31,7 @@
 </#list>
 </ul>
 <div class="body">
+	<div ng-if="requestError.message" class="alert alert-danger">{{requestError.message}}</div>
     <ng-view />
 </div>
 </body>
