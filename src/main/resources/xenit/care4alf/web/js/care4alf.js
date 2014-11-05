@@ -117,7 +117,7 @@ angular.module('care4alf', ['ngRoute', 'ngResource', 'ngSanitize', 'ui.bootstrap
         });
 
         $scope.removeModel = function(model) {
-            $http.delete('documentmodels/models/' + model).success(function () {
+            $http.delete('documentmodels/model?modelQName=' + model).success(function () {
                 $scope.models.splice($scope.models.indexOf(model), 1);
             }).error(function(error) {
                 alert("Failed to remove model: " + error);

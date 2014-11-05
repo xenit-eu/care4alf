@@ -107,14 +107,14 @@ class DocumentModels @Autowired()(
     def listModels(@Attribute jsonHelper: JsonHelper) {
         val json = jsonHelper.json
         json.array()
-        for (model <- dictionaryDAO.getModels) {
+        for (model <- dictionaryDAO.getModels()) {
             json.value(model.toString)
         }
         json.endArray()
     }
 
-    @Uri(value = Array("/models/{modelQName}"), defaultFormat = "json", method = HttpMethod.DELETE)
-    def removeModel(@UriVariable modelQName: String) {
+    @Uri(value = Array("/model"), defaultFormat = "json", method = HttpMethod.DELETE)
+    def removeModel(@RequestParam modelQName: String) {
         dictionaryDAO.removeModel(QName.createQName(modelQName))
     }
 }
