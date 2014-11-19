@@ -56,3 +56,16 @@ dependencies {
     compile('com.googlecode.json-simple:json-simple:1.1')
 }
 
+alfrescoDynamicExtensions {
+    repository {
+        endpoint {
+            host = project.hasProperty('host') ? project.host : 'localhost'
+            port = project.hasProperty('port') ? project.port : '8080'
+            serviceUrl = '/alfresco/service'
+        }
+        authentication {
+            username = project.hasProperty('username') ? project.username : 'admin'
+            password = project.hasProperty('password') ? project.username : 'admin'
+        }
+    }
+}
