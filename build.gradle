@@ -65,7 +65,7 @@ alfrescoDynamicExtensions {
         }
         authentication {
             username = project.hasProperty('username') ? project.username : 'admin'
-            password = project.hasProperty('password') ? project.username : 'admin'
+            password = project.hasProperty('password') ? project.password : 'admin'
         }
     }
 }
