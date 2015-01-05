@@ -1,0 +1,30 @@
+<h3>Sent emails</h3>
+
+<button class="btn btn-warning" ng-click="clear()" ng-disabled="loading">Clear messages</button>
+<div class="email" ng-repeat="message in messages">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Value(s)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="(header,value) in message.headers">
+            <td>{{header}}</td>
+            <td>{{value}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div bind-html-unsafe="message.body"></div>
+</div>
+
+<h3>Configuration</h3>
+
+<p>Update alfresco-global.properties with</p>
+
+<pre>
+smtp.host=localhost
+smtp.port={{config.port}}
+</pre>

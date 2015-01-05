@@ -1,0 +1,20 @@
+<h3>Loggers</h3>
+<input type="text" ng-model="name"/>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Level</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-show="name">
+        <td>{{name}}</td>
+        <td><input type="text" placeholder="level" ng-model="level"/> <button class="btn" ng-show="level" ng-click="add({name: name, level: level})">apply</button></td>
+    </tr>
+    <tr ng-repeat="logger in loggers | filter:name">
+        <td>{{::logger.name}}</td>
+        <td><input type="text" ng-model="logger.level" /> <button class="btn" ng-show="logger.level != logger.original" ng-click="apply(logger)">apply</button></td>
+    </tr>
+    </tbody>
+</table>
