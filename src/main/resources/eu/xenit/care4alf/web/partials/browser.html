@@ -1,0 +1,111 @@
+<h3>Node browser</h3>
+
+<div ng-if="!node">
+    <form ng-submit="search(query)">
+        <input type="text" placeholder="lucene searchquery" ng-model="query"/>
+    </form>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Noderef</th>
+            <th>Type</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="node in ::results">
+            <td>{{node.name}}</td>
+            <td><a href="#/browser/{{node.noderef | hash}}">{{node.noderef}}</a></td>
+            <td>{{node.type}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!--<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class-name-or-function">drop files here</div>-->
+<div ng-if="node">
+    <fieldset>
+        <legend>Info</legend>
+        <form class="form-horizontal">
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">Name</label>
+                <div class="col-sm-6">
+                    <input readonly type="text" value="{{node.name}}" class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">Noderef</label>
+                <div class="col-sm-6">
+                    <input readonly type="text" value="{{node.noderef}}" class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">Display path</label>
+                <div class="col-sm-6">
+                    <input readonly type="text" value="{{node.displayPath}}" class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">QName path</label>
+                <div class="col-sm-6">
+                    <input readonly type="text" value="{{node.qnamePath}}" class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group form-group-sm">
+                <label class="col-sm-2 control-label">Type</label>
+                <div class="col-sm-6">
+                    <input readonly type="text" value="{{node.type}}" class="form-control"/>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend>Properties</legend>
+        <form class="form-horizontal">
+            <div ng-repeat="(qname,value) in node.properties" class="form-group form-group-sm has-feedback">
+                <label class="col-sm-2 control-label">{{qname}}</label>
+                <div class="col-sm-6">
+                    <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" />
+                    <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend>{{::node.aspects.length}} aspects</legend>
+        <ul ng-repeat="aspect in node.aspects">
+            <li class="aspect"><code>{{aspect}}</code> <span class="label label-danger" ng-click="removeAspect(aspect)">delete</span></li>
+        </ul>
+        <p>
+            Add aspect:
+            <select ng-change="addAspect(newAspect)" ng-model="newAspect">
+                <optgroup ng-repeat="(model,modelAspects) in ::aspects" label="{{model}}">
+                    <option ng-repeat="aspect in ::modelAspects" value="{{aspect.qname}}">{{aspect.qname}} ({{aspect.title}})</option>
+                </optgroup>
+            </select>
+        </p>
+    </fieldset>
+
+    <fieldset>
+        <legend>{{::node.children.length}} children</legend>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Noderef</th>
+                <th>Type</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="node in ::node.children">
+                <td>{{node.name}}</td>
+                <td><a href="#/browser/{{node.noderef | hash}}">{{node.noderef}}</a></td>
+                <td>{{node.type}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </fieldset>
+</div>

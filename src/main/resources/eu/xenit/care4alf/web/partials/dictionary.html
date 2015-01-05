@@ -1,0 +1,41 @@
+<h3>Dictionary types</h3>
+<fieldset ng-repeat="type in ::types" class="type" id="{{::type.name}}">
+	<legend>{{::type.name}} <span ng-if="type.title">({{::type.title}})</span></legend>
+    <p>Container: {{type.isContainer | checkmark}}</p>
+    <p>Aspect: {{::type.isAspect | checkmark}}</p>
+    <p ng-if="type.parent">Parent: <a anchor="{{::type.parent.name}}">{{::type.parent.name}}</a> <span ng-if="::type.parent.title">({{::type.parent.title}})</span></p>
+	<p ng-if="type.defaultAspects">Default aspects:</p>
+	<ul ng-if="type.defaultAspects">
+		<li ng-repeat="aspect in type.defaultAspects"><a anchor="{{::aspect.name}}">{{::aspect.name}}</a> <span ng-if="::aspect.title">({{::aspect.title}})</span></li>
+	</ul>
+    <table class="table table-striped">
+	    <thead>
+	        <tr>
+		        <th>Name</th>
+		        <th>Title</th>
+		        <th>Description</th>
+		        <th>Type</th>
+		        <th>Default</th>
+		        <th>Multi</th>
+		        <th>Required</th>
+		        <th>Enforced</th>
+		        <th>Protected</th>
+		        <th>Indexed</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr ng-repeat="property in type.properties">
+		        <td>{{::property.name}}</td>
+		        <td>{{::property.title}}</td>
+		        <td>{{::property.description}}</td>
+		        <td>{{::property.dataType}}</td>
+		        <td>{{::property.defaultValue}}</td>
+		        <td>{{::property.multiValued | checkmark}}</td>
+		        <td>{{::property.required | checkmark}}</td>
+		        <td>{{::property.enforced | checkmark}}</td>
+		        <td>{{::property.protected | checkmark}}</td>
+		        <td>{{::property.indexed | checkmark}}</td>
+	        </tr>
+	    </tbody>
+    </table>
+</fieldset>
