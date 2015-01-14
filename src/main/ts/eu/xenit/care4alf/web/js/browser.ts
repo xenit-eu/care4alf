@@ -1,6 +1,6 @@
 /// <reference path="care4alf.ts" />
 
-care4alf.controller('browser', ($scope,$upload, $http, $routeParams) => {
+care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window) => {
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
         $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
@@ -67,4 +67,12 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams) => {
            $scope.node.aspects = _.without($scope.node.aspects, aspect);
         });
     };
+
+    $scope.deleteNode = (node) => {
+        if ($window.confirm("Are you sure you want to delete " + node.name + " ?")) {
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + node.noderef).success(() => {
+                $scope.node.children = _.without($scope.node.children, node);
+            });
+        }
+    }
 });

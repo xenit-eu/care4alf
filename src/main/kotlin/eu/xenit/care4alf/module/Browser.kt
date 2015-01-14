@@ -176,11 +176,17 @@ public class Browser [Autowired](
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/aspects/{aspect}"), method = HttpMethod.DELETE)
+    Uri(value = array("{noderef}/aspects/{aspect}"), method = HttpMethod.DELETE, defaultFormat = "json")
     fun removeAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
+    }
+
+    Uri(value = array("{noderef}"), method = HttpMethod.DELETE, defaultFormat = "json")
+    fun deleteNode(UriVariable noderef: NodeRef) {
+        nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
+        nodeService.deleteNode(noderef)
     }
 
     fun nodesToBasicJson(): JsonRoot.(NodeRef) -> Unit {

@@ -90,20 +90,22 @@
     </fieldset>
 
     <fieldset>
-        <legend>{{::node.children.length}} children</legend>
+        <legend>{{node.children.length}} children</legend>
         <table class="table">
             <thead>
             <tr>
                 <th>Name</th>
                 <th>Noderef</th>
                 <th>Type</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="node in ::node.children">
-                <td>{{node.name}}</td>
-                <td><a href="#/browser/{{node.noderef | hash}}">{{node.noderef}}</a></td>
-                <td>{{node.type}}</td>
+            <tr ng-repeat="node in node.children">
+                <td>{{::node.name}}</td>
+                <td><a href="#/browser/{{node.noderef | hash}}">{{::node.noderef}}</a></td>
+                <td>{{::node.type}}</td>
+                <td><button class="btn btn-danger" ng-click="deleteNode(node)">delete</button></td>
             </tr>
             </tbody>
         </table>
