@@ -55,7 +55,11 @@
             <div class="form-group form-group-sm">
                 <label class="col-sm-2 control-label">Type</label>
                 <div class="col-sm-6">
-                    <input readonly type="text" value="{{node.type}}" class="form-control"/>
+                    <select ng-change="setType(node.type)" ng-model="node.type" class="form-control">
+                        <optgroup ng-repeat="(model,modelTypes) in ::types" label="{{model}}">
+                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" selected="{{type == node.type}}">{{type.qname}} ({{type.title}})</option>
+                        </optgroup>
+                    </select>
                 </div>
             </div>
         </form>
@@ -81,7 +85,7 @@
         </ul>
         <p>
             Add aspect:
-            <select ng-change="addAspect(newAspect)" ng-model="newAspect">
+            <select ng-change="addAspect(newAspect)" ng-model="newAspect" class="form-control">
                 <optgroup ng-repeat="(model,modelAspects) in ::aspects" label="{{model}}">
                     <option ng-repeat="aspect in ::modelAspects" value="{{aspect.qname}}">{{aspect.qname}} ({{aspect.title}})</option>
                 </optgroup>

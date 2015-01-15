@@ -174,12 +174,31 @@ public class Browser [Autowired](
         obj {
             dictionaryService.getAllModels().forEach { model ->
                 val modelAspects = dictionaryService.getAspects(model)
-                if (modelAspects.notEmpty) {
+                if (modelAspects.isNotEmpty()) {
                     key(model.toString()) {
                         iterable(modelAspects) { aspect ->
                             obj {
                                 entry("qname", aspect)
                                 entry("title", dictionaryService.getAspect(aspect).getTitle())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Uri(array("types"))
+    fun types() = json {
+        obj {
+            dictionaryService.getAllModels().forEach { model ->
+                val modelTypes = dictionaryService.getTypes(model)
+                if (modelTypes.isNotEmpty()) {
+                    key(model.toString()) {
+                        iterable(modelTypes) { type ->
+                            obj {
+                                entry("qname", type)
+                                entry("title", dictionaryService.getType(type).getTitle())
                             }
                         }
                     }
@@ -202,6 +221,11 @@ public class Browser [Autowired](
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
+    }
+
+    Uri(value = array("{noderef}/type/{type}"), method = HttpMethod.PUT, defaultFormat = "json")
+    fun removeAspect(UriVariable noderef: NodeRef, UriVariable type: QName) {
+        nodeService.setType(noderef, type)
     }
 
     Uri(value = array("{noderef}"), method = HttpMethod.DELETE, defaultFormat = "json")

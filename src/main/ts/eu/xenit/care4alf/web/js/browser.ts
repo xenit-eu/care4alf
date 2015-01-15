@@ -9,6 +9,9 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window) => 
         $http.get(serviceUrl + "/xenit/care4alf/browser/aspects").success((aspects) => {
             $scope.aspects = aspects;
         });
+        $http.get(serviceUrl + "/xenit/care4alf/browser/types").success((types) => {
+            $scope.types = types;
+        });
     } else {
         $http.get(serviceUrl + "/xenit/care4alf/browser/rootNodes").success((rootNodes) => {
             $scope.results = rootNodes;
@@ -66,6 +69,10 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window) => 
         $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects/" + aspect).success(() => {
            $scope.node.aspects = _.without($scope.node.aspects, aspect);
         });
+    };
+
+    $scope.setType = (newType) => {
+        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/type/" + newType);
     };
 
     $scope.deleteNode = (node) => {
