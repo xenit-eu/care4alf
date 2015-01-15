@@ -90,6 +90,50 @@
     </fieldset>
 
     <fieldset>
+        <legend>{{node.sourceAssocs.length}} source associations</legend>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Source</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="assoc in node.sourceAssocs">
+                <td>{{::assoc.id}}</td>
+                <td><a href="#/browser/{{::assoc.sourceRef | hash}}">{{::assoc.sourceRef}}</a></td>
+                <td>{{::assoc.type}}</td>
+                <td><button class="btn btn-danger" ng-click="deleteAssoc(assoc)">delete</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </fieldset>
+
+    <fieldset>
+        <legend>{{node.targetAssocs.length}} target associations</legend>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Target</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="assoc in node.targetAssocs">
+                <td>{{::assoc.id}}</td>
+                <td><a href="#/browser/{{::assoc.targetRef | hash}}">{{::assoc.targetRef}}</a></td>
+                <td>{{::assoc.type}}</td>
+                <td><button class="btn btn-danger" ng-click="deleteAssoc(assoc)">delete</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </fieldset>
+
+    <fieldset>
         <legend>{{node.children.length}} children</legend>
         <table class="table">
             <thead>
@@ -103,7 +147,7 @@
             <tbody>
             <tr ng-repeat="node in node.children">
                 <td>{{::node.name}}</td>
-                <td><a href="#/browser/{{node.noderef | hash}}">{{::node.noderef}}</a></td>
+                <td><a href="#/browser/{{::node.noderef | hash}}">{{::node.noderef}}</a></td>
                 <td>{{::node.type}}</td>
                 <td><button class="btn btn-danger" ng-click="deleteNode(node)">delete</button></td>
             </tr>

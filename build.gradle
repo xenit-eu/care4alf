@@ -86,7 +86,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({'lib/' + it.name}).join(',')}"
-        instruction 'Import-Package', '!jet.*,!kotlin.*,*'
+        instruction 'Import-Package', '!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,*'
     }
 }
 

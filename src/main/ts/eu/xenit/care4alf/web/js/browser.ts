@@ -74,5 +74,19 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window) => 
                 $scope.node.children = _.without($scope.node.children, node);
             });
         }
+    };
+
+    $scope.deleteAssoc = (assoc) => {
+        if ($window.confirm("Are you sure you want to delete the association with ID " + assoc.id + " ?")) {
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/assoc/" + assoc.id).success(() => {
+               $scope.node.sourceAssocs = _.filter($scope.node.sourceAssocs, (sourceAssoc: any) => {
+                   return sourceAssoc.id == assoc.id;
+               });
+
+               $scope.node.targetAssocs = _.filter($scope.node.targetAssocs, (targetAssoc: any) => {
+                   return targetAssoc.id == assoc.id;
+               });
+            });
+        }
     }
 });

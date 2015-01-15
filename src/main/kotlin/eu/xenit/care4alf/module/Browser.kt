@@ -36,6 +36,7 @@ import org.alfresco.util.ISO8601DateFormat
 import eu.xenit.care4alf.web.RestErrorHandling
 import org.alfresco.service.transaction.TransactionService
 import org.alfresco.service.cmr.security.PermissionService
+import org.alfresco.service.namespace.RegexQNamePattern
 
 /**
  * @author Laurent Van der Linden
@@ -124,6 +125,26 @@ public class Browser [Autowired](
                     }
                 }
             }
+            key("targetAssocs") {
+                iterable(nodeService.getTargetAssocs(noderef, RegexQNamePattern.MATCH_ALL)) { assoc ->
+                    obj {
+                        entry("id", assoc.getId())
+                        entry("sourceRef", assoc.getSourceRef())
+                        entry("targetRef", assoc.getTargetRef())
+                        entry("type", assoc.getTypeQName())
+                    }
+                }
+            }
+            key("sourceAssocs") {
+                iterable(nodeService.getSourceAssocs(noderef, RegexQNamePattern.MATCH_ALL)) { assoc ->
+                    obj {
+                        entry("id", assoc.getId())
+                        entry("sourceRef", assoc.getSourceRef())
+                        entry("targetRef", assoc.getTargetRef())
+                        entry("type", assoc.getTypeQName())
+                    }
+                }
+            }
         }
     }
 
@@ -187,6 +208,12 @@ public class Browser [Autowired](
     fun deleteNode(UriVariable noderef: NodeRef) {
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
+    }
+
+    Uri(value = array("assoc/{id}"), method = HttpMethod.DELETE, defaultFormat = "json")
+    fun deleteAssoc(UriVariable id: Long) {
+        val associationRef = nodeService.getAssoc(id)
+        nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())
     }
 
     fun nodesToBasicJson(): JsonRoot.(NodeRef) -> Unit {
