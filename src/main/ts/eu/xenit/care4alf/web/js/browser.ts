@@ -1,15 +1,17 @@
 /// <reference path="care4alf.ts" />
 
-care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window) => {
+care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window, DataLists) => {
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
         $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
             $scope.node = result;
         });
-        $http.get(serviceUrl + "/xenit/care4alf/browser/aspects").success((aspects) => {
+
+        DataLists.getAspects().then((aspects) => {
             $scope.aspects = aspects;
         });
-        $http.get(serviceUrl + "/xenit/care4alf/browser/types").success((types) => {
+
+        DataLists.getTypes().then((types) => {
             $scope.types = types;
         });
     } else {
