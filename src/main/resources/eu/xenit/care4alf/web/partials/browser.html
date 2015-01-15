@@ -57,7 +57,7 @@
                 <div class="col-sm-6">
                     <select ng-change="setType(node.type)" ng-model="node.type" class="form-control">
                         <optgroup ng-repeat="(model,modelTypes) in ::types" label="{{model}}">
-                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" selected="{{type == node.type}}">{{type.qname}} ({{type.title}})</option>
+                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" ng-selected="type.qname == node.type">{{type.qname}} ({{type.title}})</option>
                         </optgroup>
                     </select>
                 </div>
