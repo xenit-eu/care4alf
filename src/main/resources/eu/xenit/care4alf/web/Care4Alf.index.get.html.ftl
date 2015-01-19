@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+a<!DOCTYPE html>
 <html lang="en" ng-app="care4alf">
 <head>
-	<#assign cached = url.serviceContext + "/xenit/care4alf/cached/" + version?c!"1">
-	<#assign resources = url.serviceContext + "/xenit/care4alf/resources">
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Care4Alf</title>
+    <#assign cached = url.serviceContext + "/xenit/care4alf/cached/" + version?c!"1">
+    <#assign resources = url.serviceContext + "/xenit/care4alf/resources">
     <script type="text/javascript" src="${resources}/js/upload/angular-file-upload-shim.min.js"></script>
     <script type="text/javascript" src="${resources}/js/underscore.1.5.2.cached.min.js"></script>
     <script type="text/javascript" src="${resources}/js/angular/angular.js"></script>

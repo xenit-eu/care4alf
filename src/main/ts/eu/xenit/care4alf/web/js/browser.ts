@@ -1,25 +1,6 @@
 /// <reference path="care4alf.ts" />
 
-care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window, DataLists) => {
-    if (angular.isDefined($routeParams.subtoken)) {
-        var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
-        $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
-            $scope.node = result;
-        });
-
-        DataLists.getAspects().then((aspects) => {
-            $scope.aspects = aspects;
-        });
-
-        DataLists.getTypes().then((types) => {
-            $scope.types = types;
-        });
-    } else {
-        $http.get(serviceUrl + "/xenit/care4alf/browser/rootNodes").success((rootNodes) => {
-            $scope.results = rootNodes;
-        });
-    }
-
+care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Window, DataLists) => {
     $scope.onFileSelect = function($files) {
         //$files: an array of files selected, each file has name, size, and type.
         for (var i = 0; i < $files.length; i++) {
@@ -97,5 +78,46 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window, Dat
                });
             });
         }
+    };
+
+    var LS_QUERY = "care4alfquery";
+
+    $scope.search = () => {
+        var query: string = $scope.searchModel.query;
+
+        if (query == null || query.length == 0) {
+            $http.get(serviceUrl + "/xenit/care4alf/browser/rootNodes").success((rootNodes) => {
+                $scope.results = rootNodes;
+            });
+            $window.localStorage.removeItem(LS_QUERY)
+        } else {
+            $window.localStorage.setItem(LS_QUERY, query);
+
+            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query).success((matches) => {
+                $scope.results = matches;
+            });
+        }
+    };
+
+    $scope.searchModel = {};
+    $scope.serviceUrl = serviceUrl;
+
+    if (angular.isDefined($routeParams.subtoken)) {
+        var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
+        $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
+            $scope.node = result;
+        });
+
+        DataLists.getAspects().then((aspects) => {
+            $scope.aspects = aspects;
+        });
+
+        DataLists.getTypes().then((types) => {
+            $scope.types = types;
+        });
+    } else {
+        $scope.searchModel.query = $window.localStorage.getItem(LS_QUERY);
+
+        $scope.search();
     }
 });

@@ -36,7 +36,10 @@ var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource'
     })
     .config(['$routeProvider', function ($routeProvider: ng.route.IRouteProvider) {
         angular.forEach(care4alfModules, function(module) {
-            $routeProvider.when('/' + module.id + '/:subtoken?', {templateUrl: 'resources/partials/' + module.id + '.html', controller: module.id});
+            $routeProvider.when('/' + module.id + '/:subtoken?', {
+                templateUrl: 'resources/partials/' + module.id + '.html',
+                controller: module.id
+            });
         });
         $routeProvider.otherwise({templateUrl: 'resources/partials/default.html', controller:'default'});
     }])

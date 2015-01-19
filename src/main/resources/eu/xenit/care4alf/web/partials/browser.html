@@ -1,8 +1,8 @@
 <h3>Node browser</h3>
 
 <div ng-if="!node">
-    <form ng-submit="search(query)">
-        <input type="text" placeholder="lucene searchquery" ng-model="query"/>
+    <form ng-submit="search()">
+        <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control" name="query"/>
     </form>
 
     <table class="table">
@@ -14,7 +14,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="node in ::results">
+        <tr ng-repeat="node in results">
             <td>{{node.name}}</td>
             <td><a href="#/browser/{{node.noderef | hash}}">{{node.noderef}}</a></td>
             <td>{{node.type}}</td>
@@ -57,7 +57,7 @@
                 <div class="col-sm-6">
                     <select ng-change="setType(node.type)" ng-model="node.type" class="form-control">
                         <optgroup ng-repeat="(model,modelTypes) in ::types" label="{{model}}">
-                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" ng-selected="type.qname == node.type">{{type.qname}} ({{type.title}})</option>
+                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" ng-selected="ftype.qname == node.type">{{type.qname}} ({{type.title}})</option>
                         </optgroup>
                     </select>
                 </div>
