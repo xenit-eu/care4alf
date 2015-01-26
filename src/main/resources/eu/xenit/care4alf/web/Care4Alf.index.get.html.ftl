@@ -1,4 +1,4 @@
-a<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" ng-app="care4alf">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
