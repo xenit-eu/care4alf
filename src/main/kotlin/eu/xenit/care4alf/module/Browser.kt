@@ -37,12 +37,13 @@ import eu.xenit.care4alf.web.RestErrorHandling
 import org.alfresco.service.transaction.TransactionService
 import org.alfresco.service.cmr.security.PermissionService
 import org.alfresco.service.namespace.RegexQNamePattern
+import org.alfresco.repo.domain.permissions.AclDAO
 
 /**
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/browser", families = array("care4alf"), description = "node browser")
+WebScript(baseUri = "/xenit/care4alf/browser", families = array("care4alf"), description = "node browser", defaultFormat = "json")
 Authentication(AuthenticationType.ADMIN)
 public class Browser [Autowired](
         private val filefolderService: FileFolderService,
@@ -52,7 +53,8 @@ public class Browser [Autowired](
         private val searchService: SearchService,
         private val transactionService: TransactionService,
         private val policyBehaviourFilter: BehaviourFilter,
-        private val permissionService: PermissionService
+        private val permissionService: PermissionService,
+        private val aclDAO: AclDAO
     ): RestErrorHandling {
     override var logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
@@ -145,6 +147,30 @@ public class Browser [Autowired](
                     }
                 }
             }
+            key("acl") {
+                val aclId = nodeService.getNodeAclId(noderef)
+                val acl = aclDAO.getAcl(aclId)
+                val accessControlList = aclDAO.getAccessControlList(aclId)
+                obj {
+                    entry("id", acl.getId())
+                    entry("changeset", acl.getAclChangeSetId())
+                    entry("type", acl.getAclType())
+                    entry("version", acl.getAclVersion())
+                    entry("inheritedacl", acl.getInheritedAcl())
+                    entry("inheritsfrom", acl.getInheritsFrom())
+                    entry("requiresversion", acl.getRequiresVersion())
+                    key("accesscontrollist") {
+                        iterable(accessControlList.getEntries()) { aclEntry ->
+                            obj {
+                                entry("status", aclEntry.getAccessStatus())
+                                entry("acetype", aclEntry.getAceType())
+                                entry("authority", aclEntry.getAuthority())
+                                entry("permission", aclEntry.getPermission().getName())
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -207,7 +233,7 @@ public class Browser [Autowired](
         }
     }
 
-    Uri(value = array("/{noderef}/aspects/{aspect}"), method = HttpMethod.POST, defaultFormat = "json")
+    Uri(value = array("/{noderef}/aspects/{aspect}"), method = HttpMethod.POST)
     fun addAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
         // need a new transaction, so any on-commit handler can throw errors now and be properly intercepted
         transactionService.getRetryingTransactionHelper().doInTransaction({
@@ -216,25 +242,25 @@ public class Browser [Autowired](
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/aspects/{aspect}"), method = HttpMethod.DELETE, defaultFormat = "json")
+    Uri(value = array("{noderef}/aspects/{aspect}"), method = HttpMethod.DELETE)
     fun removeAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/type/{type}"), method = HttpMethod.PUT, defaultFormat = "json")
+    Uri(value = array("{noderef}/type/{type}"), method = HttpMethod.PUT)
     fun removeAspect(UriVariable noderef: NodeRef, UriVariable type: QName) {
         nodeService.setType(noderef, type)
     }
 
-    Uri(value = array("{noderef}"), method = HttpMethod.DELETE, defaultFormat = "json")
+    Uri(value = array("{noderef}"), method = HttpMethod.DELETE)
     fun deleteNode(UriVariable noderef: NodeRef) {
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
     }
 
-    Uri(value = array("assoc/{id}"), method = HttpMethod.DELETE, defaultFormat = "json")
+    Uri(value = array("assoc/{id}"), method = HttpMethod.DELETE)
     fun deleteAssoc(UriVariable id: Long) {
         val associationRef = nodeService.getAssoc(id)
         nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())

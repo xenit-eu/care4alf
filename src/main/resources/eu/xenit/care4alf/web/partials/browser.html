@@ -57,7 +57,7 @@
                 <div class="col-sm-6">
                     <select ng-change="setType(node.type)" ng-model="node.type" class="form-control">
                         <optgroup ng-repeat="(model,modelTypes) in ::types" label="{{model}}">
-                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" ng-selected="ftype.qname == node.type">{{type.qname}} ({{type.title}})</option>
+                            <option ng-repeat="type in ::modelTypes" value="{{type.qname}}" ng-selected="type.qname == node.type">{{type.qname}} ({{type.title}})</option>
                         </optgroup>
                     </select>
                 </div>
@@ -71,7 +71,8 @@
             <div ng-repeat="(qname,value) in node.properties" class="form-group form-group-sm has-feedback">
                 <label class="col-sm-2 control-label">{{qname}}</label>
                 <div class="col-sm-6">
-                    <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" />
+                    <a ng-if="node.properties[qname].indexOf('contentUrl') == 0" ng-href="{{serviceUrl + '/' + node.properties[qname]}}">node.properties[qname]</a>
+                    <input ng-if="node.properties[qname].indexOf('contentUrl') != 0" type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" />
                     <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                 </div>
             </div>
@@ -157,5 +158,10 @@
             </tr>
             </tbody>
         </table>
+    </fieldset>
+
+    <fieldset>
+        <legend>ACL</legend>
+        <pre>{{node.acl | json}}</pre>
     </fieldset>
 </div>

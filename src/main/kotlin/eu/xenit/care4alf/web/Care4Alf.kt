@@ -30,7 +30,7 @@ class Care4Alf [Autowired](private val bundleContext: BundleContext) : Applicati
         val lastModified = bundleContext.getBundle().getHeaders().get("Bnd-LastModified")
 
         return mapOf(
-                "modules" to getModuleWebScripts().map({ entry ->
+                "modules" to getModuleWebScripts().toSortedMap().map({ entry ->
                     val description = entry.getValue().javaClass.getAnnotation(javaClass<WebScript>()).description()
                     mapOf("id" to entry.getKey().toLowerCase(), "description" to description)
                 }),
