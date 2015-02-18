@@ -79,11 +79,13 @@ public class Browser [Autowired](
     fun details(RequestParam noderef: NodeRef) = json {
         val path = nodeService.getPath(noderef)
         val name = nodeService.getProperty(noderef, ContentModel.PROP_NAME)
+        val dbid = nodeService.getProperty(noderef, ContentModel.PROP_NODE_DBID)
         obj {
             entry("name", name)
             entry("qnamePath", path.toPrefixString(namespaceService))
             entry("displayPath", path.toDisplayPath(nodeService, permissionService) + "/" + name)
             entry("noderef", noderef)
+            entry("dbid", dbid)
             entry("type", nodeService.getType(noderef))
             key("properties") {
                 obj {
