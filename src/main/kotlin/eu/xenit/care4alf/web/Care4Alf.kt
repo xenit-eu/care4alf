@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationContextAware
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf")
+WebScript(baseUri = "/xenit/care4alf", families = array("care4alf"))
 Authentication(AuthenticationType.ADMIN)
 class Care4Alf [Autowired](private val bundleContext: BundleContext) : ApplicationContextAware {
     private var applicationContext: ApplicationContext? = null
