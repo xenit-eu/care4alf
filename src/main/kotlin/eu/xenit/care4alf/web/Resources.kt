@@ -16,7 +16,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Transaction
  * @author Laurent Van der Linden
  */
 Component
-WebScript
+WebScript(families = array("care4alf"))
 Authentication(AuthenticationType.NONE)
 Transaction(readOnly = true)
 public class Resources : AbstractBundleResourceHandler() {
