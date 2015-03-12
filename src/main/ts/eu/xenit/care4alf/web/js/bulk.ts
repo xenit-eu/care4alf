@@ -4,6 +4,7 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
     $scope.form.query = "PATH:\"/app:company_home/st:sites/cm:swsdp/cm:documentLibrary/cm:Agency_x0020_Files//*\" AND TYPE:\"cm:content\"";
     $scope.form.batchsize = 20;
     $scope.form.threads = 2;
+    $scope.form.actions = ["delete","archive"];
     $scope.form.action = "delete";
 
     $scope.result = "";

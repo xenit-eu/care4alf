@@ -54,6 +54,13 @@ public class Bulk {
             w.setNodeService(nodeService);
             worker = w;
         }
+        else if(action.equals("archive"))
+        {
+            ArchiveWorker w = new ArchiveWorker();
+            w.setNodeService(nodeService);
+            worker = w;
+        }
+
 
         if(worker == null)
         {
