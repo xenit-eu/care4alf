@@ -1,5 +1,5 @@
-ext.alfrescoVersion = '5.0.b'
-ext.springVersion = '3.2.10.RELEASE'
+ext.alfrescoVersion = '4.2.3.1'
+ext.springVersion = '3.0.5.RELEASE'
 
 buildscript {
     ext.kotlin_version = '0.10.4'
@@ -8,7 +8,7 @@ buildscript {
         maven {
             url 'https://github.com/sothmann/typescript-gradle-plugin/raw/mavenrepo/'
         }
-    }
+            }
     dependencies {
         classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.1.+')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -37,6 +37,13 @@ repositories {
     maven { url "http://artifactory.local.xenit.eu/artifactory/libs-release-local" }
     maven { url 'http://artifactory.local.xenit.eu/artifactory/typesafe' }*/
     //mavenLocal()
+    maven {
+        credentials {
+            username 'xenit'
+            password '1pKo29#0rx'
+        }
+        url 'https://artifacts.alfresco.com/nexus/content/groups/private'
+    }
     maven { url 'https://artifacts.alfresco.com/nexus/content/groups/public'}
     mavenCentral()
 }

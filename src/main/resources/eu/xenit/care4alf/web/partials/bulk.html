@@ -1,0 +1,12 @@
+<h3>Bulk operations</h3>
+
+<form class="form-horizontal" role="form">
+    <label>Store</label><input class="form-control" ng-model="form.store ">
+    <label>FTS Query</label><input class="form-control" ng-model="form.query">
+    <label>Batch size</label><input class="form-control" ng-model="form.batchsize">
+    <label>Number of threads</label><input class="form-control" ng-model="form.threads">
+    <label>Action</label><input class="form-control" ng-model="form.action">
+    <button type="submit" class="btn btn-default" ng-click="execute()">Execute</button>
+</form>
+
+<pre ng-show="result">{{result | json}}</pre>

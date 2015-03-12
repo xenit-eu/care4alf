@@ -21,3 +21,4 @@
 /// <reference path="actions.ts" />
 /// <reference path="logging.ts" />
 /// <reference path="browser.ts" />
+/// <reference path="bulk.ts" />

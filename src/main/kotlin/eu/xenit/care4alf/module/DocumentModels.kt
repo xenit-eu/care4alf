@@ -117,7 +117,7 @@ class DocumentModels [Autowired](
             val models = if (getter.getParameterTypes().isEmpty()) {
                 getter.invoke(dictionaryDAO) as Collection<Any>
             } else {
-                dictionaryDAO.getModels(true)
+                dictionaryDAO.getModels()
             }
             iterable(models) { model ->
                 value(model.toString())

@@ -8,3 +8,8 @@ Provide html (named <classname>.html) in the partials directory.
 Your JS controller file reference can be added to the main `care4alf.js` file.
 
 Note that node, tsc, lessc are required for development.
+
+sudo npm install -g typescript
+sudo npm install -g less
+
+./gradlew installBundle -Phost=usg-nl
