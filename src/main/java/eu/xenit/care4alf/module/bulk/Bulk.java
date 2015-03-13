@@ -11,6 +11,7 @@ import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
 //import org.apache.commons.logging.Log;
 //import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by willem on 3/10/15.
@@ -37,7 +39,7 @@ public class Bulk {
     @Autowired
     private TransactionService transactionService;
 
-    @Uri(value="/xenit/care4alf/bulk/{action}", method = HttpMethod.POST)
+    @Uri(value="/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
     public void bulk(@UriVariable final String action, JSONObject json, final WebScriptResponse response) throws IOException, JSONException {
         String query = json.getString("query");
         StoreRef storeRef = new StoreRef(json.getString("store"));
@@ -87,11 +89,10 @@ public class Bulk {
         response.getWriter().write(result.toString());
     }
 
-    @ActionMethod("Archive")
-    public void archive(final NodeRef nodeRef) {
-        if (nodeService.exists(nodeRef)) {
-            nodeService.deleteNode(nodeRef);
-        }
+    @Uri("/xenit/care4alf/bulk/stores")
+    public void stores(final WebScriptResponse response) throws IOException, JSONException {
+        List<StoreRef> stores = nodeService.getStores();
+        response.getWriter().write(new JSONArray(stores).toString());
     }
 
 }
