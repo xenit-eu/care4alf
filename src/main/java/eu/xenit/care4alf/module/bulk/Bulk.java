@@ -1,6 +1,5 @@
 package eu.xenit.care4alf.module.bulk;
 
-import com.github.dynamicextensionsalfresco.actions.annotations.ActionMethod;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -46,23 +45,36 @@ public class Bulk {
         String queryLanguage = "fts-alfresco";
         int batchSize = json.getInt("batchsize");
         int nbThreads = json.getInt("threads");
+        JSONObject parameters = json.getJSONObject("parameters");
 
 //        logger.info(String.format("Starting bulk action '%s'", action));
 
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
+        //TODO: load dynamically
         if(action.equals("delete"))
         {
-            DeleteWorker w = new DeleteWorker();
+            DeleteWorker w = new DeleteWorker(parameters);
             w.setNodeService(nodeService);
             worker = w;
         }
         else if(action.equals("archive"))
         {
-            ArchiveWorker w = new ArchiveWorker();
+            ArchiveWorker w = new ArchiveWorker(parameters);
             w.setNodeService(nodeService);
             worker = w;
         }
-
+        else if(action.equals("settype"))
+        {
+            SetTypeWorker w = new SetTypeWorker(parameters);
+            w.setNodeService(nodeService);
+            worker = w;
+        }
+        else if(action.equals("setproperty"))
+        {
+            SetPropertyWorker w = new SetPropertyWorker(parameters);
+            w.setNodeService(nodeService);
+            worker = w;
+        }
 
         if(worker == null)
         {
