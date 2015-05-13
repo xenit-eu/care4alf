@@ -8,9 +8,11 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
         delete:[],
         archive:[],
         settype:["Type"],
-        setproperty:["Property","Value"]
+        setproperty:["Property","Value"],
+        dummy: []
     };
-    $scope.parameters = {};
+    $scope.form.parameters = {};
+    $scope.loading = false;
 
     $scope.result = "";
 
@@ -29,9 +31,14 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
         });
 
     $scope.execute = () => {
+        $scope.loading = true;
         $http.post("bulk/action/"+$scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'} })
             .then(function (response) {
                 $scope.result = response.data;
+                $scope.loading = false;
+            },function(error){
+                $scope.result = "Error: " + error;
+                $scope.loading = false;
             });
     };
 });

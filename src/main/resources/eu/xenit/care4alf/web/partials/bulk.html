@@ -22,7 +22,7 @@
             <label class="control-label">{{param}}</label><input class="form-control" ng-model="form.parameters[param]" />
         </div>
     </div>
-    <button type="submit" class="btn btn-default" ng-click="execute()">Execute</button>
+    <button type="submit" class="btn btn-default" ng-click="execute()">Execute {{loading?"(loading)":""}}</button>
 </form>
 
 <pre ng-show="result">{{result | json}}</pre>

@@ -6,22 +6,23 @@ import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
-//	private static Log logger = LogFactory.getLog(SearchWorkProvider.class);
+    private final static Logger logger = LoggerFactory.getLogger(SearchWorkProvider.class);
 
 	private SearchService searchService;
 	private SearchParameters sp;
 	private int batchSize;
 	private int skipCount;
-    private int estimate;
     private boolean cancel;
+    private List<NodeRef> nodeRefs;
 
 	public SearchWorkProvider(
             SearchService searchService,
@@ -29,7 +30,6 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
             String queryLanguage,
             String query,
 			int batchSize) {
-        this.estimate = -1;
 		this.searchService = searchService;
 		this.batchSize = batchSize;
 		this.skipCount = 0;
@@ -41,46 +41,57 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
 		
 		sp.addStore(storeRef);
 		sp.setLanguage(queryLanguage);
-		sp.setMaxItems(batchSize);
+		sp.setMaxItems(-1);
 		sp.addSort("ID", true);
 		sp.setQuery(query);
 	}
 
 	@Override
 	public int getTotalEstimatedWorkSize() {
-        return this.estimate;
+        if(this.nodeRefs == null)
+            return -1;
+        return this.nodeRefs.size();
 	}
 
 	@Override
 	public Collection<NodeRef> getNextWork() {
         if(this.cancel){
-//            logger.debug("Returning empty list because workerprovider is cancelled");
             return Collections.emptyList();
         }
 
-//		logger.debug("Query: " + sp.getQuery());
-		sp.setSkipCount(skipCount);
-		skipCount += batchSize;
-		ResultSet rs = null;
-		try {
-			rs = this.searchService.query(sp);
-//            estimate = ResultSetUtil.getCount(rs);
-			if (rs.length() <= 0) {
-//				logger.debug("Geen resultaten. Geef lege lijst terug");
-				return new ArrayList<NodeRef>();
-			} else {
-				return rs.getNodeRefs();
-			}
-		} catch (Exception e) {
-//			logger.error("Search query failed", e);
-			return Collections.emptyList();
-		} finally {
-			if (rs != null) rs.close();
-		}
+        if(this.nodeRefs == null){
+            fetchAllResults();
+        }
+
+        if(skipCount >= this.nodeRefs.size())
+            return Collections.emptyList();
+
+        int from = skipCount;
+        int to = Math.min(skipCount + this.batchSize, this.nodeRefs.size());
+        skipCount += batchSize;
+
+        return this.nodeRefs.subList(from, to);
 	}
 
+    private void fetchAllResults() {
+        this.nodeRefs = new ArrayList<NodeRef>();
+        ResultSet rs = null;
+        int start = 0;
+        try {
+            do {
+                sp.setSkipCount(start);
+                logger.info("Start searching at " + start);
+                rs = this.searchService.query(sp);
+                this.nodeRefs.addAll(rs.getNodeRefs());
+                start += 1000;
+                rs.close();
+            }while(rs.getNodeRefs().size() > 0);
+        } finally {
+            if (rs != null) rs.close();
+        }
+    }
+
     public void cancel(){
-//        logger.debug("Cancelling job");
         this.cancel = true;
     }
 

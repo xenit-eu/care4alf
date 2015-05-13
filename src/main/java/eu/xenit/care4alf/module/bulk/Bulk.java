@@ -75,6 +75,12 @@ public class Bulk {
             w.setNodeService(nodeService);
             worker = w;
         }
+        else if(action.equals("dummy"))
+        {
+            DummyWorker w = new DummyWorker(parameters);
+            w.setNodeService(nodeService);
+            worker = w;
+        }
 
         if(worker == null)
         {
