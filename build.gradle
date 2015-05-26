@@ -2,7 +2,7 @@ ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
 buildscript {
-    ext.kotlin_version = '0.10.4'
+    ext.kotlin_version = '0.11.91'
     repositories {
         jcenter()
         maven {
@@ -68,6 +68,7 @@ dependencies {
     compile('javax.transaction:transaction-api:1.1') {transitive = false}
     compile('org.jibx:jibx-run:1.2.3') {transitive = false}
     compile('com.googlecode.json-simple:json-simple:1.1')
+    compile('javax.servlet:servlet-api:2.5')
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
 }
@@ -93,7 +94,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({'lib/' + it.name}).join(',')}"
-        instruction 'Import-Package', '!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,*'
+        instruction 'Import-Package', '!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",*'
     }
 }
 
