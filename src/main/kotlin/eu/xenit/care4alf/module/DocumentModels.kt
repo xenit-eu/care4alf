@@ -39,8 +39,6 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import kotlin.reflect.jvm.*
-
 /**
  * Tools for validating/cleaning document models.
  *
@@ -117,7 +115,7 @@ class DocumentModels [Autowired](
             val models = if (getter.getParameterTypes().isEmpty()) {
                 getter.invoke(dictionaryDAO) as Collection<Any>
             } else {
-                dictionaryDAO.getModels()
+                getter.invoke(dictionaryDAO, true) as Collection<Any>
             }
             iterable(models) { model ->
                 value(model.toString())

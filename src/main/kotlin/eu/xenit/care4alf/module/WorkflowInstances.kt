@@ -57,7 +57,7 @@ public class WorkflowInstances [Autowired](
     }
 
     fun instanceToJson(includeTasks: Boolean): JsonRoot.(WorkflowInstance) -> Unit {
-        return { (instance) ->
+        return { instance ->
             val initiator = instance.getInitiator()
             val initiatorUsername = if (nodeService.exists(initiator)) {
                 nodeService.getProperty(initiator, ContentModel.PROP_USERNAME) as String
