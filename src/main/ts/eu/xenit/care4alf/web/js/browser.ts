@@ -55,7 +55,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     };
 
     $scope.setType = (newType) => {
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/type/" + newType);
+        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/type", {type: newType});
     };
 
     $scope.deleteNode = (node) => {

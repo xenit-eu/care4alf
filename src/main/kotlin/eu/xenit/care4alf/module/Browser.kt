@@ -251,9 +251,9 @@ public class Browser [Autowired](
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/type/{type}"), method = HttpMethod.PUT)
-    fun removeAspect(UriVariable noderef: NodeRef, UriVariable type: QName) {
-        nodeService.setType(noderef, type)
+    Uri(value = array("{noderef}/type"), method = HttpMethod.PUT)
+    fun setType(UriVariable noderef: NodeRef, jsonBody: JSONObject) {
+        nodeService.setType(noderef, QName.createQName(jsonBody.getString("type")))
     }
 
     Uri(value = array("{noderef}"), method = HttpMethod.DELETE)
