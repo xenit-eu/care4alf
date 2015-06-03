@@ -1,5 +1,14 @@
-<h3>Message bundle</h3>
+<h3>Message bundle(s)</h3>
 
 <ul ng-repeat="bundle in bundles">
 	<li>{{bundle}}</li>
 </ul>
+
+<h3>Translate</h3>
+<form ng-submit="translate(raw)">
+	<div class="form-group">
+		<input class="form-control" type="text" ng-model="raw" placeholder="message key">
+	</div>
+</form>
+
+<pre>{{translated | json}}</pre>

@@ -14,6 +14,8 @@ import com.github.dynamicextensionsalfresco.annotations.AlfrescoService
 import com.github.dynamicextensionsalfresco.annotations.ServiceType
 import org.slf4j.LoggerFactory
 import eu.xenit.care4alf.web.LogHelper
+import org.json.JSONObject
+import java.util.*
 
 /**
  * @author Laurent Van der Linden
@@ -34,6 +36,16 @@ class Messages () : LogHelper {
             }
         } else {
             logger.error("MessageService is not of expected type (MessageServiceImpl), but ${messageService?.javaClass}")
+        }
+    }
+
+    Uri("translate", method = HttpMethod.POST)
+    fun translate(body: JSONObject) = json {
+        val key = body.getString("key")
+        iterable(Locale.getAvailableLocales().toArrayList()) { locale ->
+            obj {
+                entry(locale.toString(), messageService!!.getMessage(key, locale) ?: "-")
+            }
         }
     }
 }
