@@ -15,17 +15,17 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/tickets", families = array("care4alf"), description = "manage session tickets")
+WebScript(baseUri = "/xenit/care4alf/tickets", families = arrayOf("care4alf"), description = "manage session tickets")
 Authentication(AuthenticationType.ADMIN)
-public class Tickets [Autowired](private val ticketService: TicketComponent) {
-    Uri(value = array("/list"), defaultFormat = "json")
+public class Tickets @Autowired constructor(private val ticketService: TicketComponent) {
+    Uri(value = "/list", defaultFormat = "json")
     fun list() = json {
         iterable(ticketService.getUsersWithTickets(false)) { ticket ->
             value(ticket)
         }
     }
 
-    Uri(value = array("/expire/{username}"), method = HttpMethod.DELETE)
+    Uri(value = "/expire/{username}", method = HttpMethod.DELETE)
     fun expire(UriVariable username: String) {
         ticketService.invalidateTicketByUser(username)
     }

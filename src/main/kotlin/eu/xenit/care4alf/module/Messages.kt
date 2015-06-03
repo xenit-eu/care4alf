@@ -19,14 +19,14 @@ import eu.xenit.care4alf.web.LogHelper
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/messages", families = array("care4alf"), description = "Message service diagnostic")
+WebScript(baseUri = "/xenit/care4alf/messages", families = arrayOf("care4alf"), description = "Message service diagnostic")
 Authentication(AuthenticationType.ADMIN)
 class Messages () : LogHelper {
     override val logger = LoggerFactory.getLogger(javaClass)
 
     Autowired AlfrescoService(ServiceType.LOW_LEVEL) var messageService: MessageService? = null
 
-    Uri(value = array("/bundles"))
+    Uri(value = "/bundles")
     fun list() = json {
         if (messageService is MessageServiceImpl) {
             iterable((messageService as MessageServiceImpl).getRegisteredBundles()) { bundle ->

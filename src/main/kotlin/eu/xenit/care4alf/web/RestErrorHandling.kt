@@ -9,10 +9,10 @@ import javax.servlet.http.HttpServletResponse
 /**
  * @author Laurent Van der Linden
  */
-public trait RestErrorHandling {
+public interface RestErrorHandling {
     var logger: Logger
 
-    ExceptionHandler(javaClass<Exception>())
+    ExceptionHandler(Exception::class)
     fun handleIllegalArgument(exception: Exception, response: WebScriptResponse) {
         logger.error("Controller failure", exception)
 

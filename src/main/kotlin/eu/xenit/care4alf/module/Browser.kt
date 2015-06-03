@@ -43,9 +43,9 @@ import org.alfresco.repo.domain.permissions.AclDAO
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/browser", families = array("care4alf"), description = "node browser", defaultFormat = "json")
+WebScript(baseUri = "/xenit/care4alf/browser", families = arrayOf("care4alf"), description = "node browser", defaultFormat = "json")
 Authentication(AuthenticationType.ADMIN)
-public class Browser [Autowired](
+public class Browser @Autowired constructor(
         private val filefolderService: FileFolderService,
         Qualifier("nodeService") private val nodeService: NodeService,
         private val dictionaryService: DictionaryService,
@@ -59,23 +59,23 @@ public class Browser [Autowired](
     override var logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
 
-    Uri(value = array("/upload"), method = HttpMethod.POST)
+    Uri(value = "/upload", method = HttpMethod.POST)
     fun upload(request: WebScriptRequest) {
         logger.info(request.getContent().getContent())
     }
 
-    Uri(value = array("/rootNodes"))
+    Uri(value = "/rootNodes")
     fun rootNodes() = json {
         iterable(nodeService.getAllRootNodes(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE), nodesToBasicJson())
     }
 
-    Uri(value = array("/find"), method = HttpMethod.POST)
+    Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
         iterable(searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_FTS_ALFRESCO, requestBody).getNodeRefs(), nodesToBasicJson())
     }
 
-    Uri(array("/details"))
+    Uri("/details")
     fun details(RequestParam noderef: NodeRef) = json {
         val path = nodeService.getPath(noderef)
         val name = nodeService.getProperty(noderef, ContentModel.PROP_NAME)
@@ -182,7 +182,7 @@ public class Browser [Autowired](
         return converted
     }
 
-    Uri(array("/{noderef}/properties/{qname}"), method = HttpMethod.PUT)
+    Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
     fun saveProperty(UriVariable noderef: NodeRef, UriVariable qname: QName, body: JSONObject) {
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         try {
@@ -192,12 +192,12 @@ public class Browser [Autowired](
         }
     }
 
-    Uri(array("/{noderef}/properties/{qname}"), method = HttpMethod.DELETE)
+    Uri("/{noderef}/properties/{qname}", method = HttpMethod.DELETE)
     fun deleteProperty(UriVariable noderef: NodeRef, UriVariable qname: QName) {
         nodeService.removeProperty(noderef, qname)
     }
 
-    Uri(array("/aspects"))
+    Uri("/aspects")
     fun aspects() = json {
         obj {
             dictionaryService.getAllModels().forEach { model ->
@@ -216,7 +216,7 @@ public class Browser [Autowired](
         }
     }
 
-    Uri(array("types"))
+    Uri("types")
     fun types() = json {
         obj {
             dictionaryService.getAllModels().forEach { model ->
@@ -235,41 +235,41 @@ public class Browser [Autowired](
         }
     }
 
-    Uri(value = array("/{noderef}/aspects/{aspect}"), method = HttpMethod.POST)
-    fun addAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
+    Uri(value = "/{noderef}/aspects", method = HttpMethod.POST)
+    fun addAspect(UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         // need a new transaction, so any on-commit handler can throw errors now and be properly intercepted
         transactionService.getRetryingTransactionHelper().doInTransaction({
             // bug in DE 1.1.3 causes direct QName binding to fail
-            nodeService.addAspect(noderef, QName.createQName(aspect), null)
+            nodeService.addAspect(noderef, QName.createQName(jsonBody.getString("aspect")), null)
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/aspects/{aspect}"), method = HttpMethod.DELETE)
+    Uri(value = "{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
     fun removeAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
     }
 
-    Uri(value = array("{noderef}/type"), method = HttpMethod.PUT)
+    Uri(value = "{noderef}/type", method = HttpMethod.PUT)
     fun setType(UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         nodeService.setType(noderef, QName.createQName(jsonBody.getString("type")))
     }
 
-    Uri(value = array("{noderef}"), method = HttpMethod.DELETE)
+    Uri(value = "{noderef}", method = HttpMethod.DELETE)
     fun deleteNode(UriVariable noderef: NodeRef) {
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
     }
 
-    Uri(value = array("assoc/{id}"), method = HttpMethod.DELETE)
+    Uri(value = "assoc/{id}", method = HttpMethod.DELETE)
     fun deleteAssoc(UriVariable id: Long) {
         val associationRef = nodeService.getAssoc(id)
         nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())
     }
 
     fun nodesToBasicJson(): JsonRoot.(NodeRef) -> Unit {
-        return { (node: NodeRef) ->
+        return { node: NodeRef ->
             obj {
                 entry("name", nodeService.getProperty(node, ContentModel.PROP_NAME))
                 entry("noderef", node)

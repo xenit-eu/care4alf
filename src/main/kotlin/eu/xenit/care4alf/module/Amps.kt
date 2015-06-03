@@ -31,9 +31,9 @@ import java.lang
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/amps", families = array("care4alf"), description = "update AMP module versions")
+WebScript(baseUri = "/xenit/care4alf/amps", families = arrayOf("care4alf"), description = "update AMP module versions")
 Authentication(AuthenticationType.ADMIN)
-class Amps [Autowired](
+class Amps @Autowired constructor(
             dataSource: DataSource,
             AlfrescoService(ServiceType.LOW_LEVEL) val nodeService: NodeService
         ) : LogHelper {
@@ -42,7 +42,7 @@ class Amps [Autowired](
 
     private val jdbc = JdbcTemplate(dataSource)
 
-    Uri(value = array("/list"), defaultFormat = "json")
+    Uri(value = "/list", defaultFormat = "json")
     Transaction(readOnly = true)
     fun list() = json {
         val versionIds = getVersionQnameIds().join(",")
@@ -59,7 +59,7 @@ class Amps [Autowired](
         }
     }
 
-    Uri(value = array("/save"), method = HttpMethod.POST)
+    Uri(value = "/save", method = HttpMethod.POST)
     fun save(json: JSONObject) {
         val dbid = json.getLong("{http://www.alfresco.org/model/system/1.0}node-dbid")
         val currentVersion = json.getString("{http://www.alfresco.org/system/modules/1.0}currentVersion")

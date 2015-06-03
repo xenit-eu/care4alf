@@ -16,18 +16,18 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Transaction
  * @author Laurent Van der Linden
  */
 Component
-WebScript(families = array("care4alf"))
+WebScript(families = arrayOf("care4alf"))
 Authentication(AuthenticationType.NONE)
 Transaction(readOnly = true)
 public class Resources : AbstractBundleResourceHandler() {
     private val packagePath = this.javaClass.getPackage().getName().replace('.', '/')
 
-    Uri(value = array("/xenit/care4alf/resources/{path}"), formatStyle = FormatStyle.ARGUMENT)
+    Uri(value = "/xenit/care4alf/resources/{path}", formatStyle = FormatStyle.ARGUMENT)
     fun handleResources(UriVariable path: String, response: WebScriptResponse) {
         checkCacheOptions(path, response)
     }
 
-    Uri(value = array("/xenit/care4alf/cached/{version}/{path}"), formatStyle = FormatStyle.ARGUMENT)
+    Uri(value = "/xenit/care4alf/cached/{version}/{path}", formatStyle = FormatStyle.ARGUMENT)
     fun handleVersionedResources(UriVariable version: Long, UriVariable path: String, response: WebScriptResponse) {
         if (version > 1) setInfinateCache(response)
         checkCacheOptions(path, response)

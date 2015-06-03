@@ -20,7 +20,7 @@ import java.util.Enumeration
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/logging", families = array("care4alf"), description = "Logger levels")
+WebScript(baseUri = "/xenit/care4alf/logging", families = arrayOf("care4alf"), description = "Logger levels")
 Authentication(AuthenticationType.ADMIN)
 public class Logging {
     Uri()
@@ -39,7 +39,7 @@ public class Logging {
         Logger.getLogger(logger).setLevel(Level.toLevel(level))
     }
 
-    Uri(array("/all"))
+    Uri("/all")
     fun loggers() = json {
         iterable(Collections.list(LogManager.getCurrentLoggers() as Enumeration<Logger>)) { logger ->
             obj {

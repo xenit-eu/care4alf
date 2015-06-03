@@ -28,15 +28,14 @@ import eu.xenit.care4alf.web.LogHelper
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/actions", families = array("care4alf"), description = "execute actions")
+WebScript(baseUri = "/xenit/care4alf/actions", families = arrayOf("care4alf"), description = "execute actions")
 Authentication(AuthenticationType.ADMIN)
-class Actions [Autowired](
-        private val actionService: ActionService,
-        private val applicationContext: ApplicationContext
+class Actions @Autowired constructor(
+        private val actionService: ActionService
         ) : LogHelper, WebscriptDefaults {
     override val logger = LoggerFactory.getLogger(javaClass)
 
-    Uri(value = array("/"))
+    Uri(value = "/")
     Transaction(readOnly = true)
     fun list() = json {
         iterable(actionService.getActionDefinitions()) { action ->
@@ -48,7 +47,7 @@ class Actions [Autowired](
         }
     }
 
-    Uri(value = array("/{name}/run"), method = HttpMethod.POST)
+    Uri(value = "/{name}/run", method = HttpMethod.POST)
     fun run(UriVariable name: String, body: JSONObject) {
         val action = actionService.createAction(name)
         val noderef = if (body.has("noderef")) NodeRef(body.getString("noderef")) else null

@@ -14,10 +14,10 @@ import eu.xenit.care4alf.json
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/dictionary", families = array("care4alf"), description = "Dictionary info")
+WebScript(baseUri = "/xenit/care4alf/dictionary", families = arrayOf("care4alf"), description = "Dictionary info")
 Authentication(AuthenticationType.ADMIN)
-class Dictionary [Autowired](val namespaceService: NamespaceService) {
-    Uri(value = array("namespaces"), defaultFormat = "json")
+class Dictionary @Autowired constructor(val namespaceService: NamespaceService) {
+    Uri(value = "namespaces", defaultFormat = "json")
     fun namespaces() = json {
         obj {
             for (namespace in namespaceService.getURIs().filterNot({it.isEmpty()})) {

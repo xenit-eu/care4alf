@@ -18,7 +18,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/smtp", families = array("care4alf"), description = "dummy SMTP viewer")
+WebScript(baseUri = "/xenit/care4alf/smtp", families = arrayOf("care4alf"), description = "dummy SMTP viewer")
 Authentication(AuthenticationType.ADMIN)
 class DummyMail : InitializingBean, DisposableBean {
     val DEFAULT_PORT = 2500
@@ -27,7 +27,7 @@ class DummyMail : InitializingBean, DisposableBean {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    Uri(array("list"))
+    Uri("list")
     fun list() = json {
         iterable(smtpServer!!.getMessages().toList()) { message ->
             obj {
@@ -42,12 +42,12 @@ class DummyMail : InitializingBean, DisposableBean {
         }
     }
 
-    Uri(value = array("/list"), method = HttpMethod.DELETE)
+    Uri(value = "/list", method = HttpMethod.DELETE)
     fun clearMails() {
         smtpServer?.clearMessages()
     }
 
-    Uri(array("/config"))
+    Uri("/config")
     fun config() = json {
         obj {
             entry("port", DEFAULT_PORT)

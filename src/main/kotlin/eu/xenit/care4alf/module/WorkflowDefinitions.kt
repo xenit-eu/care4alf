@@ -19,9 +19,9 @@ import org.alfresco.service.cmr.repository.NodeService
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/workflow/definitions", families = array("care4alf"), description = "Workflow definitions")
+WebScript(baseUri = "/xenit/care4alf/workflow/definitions", families = arrayOf("care4alf"), description = "Workflow definitions")
 Authentication(AuthenticationType.ADMIN)
-public class WorkflowDefinitions [Autowired](
+public class WorkflowDefinitions @Autowired constructor(
         private val workflowService: WorkflowService,
         private val nodeService: NodeService,
         private val searchService: SearchService

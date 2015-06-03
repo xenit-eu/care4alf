@@ -2,7 +2,7 @@ package eu.xenit.care4alf.web
 
 import org.slf4j.Logger
 
-trait LogHelper {
+interface LogHelper {
     protected val logger: Logger
 
     inline final fun debug(message: () -> String) {

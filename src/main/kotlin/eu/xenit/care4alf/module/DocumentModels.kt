@@ -45,9 +45,9 @@ import org.slf4j.LoggerFactory
  * author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/documentmodels", families = array("care4alf"), description = "validate document models")
+WebScript(baseUri = "/xenit/care4alf/documentmodels", families = arrayOf("care4alf"), description = "validate document models")
 Authentication(AuthenticationType.ADMIN)
-class DocumentModels [Autowired](
+class DocumentModels @Autowired constructor(
         dataSource: DataSource,
         AlfrescoService(ServiceType.LOW_LEVEL) val nodeService: NodeService,
         val dictionaryService: DictionaryService,
@@ -62,7 +62,7 @@ class DocumentModels [Autowired](
 
     Autowired Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter? = null
 
-    Uri(value = array("/invalidtypes"))
+    Uri(value = "/invalidtypes")
     Transaction(readOnly = true)
     fun list() = json {
         val nodeIds = jdbcTemplate.queryForList("select id from alf_node", javaClass<lang.Long>())
@@ -72,7 +72,7 @@ class DocumentModels [Autowired](
         }
     }
 
-    Uri(value = array("/node/{id}"), method = HttpMethod.DELETE)
+    Uri(value = "/node/{id}", method = HttpMethod.DELETE)
     Transaction(TransactionType.NONE)
     fun deleteDocument(UriVariable id: Long, response: WebScriptResponse) {
         val nodeRef = nodeService.getNodeRef(id)
@@ -107,7 +107,7 @@ class DocumentModels [Autowired](
         }
     }
 
-    Uri(value = array("/models"), defaultFormat = "json", method = HttpMethod.GET)
+    Uri(value = "/models", defaultFormat = "json", method = HttpMethod.GET)
     fun listModels() = json {
         // API change in 5.0 getModels() -> getModels(boolean)
         val getter = dictionaryDAO.javaClass.getMethods().filter({ it.getName() == "getModels"}).firstOrNull()
@@ -123,7 +123,7 @@ class DocumentModels [Autowired](
         }
     }
 
-    Uri(value = array("/model"), defaultFormat = "json", method = HttpMethod.DELETE)
+    Uri(value = "/model", defaultFormat = "json", method = HttpMethod.DELETE)
     fun removeModel(RequestParam modelQName: String) {
         dictionaryDAO.removeModel(QName.createQName(modelQName))
     }

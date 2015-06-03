@@ -28,18 +28,18 @@ import org.slf4j.LoggerFactory
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/attributes", families = array("care4alf"), description = "Attribute service")
+WebScript(baseUri = "/xenit/care4alf/attributes", families = arrayOf("care4alf"), description = "Attribute service")
 Authentication(AuthenticationType.ADMIN)
-public class Attributes [Autowired](private val attributeService: AttributeService) {
+public class Attributes @Autowired constructor(private val attributeService: AttributeService) {
     val logger = LoggerFactory.getLogger(javaClass)
 
     Uri()
     fun get(RequestParam key: String) = json {
         val results = ArrayList<Attribute>()
-        attributeService.getAttributes({ (id, value, keys) ->
+        attributeService.getAttributes({ id, value, keys ->
             results.add(Attribute(keys.toList(), value))
             true
-        }, array(key as Serializable))
+        }, arrayOf(key as Serializable))
         iterable(results) { attribute ->
             obj {
                 key("keys") {

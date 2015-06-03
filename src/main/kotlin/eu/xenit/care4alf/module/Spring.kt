@@ -17,18 +17,18 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/spring", families = array("care4alf"), description = "Inspect Spring beans")
+WebScript(baseUri = "/xenit/care4alf/spring", families = arrayOf("care4alf"), description = "Inspect Spring beans")
 Authentication(AuthenticationType.ADMIN)
 class Spring : ApplicationContextAware {
     private var applicationContext: ApplicationContext? = null
 
-    Uri(value = array("/beannames"), defaultFormat = "json")
+    Uri(value = "/beannames", defaultFormat = "json")
     Transaction(readOnly = true)
     fun list(): Resolution {
         return beansToJson(applicationContext?.getParent()?.getParent() as AbstractRefreshableApplicationContext)
     }
 
-    Uri(value = array("/beannames/{child}"), defaultFormat = "json")
+    Uri(value = "/beannames/{child}", defaultFormat = "json")
     Transaction(readOnly = true)
     fun listForChild(UriVariable child: String): Resolution {
         val context = (applicationContext!!.getParent().getParent().getBean(child)

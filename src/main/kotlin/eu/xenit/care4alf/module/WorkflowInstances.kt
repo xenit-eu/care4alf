@@ -27,9 +27,9 @@ import eu.xenit.care4alf.JsonRoot
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/workflow/instances", families = array("care4alf"), description = "Workflow instances")
+WebScript(baseUri = "/xenit/care4alf/workflow/instances", families = arrayOf("care4alf"), description = "Workflow instances")
 Authentication(AuthenticationType.ADMIN)
-public class WorkflowInstances [Autowired](
+public class WorkflowInstances @Autowired constructor(
         private val workflowService: WorkflowService,
         private val permissionService: PermissionService,
         private val sysadminParams: SysAdminParams,
@@ -38,12 +38,12 @@ public class WorkflowInstances [Autowired](
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    Uri(value = array("/active"), defaultFormat = "json")
+    Uri(value = "/active", defaultFormat = "json")
     fun activeInstances() = json {
         iterable(workflowService.getActiveWorkflows(), instanceToJson(false))
     }
 
-    Uri(value = array("/find/task/{taskid}"), defaultFormat = "json")
+    Uri(value = "/find/task/{taskid}", defaultFormat = "json")
     fun instanceByTask(UriVariable taskid: String) = json {
         val workflowTask = AuthenticationUtil.runAsSystem {
             workflowService.getTaskById(taskid)
@@ -51,7 +51,7 @@ public class WorkflowInstances [Autowired](
         iterable(listOf(workflowTask.getPath().getInstance()), instanceToJson(includeTasks = true))
     }
 
-    Uri(value = array("/find/instance/{instanceid}"), defaultFormat = "json")
+    Uri(value = "/find/instance/{instanceid}", defaultFormat = "json")
     fun instanceById(UriVariable instanceid: String) = json {
         iterable(listOf(workflowService.getWorkflowById(instanceid)), instanceToJson(includeTasks = true))
     }
@@ -99,7 +99,7 @@ public class WorkflowInstances [Autowired](
         }
     }
 
-    Uri(value = array("/{workflowid}/tasks"), defaultFormat = "json")
+    Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
     fun tasksForInstance(UriVariable workflowid: String) = json {
         val tasks = AuthenticationUtil.runAsSystem {
             getTasksForInstance(workflowService.getWorkflowById(workflowid))
@@ -127,17 +127,17 @@ public class WorkflowInstances [Autowired](
         return workflowService.queryTasks(query)
     }
 
-    Uri(value = array("/{id}/cancel"), method = HttpMethod.DELETE)
+    Uri(value = "/{id}/cancel", method = HttpMethod.DELETE)
     fun cancelWorkflow(UriVariable("id") id: String) {
         workflowService.cancelWorkflow(id)
     }
 
-    Uri(value = array("/{id}/delete"), method = HttpMethod.DELETE)
+    Uri(value = "/{id}/delete", method = HttpMethod.DELETE)
     fun deleteWorkflow(UriVariable("id") id: String) {
         workflowService.deleteWorkflow(id)
     }
 
-    Uri(value = array("/active"), method = HttpMethod.DELETE)
+    Uri(value = "/active", method = HttpMethod.DELETE)
     fun deleteAllActive() {
         for (wf in workflowService.getActiveWorkflows()) {
         try {

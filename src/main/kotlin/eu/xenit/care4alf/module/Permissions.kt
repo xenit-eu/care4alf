@@ -17,9 +17,9 @@ import org.alfresco.service.cmr.security.AuthorityType
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/permissions", families = array("care4alf"), description = "Permissions")
+WebScript(baseUri = "/xenit/care4alf/permissions", families = arrayOf("care4alf"), description = "Permissions")
 Authentication(AuthenticationType.ADMIN)
-public class Permission [Autowired](private val permissionService: PermissionService, private val authorityService: AuthorityService) {
+public class Permission @Autowired constructor(private val permissionService: PermissionService, private val authorityService: AuthorityService) {
     val logger = LoggerFactory.getLogger(javaClass)
 
     Uri()

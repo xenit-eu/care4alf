@@ -53,15 +53,15 @@ import org.springframework.beans.factory.annotation.Qualifier
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/contentstore", families = array("care4alf"), description = "Content store verification")
+WebScript(baseUri = "/xenit/care4alf/contentstore", families = arrayOf("care4alf"), description = "Content store verification")
 Authentication(AuthenticationType.ADMIN)
-public class ContentStore [Autowired](
+public class ContentStore @Autowired constructor(
                                       private val applicationContext: ApplicationContext,
                                       dataSource: DataSource,
                                       private val personService: PersonService,
                                       private val notification: NotificationService,
                                       private val contentService: ContentService,
-                                      [AlfrescoService(ServiceType.LOW_LEVEL)] private val nodeService: NodeService
+                                      @AlfrescoService(ServiceType.LOW_LEVEL) private val nodeService: NodeService
                             ) : LogHelper {
 
     override val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -71,7 +71,7 @@ public class ContentStore [Autowired](
     private val WorkspaceDiskUsage = QName.createQName("WorkspaceDiskUsage")
     private val ArchiveDiskUsage = QName.createQName("ArchiveDiskUsage")
 
-    Uri(value = array("/diskusagebyowner"))
+    Uri(value = "/diskusagebyowner")
     Transaction(readOnly = true)
     fun list() = json {
         val people = personService.getPeople(null, true, null, PagingRequest(Integer.MAX_VALUE, null)).getPage().map({it.getNodeRef()})
@@ -88,7 +88,7 @@ public class ContentStore [Autowired](
         }
     }
 
-    Uri(value = array("/updatediskusage"), method = HttpMethod.PUT)
+    Uri(value = "/updatediskusage", method = HttpMethod.PUT)
     fun update() {
         val workspace = HashMap<String, Long>()
         val archive = HashMap<String, Long>()
@@ -119,7 +119,7 @@ public class ContentStore [Autowired](
         }
     }
 
-    Uri(value = array("/checkintegrity"), method = HttpMethod.GET)
+    Uri(value = "/checkintegrity", method = HttpMethod.GET)
     fun checkintegrity(): Resolution {
         val missingContent = arrayListOf<MissingContent>()
         jdbcTemplate.queryForList("select id from alf_node", javaClass<lang.Long>()).forEach { id ->

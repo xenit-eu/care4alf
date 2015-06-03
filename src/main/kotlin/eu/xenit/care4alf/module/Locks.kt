@@ -16,10 +16,10 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil
  * @author Laurent Van der Linden
  */
 Component
-WebScript(baseUri = "/xenit/care4alf/locks", families = array("care4alf"), description = "manage locks")
+WebScript(baseUri = "/xenit/care4alf/locks", families = arrayOf("care4alf"), description = "manage locks")
 Authentication(AuthenticationType.ADMIN)
-public class Locks [Autowired](val lockService: LockService) {
-    Uri(array("/"))
+public class Locks @Autowired constructor(val lockService: LockService) {
+    Uri("/")
     fun getLockInfo(RequestParam noderef: NodeRef) = json {
         AuthenticationUtil.runAsSystem {
             val lockState = lockService.getLockState(noderef)
