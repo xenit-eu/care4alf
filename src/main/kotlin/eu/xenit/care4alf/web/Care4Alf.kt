@@ -31,7 +31,7 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
 
         return mapOf(
                 "modules" to getModuleWebScripts().toSortedMap().map({ entry ->
-                    val description = entry.getValue().javaClass.getAnnotation(javaClass<WebScript>()).description()
+                    val description = entry.getValue().javaClass.getAnnotation(javaClass<WebScript>()).description
                     mapOf("id" to entry.getKey().toLowerCase(), "description" to description)
                 }),
                 "version" to lastModified.toLong()
@@ -40,7 +40,8 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
 
     fun getModuleWebScripts(): Map<String, Any> {
         return applicationContext?.getBeansWithAnnotation(javaClass<WebScript>())?.filter { entry ->
-            entry.getValue().javaClass.getAnnotation(javaClass<WebScript>()).families().contains("care4alf")
+            entry.getValue().javaClass != javaClass<Care4Alf>() &&
+            entry.getValue().javaClass.getAnnotation(javaClass<WebScript>()).families.contains("care4alf")
         } ?: mapOf()
     }
 }
