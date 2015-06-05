@@ -43,7 +43,7 @@ public class SmtpServerFactory {
     }
 
     private static void startServerThread(SmtpServer server) {
-        new Thread(server).start();
+        new Thread(server, "test SMTP server").start();
         int timeout=1000;
         while(! server.isReady()) {
             try {
