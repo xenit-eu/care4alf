@@ -1,0 +1,22 @@
+<h3>Scheduled jobs</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Cron expression</th>
+        <th>Previous fire time</th>
+        <th>Next fire time</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="job in jobs | orderBy:orderByField:reverseSort">
+        <td>{{job.Name}}</td>
+        <td>{{job.CronExpression}}</td>
+        <td>{{job.PreviousFireTime}}</td>
+        <td>{{job.NextFireTime}}</td>
+        <td><button class="btn btn-info" ng-click="execute(job.Name)" ng-disabled="loading">execute</button></td>
+    </tr>
+    </tbody>
+</table>

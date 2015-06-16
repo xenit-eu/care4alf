@@ -22,3 +22,4 @@
 /// <reference path="logging.ts" />
 /// <reference path="browser.ts" />
 /// <reference path="bulk.ts" />
+/// <reference path="scheduledjobs.ts" />
