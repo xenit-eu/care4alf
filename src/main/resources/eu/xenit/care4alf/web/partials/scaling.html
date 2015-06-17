@@ -1,0 +1,34 @@
+<h3>Calculate the memory needed for Solr nodes</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Variables</th>
+        <th>Value</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>N1</td><td>{{N1|number}}</td><td>number of nodes in the store (workspace store)</td></tr>
+    <tr><td>N2</td><td>{{N2|number}}</td><td>number of nodes in the store (archive store)</td></tr>
+    <tr><td>N3</td><td>{{N3|number}}</td><td>number of nodes in the store (version store)</td></tr>
+    <tr><td>T</td><td>{{T|number}}</td><td>number of transactions in the repository</td></tr>
+    <tr><td>A</td><td>{{A|number}}</td><td>number of ACLs in the repository</td></tr>
+    <tr><td>X</td><td>{{X|number}}</td><td>number of ACL transactions in the repository</td></tr>
+    </tbody>
+</table>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Result</th>
+        <th>Formula</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>{{(120*N1 + 32*(T + A + X))/1024/1024 | number:2}} MB</td><td>120*N1 + 32*(T + A + X)</td><td>Data struture</td></tr>
+    <tr><td>{{(2*N1 + T + A + X)/1024/1024 | number:2}} MB</td><td>2*N1 + T + A + X</td><td>The Solr cache will use up to (2N + T + A + X)/8 bytes for an entry in any cache</td></tr>
+    <tr><td>{{(solr.filterCache + solr.queryResultCache + solr.authorityCache + solr.pathCache) * (2*N1 + T + A + X)/8/1024/1024 | number:2}} MB</td><td>solr.filterCache + solr.queryResultCache + solr.authorityCache + solr.pathCache) * (2*N1 + T + A + X)</td><td>The total memory needed for the caches for a single core</td></tr>
+    </tbody>
+</table>
+<div><pre>{{solr|json}}</pre></div>

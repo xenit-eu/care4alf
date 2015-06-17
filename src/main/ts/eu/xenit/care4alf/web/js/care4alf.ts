@@ -23,3 +23,4 @@
 /// <reference path="browser.ts" />
 /// <reference path="bulk.ts" />
 /// <reference path="scheduledjobs.ts" />
+/// <reference path="scaling.ts" />
