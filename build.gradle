@@ -10,7 +10,7 @@ buildscript {
         }
             }
     dependencies {
-        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.2.+')
+        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.3.+')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.0.5'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
@@ -31,21 +31,13 @@ compileJava {
 }
 
 repositories {
-    /*maven { url "http://artifactory.local.xenit.eu/artifactory/repo1" }
-    maven { url "http://artifactory.local.xenit.eu/artifactory/alfresco-community" }
-    maven { url "http://artifactory.local.xenit.eu/artifactory/spring-release" }
-    maven { url "http://artifactory.local.xenit.eu/artifactory/libs-release-local" }
-    maven { url 'http://artifactory.local.xenit.eu/artifactory/typesafe' }*/
-    //mavenLocal()
-    maven {
-        credentials {
-            username 'xenit'
-            password '1pKo29#0rx'
-        }
-        url 'https://artifacts.alfresco.com/nexus/content/groups/private'
-    }
-    maven { url 'https://artifacts.alfresco.com/nexus/content/groups/public'}
-    mavenCentral()
+  maven {
+      url 'https://artifactory.xenit.eu/artifactory/libs-release'
+      credentials {
+          username 'xenit'
+          password 'LlC0GpyFWNIYU'
+      }
+  }
 }
 
 configurations {
