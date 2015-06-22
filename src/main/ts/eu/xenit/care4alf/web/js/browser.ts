@@ -43,7 +43,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     };
 
     $scope.addAspect = (aspect) => {
-        $http.post(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects", {aspect: 'aspect'}).success(() => {
+        $http.post(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects", {aspect: aspect}).success(() => {
             $scope.node.aspects.push(aspect);
         });
     };
