@@ -94,6 +94,7 @@ jar {
 alfrescoDynamicExtensions {
     repository {
         endpoint {
+            protocol = project.hasProperty('protocol') ? project.protocol : 'http'
             host = project.hasProperty('host') ? project.host : 'localhost'
             port = project.hasProperty('port') ? project.port : '8080'
             serviceUrl = '/alfresco/service'
