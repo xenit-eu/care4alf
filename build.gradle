@@ -61,6 +61,7 @@ dependencies {
     compile('org.jibx:jibx-run:1.2.3') {transitive = false}
     compile('com.googlecode.json-simple:json-simple:1.1')
     compile('javax.servlet:servlet-api:2.5')
+    compile 'com.google.collections:google-collections:1.0'
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
 }
