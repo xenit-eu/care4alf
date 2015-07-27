@@ -12,4 +12,9 @@ Note that node, tsc, lessc are required for development.
 sudo npm install -g typescript
 sudo npm install -g less
 
+For Windows( make sure both npm and node are in PATH of environment variables):
+npm install -g typescript
+npm install -g less
+
+
 ./gradlew installBundle -Phost=usg-nl

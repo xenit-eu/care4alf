@@ -24,3 +24,4 @@
 /// <reference path="bulk.ts" />
 /// <reference path="scheduledjobs.ts" />
 /// <reference path="scaling.ts" />
+/// <reference path="export.ts" />
