@@ -1,0 +1,25 @@
+<h3>Export to CSV</h3>
+
+<form class="form-horizontal" role="form">
+    <div class="">
+        <label class="control-label">Query</label><input class="form-control" ng-model="form.query" />
+    </div>
+    <div class="">
+        <label class="control-label">Columns (path,type,text or properties)</label><input class="form-control" ng-model="form.columns" />
+    </div>
+    <div class="">
+        <label class="control-label">Separator</label><input class="form-control" ng-model="form.separator" />
+    </div>
+    <div class="">
+        <label class="control-label">Unavailable value</label><input class="form-control" ng-model="form.nullValue" />
+    </div>
+    <div class="">
+        <label class="control-label">Number of documents (-1 for all documents)</label><input class="form-control" ng-model="form.amountDoc" />
+    </div>
+    <div class="">
+        <label class="control-label">Document Name</label><input class="form-control" ng-model="form.documentName" />
+    </div>
+    <button type="submit" class="btn btn-default" ng-click="execute()">Execute {{loading?"(loading)":""}}</button>
+</form>
+
+<pre ng-show="result">{{result | json}}</pre>
