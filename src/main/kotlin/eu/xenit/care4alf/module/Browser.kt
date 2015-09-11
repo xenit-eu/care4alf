@@ -38,6 +38,8 @@ import org.alfresco.service.transaction.TransactionService
 import org.alfresco.service.cmr.security.PermissionService
 import org.alfresco.service.namespace.RegexQNamePattern
 import org.alfresco.repo.domain.permissions.AclDAO
+import org.springframework.extensions.webscripts.WebScriptResponse
+import org.alfresco.service.cmr.repository.ChildAssociationRef
 
 /**
  * @author Laurent Van der Linden
@@ -266,6 +268,25 @@ public class Browser @Autowired constructor(
     fun deleteAssoc(UriVariable id: Long) {
         val associationRef = nodeService.getAssoc(id)
         nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())
+    }
+
+    Uri(value = "/deletechild", method = HttpMethod.POST)
+    fun deleteChild(json: JSONObject) {
+        val parentRef = NodeRef(json.getString("parent"));
+        val childRef = NodeRef(json.getString("child"));
+        nodeService.removeChild(parentRef, childRef);
+    }
+
+    Uri(value = "/child", method = HttpMethod.POST)
+    public fun addChild(json: JSONObject, response: WebScriptResponse) {
+        val parentRef = NodeRef(json.getString("parent"))
+        val childRef = NodeRef(json.getString("child"))
+
+        val name = nodeService.getProperty(childRef, ContentModel.PROP_NAME) as String
+        val assocQName = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, QName.createValidLocalName(name))
+
+        val associationRef = nodeService.addChild(parentRef, childRef, ContentModel.ASSOC_CONTAINS, assocQName)
+        response.getWriter().write(associationRef.toString())
     }
 
     fun nodesToBasicJson(): JsonRoot.(NodeRef) -> Unit {
