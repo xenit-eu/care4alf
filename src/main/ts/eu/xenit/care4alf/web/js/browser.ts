@@ -80,6 +80,18 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         }
     };
 
+    $scope.deleteChild = (child) => {
+        $http.post(serviceUrl + "/xenit/care4alf/browser/deletechild", {parent: $scope.node.noderef, child: child.noderef}).success(() => {
+            $scope.node.children = _.without($scope.node.children, child);
+        });
+    };
+
+    $scope.addChild = (newChildRef) => {
+        $http.post(serviceUrl + "/xenit/care4alf/browser/child", {parent: $scope.node.noderef, child: newChildRef}).success(() => {
+            $scope.node.children.push({noderef:newChildRef});
+        });
+    };
+
     var LS_QUERY = "care4alfquery";
 
     $scope.search = () => {

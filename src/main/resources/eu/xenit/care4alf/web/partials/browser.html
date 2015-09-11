@@ -150,11 +150,17 @@
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="node in node.children">
-                <td>{{::node.name}}</td>
-                <td><a href="#/browser/{{::node.noderef | hash}}">{{::node.noderef}}</a></td>
-                <td>{{::node.type}}</td>
-                <td><button class="btn btn-danger" ng-click="deleteNode(node)">delete</button></td>
+            <tr ng-repeat="child in node.children">
+                <td>{{::child.name}}</td>
+                <td><a href="#/browser/{{::child.noderef | hash}}">{{::child.noderef}}</a></td>
+                <td>{{::child.type}}</td>
+                <td><button class="btn btn-danger" ng-click="deleteChild(child)">delete</button></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="text" ng-model="newChildRef"></td>
+                <td></td>
+                <td><button class="btn btn-primary" ng-click="addChild(newChildRef)">Add</button></td>
             </tr>
             </tbody>
         </table>
