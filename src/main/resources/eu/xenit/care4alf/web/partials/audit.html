@@ -1,0 +1,27 @@
+<h3>Audit</h3>
+<table class="table">
+    <select
+            ng-model="application"
+            ng-options="app.name for app in control.applications"
+            ng-change="load(application)"></select>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>User</th>
+            <th>Time</th>
+            <th>Values</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="entry in entries">
+            <td>{{::entry.id}}</td>
+            <td>{{::entry.user}}</td>
+            <td>{{::entry.time | date : "dd-MM-yyyy h:mm:ss"}}</td>
+            <td>
+                <ul>
+                    <li ng-repeat="(key, value) in entry.values">{{::key}} <a href ng-click="query(application,key,value)">{{value}}</a></li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
+</table>
