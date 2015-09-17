@@ -8,6 +8,7 @@
     <#assign resources = url.serviceContext + "/xenit/care4alf/resources">
     <script type="text/javascript" src="${resources}/js/upload/angular-file-upload-shim.min.js"></script>
     <script type="text/javascript" src="${resources}/js/underscore.1.5.2.cached.min.js"></script>
+    <script type="text/javascript" src="${resources}/js/moment.1.7.2.cached.min.js"></script>
     <script type="text/javascript" src="${resources}/js/angular/angular.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-route/angular-route.min.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-sanitize/angular-sanitize.min.js"></script>

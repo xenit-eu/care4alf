@@ -25,3 +25,4 @@
 /// <reference path="scheduledjobs.ts" />
 /// <reference path="scaling.ts" />
 /// <reference path="export.ts" />
+/// <reference path="audit.ts" />
