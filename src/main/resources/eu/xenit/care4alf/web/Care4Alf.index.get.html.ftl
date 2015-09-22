@@ -17,6 +17,7 @@
     <script type="text/javascript" src="${resources}/js/angularjs-toaster/toaster.js"></script>
     <script type="text/javascript" src="${resources}/js/upload/angular-file-upload.js"></script>
     <script type="text/javascript" src="${resources}/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
+    <script type="text/javascript" src="${resources}/js/angular-loading-bar/loading-bar.js"></script>
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
     	var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];
@@ -24,6 +25,7 @@
     </script>
     <link rel="stylesheet" href="${resources}/css/bootstrap.3.1.1.cached.min.css">
     <link rel="stylesheet" href="${resources}/js/angularjs-toaster/toaster.css">
+    <link rel="stylesheet" href="${resources}/js/angular-loading-bar/loading-bar.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
 </head>
 <body>
