@@ -3,7 +3,8 @@
 declare var care4alfModules;
 declare var serviceUrl: string;
 
-var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource', 'ui.bootstrap', 'ui.bootstrap.modal', 'angularFileUpload', 'toaster'])
+var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource', 'ui.bootstrap', 'ui.bootstrap.modal',
+        'angularFileUpload', 'toaster', 'angular-loading-bar'])
     .config(($httpProvider: ng.IHttpProvider, $provide) => {
         $provide.factory('loader', ($injector,$q: ng.IQService, $rootScope, toaster) => {
             var loadOperations = 0;
