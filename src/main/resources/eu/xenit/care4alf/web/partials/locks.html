@@ -1,0 +1,22 @@
+<h3>Locks</h3>
+
+<div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>QName</th>
+            <th>Noderef</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="lock in locks">
+            <td>{{lock.QName}}</td>
+            <td><a href="#/browser/{{lock.noderef | hash}}">{{lock.noderef}}</a></td>
+            <td><button class="btn btn-danger" ng-click="unlock(lock.noderef)">Force unlock</button></td>
+        </tr>
+        </tbody>
+
+    </table>
+</div>
