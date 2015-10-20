@@ -3,14 +3,24 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
     $scope.form.query = "PATH:\"/app:company_home/st:sites/cm:swsdp/cm:documentLibrary/cm:Agency_x0020_Files//*\" AND TYPE:\"cm:content\"";
     $scope.form.batchsize = 20;
     $scope.form.threads = 2;
-    $scope.form.action = "setproperty";
-    $scope.actions = {
-        delete:[],
-        archive:[],
-        settype:["Type"],
-        setproperty:["Property","Value"],
-        dummy: []
-    };
+    $scope.form.action = "";
+    $scope.actions = {};
+
+        /*$scope.form.action = "setproperty";
+        $scope.actions = {
+            delete:[],
+            archive:[],
+            settype:["Type"],
+            setproperty:["Property","Value"],
+            dummy: []
+        };*/
+    $http.get("bulk/listActions").success(function(data){
+        $scope.actions = data;
+        var keys = Object.keys(data);
+        if (keys.length > 0)
+            $scope.form.action = keys[0];
+        
+    });
     $scope.form.parameters = {};
     $scope.loading = false;
 

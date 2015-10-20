@@ -13,11 +13,21 @@ import org.alfresco.util.GUID;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONWriter;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -26,8 +36,10 @@ import java.util.List;
 @Component
 @WebScript(families = {"care4alf"}, description = "execute actions in bulk")
 @Authentication(AuthenticationType.ADMIN)
-public class Bulk {
-//    private static Log logger = LogFactory.getLog(Bulk.class);
+public class Bulk implements ApplicationContextAware {
+    //    private static Log logger = LogFactory.getLog(Bulk.class);
+    private ApplicationContext applicationContext;
+
 
     @Autowired
     private NodeService nodeService;
@@ -38,7 +50,7 @@ public class Bulk {
     @Autowired
     private TransactionService transactionService;
 
-    @Uri(value="/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
+    @Uri(value = "/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
     public void bulk(@UriVariable final String action, JSONObject json, final WebScriptResponse response) throws IOException, JSONException {
         String query = json.getString("query");
         StoreRef storeRef = new StoreRef(json.getString("store"));
@@ -50,40 +62,9 @@ public class Bulk {
 //        logger.info(String.format("Starting bulk action '%s'", action));
 
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
-        //TODO: load dynamically
-        if(action.equals("delete"))
-        {
-            DeleteWorker w = new DeleteWorker(parameters);
-            w.setNodeService(nodeService);
-            worker = w;
-        }
-        else if(action.equals("archive"))
-        {
-            ArchiveWorker w = new ArchiveWorker(parameters);
-            w.setNodeService(nodeService);
-            worker = w;
-        }
-        else if(action.equals("settype"))
-        {
-            SetTypeWorker w = new SetTypeWorker(parameters);
-            w.setNodeService(nodeService);
-            worker = w;
-        }
-        else if(action.equals("setproperty"))
-        {
-            SetPropertyWorker w = new SetPropertyWorker(parameters);
-            w.setNodeService(nodeService);
-            worker = w;
-        }
-        else if(action.equals("dummy"))
-        {
-            DummyWorker w = new DummyWorker(parameters);
-            w.setNodeService(nodeService);
-            worker = w;
-        }
+        worker = createWorkerForAction(action, parameters);
 
-        if(worker == null)
-        {
+        if (worker == null) {
             response.getWriter().write(String.format("No '%s' worker found", action));
             return;
         }
@@ -107,10 +88,104 @@ public class Bulk {
         response.getWriter().write(result.toString());
     }
 
+    @Uri(value = "/xenit/care4alf/bulk/listActions")
+    public void ListActions(final WebScriptResponse response) throws JSONException, IOException {
+        HashSet<String> actionNames = new HashSet<String>();
+
+        final JSONWriter json = new JSONWriter(response.getWriter());
+
+        json.object();
+        for (Object ann : applicationContext.getBeansWithAnnotation(Worker.class).values()) {
+            Worker annotation = ann.getClass().getAnnotation(Worker.class);
+            String newName = annotation.action();
+            if (actionNames.contains(newName))
+                throw new UnsupportedOperationException("Multiple workers with same action name found!");
+            actionNames.add(newName);
+
+
+            json.key(newName);
+            json.array();
+            for (String s : annotation.parameterNames())
+                json.value(s);
+
+            json.endArray();
+
+
+
+        }
+        json.endObject();
+
+    }
+
+    private AbstractWorker createWorkerForAction(@UriVariable String action, JSONObject parameters) {
+        //TODO: load dynamically
+
+        // Maybe somewhat hackish since the workers are not really used as beans
+        for (Object ann : applicationContext.getBeansWithAnnotation(Worker.class).values()) {
+            if (!ann.getClass().getAnnotation(Worker.class).action().equals(action))
+                continue;
+
+            // Found potential worker type
+
+            Constructor<?> ctr = null;
+
+            try {
+                ctr = ann.getClass().getConstructor(JSONObject.class);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            if (ctr == null) return null; // no valid constructor found
+
+            try {
+
+                AbstractWorker ret = (AbstractWorker) ctr.newInstance(parameters);
+
+                ret.setNodeService(nodeService);
+
+                return ret;
+
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+//        if (action.equals("delete")) {
+//            DeleteWorker w = new DeleteWorker(parameters);
+//            w.setNodeService(nodeService);
+//            return w;
+//        } else if (action.equals("archive")) {
+//            ArchiveWorker w = new ArchiveWorker(parameters);
+//            w.setNodeService(nodeService);
+//            return w;
+//        } else if (action.equals("settype")) {
+//            SetTypeWorker w = new SetTypeWorker(parameters);
+//            w.setNodeService(nodeService);
+//            return w;
+//        } else if (action.equals("setproperty")) {
+//            SetPropertyWorker w = new SetPropertyWorker(parameters);
+//            w.setNodeService(nodeService);
+//            return w;
+//        } else if (action.equals("dummy")) {
+//            DummyWorker w = new DummyWorker(parameters);
+//            w.setNodeService(nodeService);
+//            return w;
+//        }
+        return null;
+    }
+
     @Uri("/xenit/care4alf/bulk/stores")
     public void stores(final WebScriptResponse response) throws IOException, JSONException {
         List<StoreRef> stores = nodeService.getStores();
         response.getWriter().write(new JSONArray(stores).toString());
     }
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 }

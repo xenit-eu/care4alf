@@ -3,14 +3,21 @@ package eu.xenit.care4alf.module.bulk;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.json.JSONObject;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by willem on 5/11/15.
  */
+@Component
+@Worker(action = "setproperty", parameterNames = {"Property", "Value"})
 public class SetPropertyWorker extends AbstractWorker {
 
-    public SetPropertyWorker(JSONObject parameters)
+    public SetPropertyWorker()
     {
+        super(null);
+    }
+
+    public SetPropertyWorker(JSONObject parameters) {
         super(parameters);
     }
 
