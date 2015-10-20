@@ -26,3 +26,4 @@
 /// <reference path="scaling.ts" />
 /// <reference path="export.ts" />
 /// <reference path="audit.ts" />
+/// <reference path="locks.ts" />
