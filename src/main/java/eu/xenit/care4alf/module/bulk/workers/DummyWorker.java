@@ -1,5 +1,7 @@
-package eu.xenit.care4alf.module.bulk;
+package eu.xenit.care4alf.module.bulk.workers;
 
+import eu.xenit.care4alf.module.bulk.AbstractWorker;
+import eu.xenit.care4alf.module.bulk.Worker;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -11,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Worker( action = "dummy")
-public class DummyWorker extends AbstractWorker{
+public class DummyWorker extends AbstractWorker {
     private final static Logger logger = LoggerFactory.getLogger(DummyWorker.class);
 
     public DummyWorker(){
