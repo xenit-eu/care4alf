@@ -104,9 +104,6 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
             $window.localStorage.removeItem(LS_QUERY)
         } else {
             // Allow pasting in a noderef
-            if (query.toLowerCase().indexOf("workspace://") === 0){
-                query = "ID:" + query.replace(':','\\:');
-            }
             $window.localStorage.setItem(LS_QUERY, query);
 
             $http.post(serviceUrl + "/xenit/care4alf/browser/find", query).success((matches) => {

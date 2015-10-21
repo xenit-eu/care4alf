@@ -126,7 +126,6 @@ public class Bulk implements ApplicationContextAware {
                 continue;
 
             // Found potential worker type
-
             Constructor<?> ctr = null;
 
             try {
@@ -137,11 +136,8 @@ public class Bulk implements ApplicationContextAware {
             if (ctr == null) return null; // no valid constructor found
 
             try {
-
                 AbstractWorker ret = (AbstractWorker) ctr.newInstance(parameters);
-
                 ret.setNodeService(nodeService);
-
                 return ret;
 
             } catch (InstantiationException e) {
@@ -152,29 +148,6 @@ public class Bulk implements ApplicationContextAware {
                 e.printStackTrace();
             }
         }
-
-
-//        if (action.equals("delete")) {
-//            DeleteWorker w = new DeleteWorker(parameters);
-//            w.setNodeService(nodeService);
-//            return w;
-//        } else if (action.equals("archive")) {
-//            ArchiveWorker w = new ArchiveWorker(parameters);
-//            w.setNodeService(nodeService);
-//            return w;
-//        } else if (action.equals("settype")) {
-//            SetTypeWorker w = new SetTypeWorker(parameters);
-//            w.setNodeService(nodeService);
-//            return w;
-//        } else if (action.equals("setproperty")) {
-//            SetPropertyWorker w = new SetPropertyWorker(parameters);
-//            w.setNodeService(nodeService);
-//            return w;
-//        } else if (action.equals("dummy")) {
-//            DummyWorker w = new DummyWorker(parameters);
-//            w.setNodeService(nodeService);
-//            return w;
-//        }
         return null;
     }
 
