@@ -16,7 +16,8 @@
     <script type="text/javascript" src="${resources}/js/angular-animate/angular-animate.min.js"></script>
     <script type="text/javascript" src="${resources}/js/angularjs-toaster/toaster.js"></script>
     <script type="text/javascript" src="${resources}/js/upload/angular-file-upload.js"></script>
-    <script type="text/javascript" src="${resources}/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
+    <!--script type="text/javascript" src="${resources}/js/ui-bootstrap-tpls-0.10.0.min.js"></script-->
+    <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.14.2.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-loading-bar/loading-bar.js"></script>
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
     <script type="text/javascript">
@@ -35,7 +36,7 @@
 </div>
 <ul class="menu">
 <#list modules as module>
-	<li title="${module.description}"><a href="#${module.id}">${module.id}</a></li>
+	<li><a popover-placement="right" popover="${module.description}" popover-trigger="mouseenter" href="#${module.id}">${module.id}</a></li>
 </#list>
 </ul>
 <div class="body">
