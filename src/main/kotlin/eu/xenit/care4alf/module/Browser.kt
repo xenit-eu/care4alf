@@ -57,7 +57,7 @@ public class Browser @Autowired constructor(
         private val policyBehaviourFilter: BehaviourFilter,
         private val permissionService: PermissionService,
         private val aclDAO: AclDAO
-    ): RestErrorHandling {
+) : RestErrorHandling {
     override var logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
 
@@ -74,7 +74,13 @@ public class Browser @Autowired constructor(
     Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
-        iterable(searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_FTS_ALFRESCO, requestBody).getNodeRefs(), nodesToBasicJson())
+        if (requestBody!!.toLowerCase().startsWith("workspace://")) {
+//            if (NodeRef.isNodeRef(requestBody)) {
+
+                iterable(NodeRef.getNodeRefs(requestBody) ,nodesToBasicJson())
+        } else {
+            iterable(searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_FTS_ALFRESCO, requestBody).getNodeRefs(), nodesToBasicJson())
+        }
     }
 
     Uri("/details")
