@@ -76,6 +76,14 @@
                     <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                 </div>
             </div>
+            <div>
+                <div class="col-sm-2">
+                    <input type="text" ng-model="newQName" class="form-control" />
+                </div>
+                <div class="col-sm-6">
+                    <input type="text" ng-model="newValue" class="form-control" ng-enter="addProperty(newQName, newValue)"/>
+                </div>
+            </div>
         </form>
     </fieldset>
 

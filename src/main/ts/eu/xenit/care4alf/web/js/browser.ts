@@ -32,6 +32,12 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         }
     };
 
+    $scope.addProperty = (qname, value) => {
+        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + qname, {value: value}).success(() => {
+            //$scope.node.properties[qname]=value;
+        });
+    };
+
     $scope.deleteProperty = (property) => {
         $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property).then(() => {
             delete $scope.node.properties[property];
