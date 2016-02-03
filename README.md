@@ -18,4 +18,4 @@ npm install -g typescript
 npm install -g less
 
 
-./gradlew installBundle -Phost=usg-nl
+./gradlew installBundle -Pprotocol=http -Phost=localhost -Pport=8080 -Pusername=admin -Ppassword=admin

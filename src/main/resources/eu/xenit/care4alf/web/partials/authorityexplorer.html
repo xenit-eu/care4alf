@@ -1,0 +1,28 @@
+<h3>Authority Explorer</h3>
+
+<div><b>Webscript :</b> <a ng-href="{{::webscript}}">/{{::webscript}}</a></div>
+<div><b>Structure :</b><br />
+
+<pre>
+Webscript       : /{{::webscript}}
+Response        : GROUP[]
+Response-Format : JSON
+
+GROUP :
+{
+    "name"  : string,
+    "groups": GROUP[],
+    "users" : string[]
+}</pre>
+</div>
+
+<div><b>Response:</b><br />
+<pre class="alert alert-danger" role="alert" ng-if="errMessage" style="width: 100%;">
+{{errMessage.errorIntro}}
+    {{errMessage.errorMessage}}
+
+    <span ng-click="showStackTrace = !showStackTrace">{{showStackTrace ? 'Hide':'Show'}} stacktrace</span>
+<span ng-show="showStackTrace">{{errMessage.stacktrace}}</span></pre>
+<pre ng-if="res">{{res | json : 4}}</pre>
+</div>
+

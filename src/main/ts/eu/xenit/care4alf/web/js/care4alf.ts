@@ -27,3 +27,4 @@
 /// <reference path="export.ts" />
 /// <reference path="audit.ts" />
 /// <reference path="locks.ts" />
+/// <reference path="authorityexplorer.ts" />
