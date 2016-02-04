@@ -4,7 +4,7 @@ care4alf.controller('authorityexplorer', ($scope,$http: ng.IHttpService) => {
 
     $scope.webscript = "authorityexplorer/groups";
 
-    $http.get('authorityexplorer/groups').success((res) => {
+    $http.get($scope.webscript).success((res) => {
         console.log("SUCCESS: ",res);
         $scope.res = res;
     }).error((e) => {

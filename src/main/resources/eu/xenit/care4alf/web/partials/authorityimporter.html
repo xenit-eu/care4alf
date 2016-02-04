@@ -1,0 +1,22 @@
+<h3>Authority Importer</h3>
+
+<div>
+
+    <div><b>Input</b></div>
+
+    <div style="display: flex; flex-direction: row; align-items: center;">
+        <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: stretch;">
+            <textarea style="flex: 0 0 100%; resize: vertical;" ng-model="input" ng-change="doInput(input)"></textarea>
+            <div style="text-align: right; color: darkred; min-height: 24px;"><i ng-show="input && !inputParsed">Input is not valid JSON</i></div>
+        </div>
+        <div style="flex: 0 0 20%; display: flex; justify-content: center; margin-bottom: 24px;">
+            <button type="button" class="btn btn-primary" ng-class="{'disabled':!inputParsed}" ng-click="submitInput()">Submit</button>
+        </div>
+    </div>
+
+    <div ng-show="inputParsed">
+        <div><b>Parsed Input</b></div>
+        <pre>{{inputParsed | json : 4}}</pre>
+    </div>
+
+</div>
