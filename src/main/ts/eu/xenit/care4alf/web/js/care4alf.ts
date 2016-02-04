@@ -28,3 +28,4 @@
 /// <reference path="audit.ts" />
 /// <reference path="locks.ts" />
 /// <reference path="authorityexplorer.ts" />
+/// <reference path="authorityimporter.ts" />
