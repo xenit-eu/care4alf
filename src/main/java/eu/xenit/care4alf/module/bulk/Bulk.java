@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -49,6 +50,8 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     private TransactionService transactionService;
+
+    private List<BatchProcessor> processors = new ArrayList<BatchProcessor>();
 
     @Uri(value = "/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
     public void bulk(@UriVariable final String action, JSONObject json, final WebScriptResponse response) throws IOException, JSONException {
@@ -76,16 +79,24 @@ public class Bulk implements ApplicationContextAware {
                 nbThreads, batchSize, null, null, 100);
 
         // blocks until workers have finished
+        processors.add(processor);
         processor.process(worker, true);
 
-        JSONObject result = new JSONObject();
+
+
+        JSONObject result = processorToJson(processor);
         result.put("action", action);
+
+        response.getWriter().write(result.toString());
+    }
+
+    private JSONObject processorToJson(BatchProcessor processor) throws JSONException {
+        JSONObject result = new JSONObject();
         result.put("start", processor.getStartTime());
         result.put("end", processor.getEndTime());
         result.put("successes", processor.getSuccessfullyProcessedEntries());
         result.put("errors", processor.getTotalErrors());
-
-        response.getWriter().write(result.toString());
+        return result;
     }
 
     @Uri(value = "/xenit/care4alf/bulk/listActions")
@@ -102,16 +113,12 @@ public class Bulk implements ApplicationContextAware {
                 throw new UnsupportedOperationException("Multiple workers with same action name found!");
             actionNames.add(newName);
 
-
             json.key(newName);
             json.array();
             for (String s : annotation.parameterNames())
                 json.value(s);
 
             json.endArray();
-
-
-
         }
         json.endObject();
 
@@ -155,6 +162,21 @@ public class Bulk implements ApplicationContextAware {
     public void stores(final WebScriptResponse response) throws IOException, JSONException {
         List<StoreRef> stores = nodeService.getStores();
         response.getWriter().write(new JSONArray(stores).toString());
+    }
+
+    @Uri("/xenit/care4alf/bulk/processors")
+    public void getProcessors(final WebScriptResponse response) throws IOException, JSONException {
+        JSONArray array = new JSONArray();
+        for(BatchProcessor processor : this.processors)
+        {
+            array.put(processorToJson(processor));
+        }
+        response.getWriter().write(array.toString());
+    }
+
+    @Uri("/xenit/care4alf/bulk/processors/clear")
+    public void cleanProcessors(final WebScriptResponse response) throws IOException, JSONException {
+        this.processors.clear();
     }
 
     @Override
