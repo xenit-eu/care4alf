@@ -174,7 +174,7 @@ public class Bulk implements ApplicationContextAware {
         response.getWriter().write(array.toString());
     }
 
-    @Uri("/xenit/care4alf/bulk/processors/clear")
+    @Uri(value = "/xenit/care4alf/bulk/processors", method = HttpMethod.DELETE)
     public void cleanProcessors(final WebScriptResponse response) throws IOException, JSONException {
         this.processors.clear();
     }
