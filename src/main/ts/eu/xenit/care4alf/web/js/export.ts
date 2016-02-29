@@ -16,7 +16,7 @@ care4alf.controller('export', ($scope,$http: ng.IHttpService) => {
         $scope.loading = true;
         var extra = "?";
         extra += "query=" + encodeURIComponent($scope.form.query);
-        extra += "&columns=" + encodeURIComponent($scope.form.columns.toLowerCase());
+        extra += "&columns=" + encodeURIComponent($scope.form.columns);
         extra += "&separator=" + encodeURIComponent($scope.form.separator);
         extra += "&nullValue=" + encodeURIComponent($scope.form.nullValue);
         extra += "&amountDoc=" + encodeURIComponent($scope.form.amountDoc);
