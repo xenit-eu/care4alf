@@ -79,14 +79,13 @@ public class Export {
             amountDoc = "-1";
         int nbDocuments = Integer.parseInt(amountDoc);
 
-        columns = columns.toLowerCase();
         String[] column = columns.split(",");
 
         HashMap<String,Boolean> hardcodedNames = new HashMap<String,Boolean>();
         hardcodedNames.put("path",true);
         hardcodedNames.put("text",true);
         hardcodedNames.put("type",true);
-
+        hardcodedNames.put("noderef",true);
 
         SearchParameters sp = new SearchParameters();
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
@@ -163,6 +162,9 @@ public class Export {
                             QName type = nodeService.getType(nRef);
                             result += dictionaryService.getType(type).getTitle();
                             done = true;
+                        }
+                        if ("noderef".equals(element)) {
+                            result += nRef;
                         }
                         if (!done) {
                             PropertyDefinition prop = dictionaryService.getProperty(QName.createQName(element,namespaceService));
