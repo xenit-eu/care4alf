@@ -1,4 +1,4 @@
-package eu.xenit.care4alf.export;
+package eu.xenit.care4alf.search;
 
 import com.google.common.collect.Multimap;
 import org.alfresco.httpclient.HttpClientFactory;
@@ -35,7 +35,8 @@ public class SolrClientImpl implements SolrClient {
     SolrChildApplicationContextFactory solrhttpClientFactory;
 
     @Override
-    public JSONObject post(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
+    public JSONObject post(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException
+    {
         HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
         final HttpClient httpClient = httpClientFactory.getHttpClient();
         HttpClientParams params = httpClient.getParams();
@@ -51,6 +52,7 @@ public class SolrClientImpl implements SolrClient {
                 urlBuilder.append("&");
             }
             String value = entry.getValue();
+            logger.debug("Key/Value {}={}", entry.getKey(), entry.getValue());
             if (value.indexOf('+') == -1) {
                 value = encoder.encode(value, "UTF-8");
             }
@@ -60,7 +62,6 @@ public class SolrClientImpl implements SolrClient {
         logger.info("parameters {}", parameters);
 
         final String uri = urlBuilder.toString();
-
         logger.info("solr query: {}", uri);
 
         PostMethod post = new PostMethod(uri);
