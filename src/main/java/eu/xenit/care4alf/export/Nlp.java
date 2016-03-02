@@ -4,6 +4,7 @@ import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.google.common.collect.ImmutableMultimap;
+import eu.xenit.care4alf.search.SolrClient;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.content.transform.ContentTransformer;
