@@ -34,6 +34,7 @@ public class Scaling {
         queries = new HashMap<String,String>();
         queries.put("N1","select count( * ) from alf_node where store_id = (select id from alf_store where protocol = 'workspace' and identifier = 'SpacesStore')");
         queries.put("N2","select count( * ) from alf_node where store_id = (select id from alf_store where protocol = 'archive' and identifier = 'SpacesStore')");
+        queries.put("R","select count( * ) from alf_node_aspects where qname_id in (select id from alf_qname where local_name = 'archived')");
         queries.put("N3","select count( * ) from alf_node where store_id = (select id from alf_store where protocol = 'workspace' and identifier = 'version2Store')");
         queries.put("T","select count( * ) from alf_transaction");
         queries.put("A","select count( * ) from alf_access_control_list");

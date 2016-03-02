@@ -2,48 +2,54 @@ package eu.xenit.care4alf.module.bulk;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.batch.BatchProcessor;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 /**
  * Created by willem on 3/10/15.
  */
 @Component
 @WebScript(families = {"care4alf"}, description = "execute actions in bulk")
+@Transaction(TransactionType.REQUIRED)
 @Authentication(AuthenticationType.ADMIN)
 public class Bulk implements ApplicationContextAware {
-    //    private static Log logger = LogFactory.getLog(Bulk.class);
-    private ApplicationContext applicationContext;
+    private final Logger logger = LoggerFactory.getLogger(Bulk.class);
 
+    private ApplicationContext applicationContext;
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private SearchService searchService;
@@ -62,7 +68,7 @@ public class Bulk implements ApplicationContextAware {
         int nbThreads = json.getInt("threads");
         JSONObject parameters = json.getJSONObject("parameters");
 
-//        logger.info(String.format("Starting bulk action '%s'", action));
+        logger.info(String.format("Starting bulk action '%s'", action));
 
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
@@ -78,11 +84,10 @@ public class Bulk implements ApplicationContextAware {
                 new SearchWorkProvider(searchService, storeRef, queryLanguage, query, batchSize),
                 nbThreads, batchSize, null, null, 100);
 
-        // blocks until workers have finished
+
         processors.add(processor);
+        // blocks until workers have finished
         processor.process(worker, true);
-
-
 
         JSONObject result = processorToJson(processor);
         result.put("action", action);
@@ -125,8 +130,6 @@ public class Bulk implements ApplicationContextAware {
     }
 
     private AbstractWorker createWorkerForAction(@UriVariable String action, JSONObject parameters) {
-        //TODO: load dynamically
-
         // Maybe somewhat hackish since the workers are not really used as beans
         for (Object ann : applicationContext.getBeansWithAnnotation(Worker.class).values()) {
             if (!ann.getClass().getAnnotation(Worker.class).action().equals(action))
