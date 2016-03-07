@@ -1,6 +1,9 @@
 package eu.xenit.care4alf.module.bulk;
 
+import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
+import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import org.alfresco.repo.domain.node.NodeDAO;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.transaction.TransactionService;
@@ -26,13 +29,14 @@ import java.util.List;
 /**
  * Created by willem on 3/3/16.
  *
- * Created for Alfresco 4.1 to clean the recycle bin using a db query like this:
+ * Created for Alfresco 4.1 to clear the recycle bin using a db query like this:
  *  For Oracle:
  *      select concat('archive://SpacesStore/',n.uuid) from alf_node_aspects a join alf_node n on a.NODE_ID=n.ID where qname_id in (select id from alf_qname where local_name = 'archived') and rownum <= 1
  *
  *  For postgresql:
  *      select concat('archive://SpacesStore/',uuid) from alf_node where id in (select node_id from alf_node_aspects where qname_id in (select id from alf_qname where local_name = 'archived') limit 1)
  *
+ * Afterwards call purgeNodes to remove entries from database.
  **
  */
 @Component
@@ -46,6 +50,10 @@ public class ClearBin {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
+    private NodeDAO nodeDAO;
 
     @Autowired
     private TransactionService transactionService;
@@ -100,5 +108,13 @@ public class ClearBin {
         }
         logger.debug("Result: " + nodeRefs.size() + " noderefs");
         return nodeRefs;
+    }
+
+    @Uri(value = "/xenit/care4alf/bulk/purgeNodes")
+    public void purgeNodes(final WebScriptResponse response) throws IOException {
+        logger.debug("Start purging nodes");
+        int n = nodeDAO.purgeNodes(Long.MAX_VALUE);
+        logger.debug("Number of nodes purged: " + n);
+        response.getWriter().write("Number of nodes purged: " + n);
     }
 }
