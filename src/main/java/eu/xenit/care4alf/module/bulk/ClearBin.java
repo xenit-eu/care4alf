@@ -75,7 +75,7 @@ public class ClearBin {
             } catch (Throwable e) {
                 trx.rollback();
             }
-        }while(count <= n && nodeRefs.size() >= 0);
+        }while(count <= n && nodeRefs.size() > 0);
         long endTime   = System.currentTimeMillis();
         long duration = endTime - startTime;
         logger.info("Duration in seconds: " + duration/1000d);
