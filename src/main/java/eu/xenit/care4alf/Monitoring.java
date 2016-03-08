@@ -1,9 +1,17 @@
 package eu.xenit.care4alf;
 
+import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
+import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import org.alfresco.repo.descriptor.DescriptorDAO;
+import org.alfresco.service.descriptor.Descriptor;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +23,29 @@ import java.io.IOException;
 @Component
 @WebScript(description = "Monitoring")
 public class Monitoring {
+
+    @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
+    DescriptorDAO currentRepoDescriptorDAO;
+
     @Authentication(AuthenticationType.NONE)
     @Uri("/xenit/care4alf/monitoring")
-    public void monitoring(final WebScriptResponse response) throws IOException {
-        response.getWriter().write("OK");
+    public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
+        Descriptor descriptor = getDescriptor();//uses nodeservice and searchservice
+        JSONObject obj = new JSONObject();
+        final JSONWriter jsonRes = new JSONWriter(res.getWriter());
+        jsonRes.object();
+        jsonRes.key("data");
+            jsonRes.object();
+                jsonRes.key("edition").value(descriptor.getLicenseMode());
+                jsonRes.key("version").value(descriptor.getVersion());
+                jsonRes.key("schema").value(descriptor.getSchema());
+            jsonRes.endObject();
+        jsonRes.endObject();
     }
+
+    private Descriptor getDescriptor(){
+        return currentRepoDescriptorDAO.getDescriptor();
+    }
+
 }
