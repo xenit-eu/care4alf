@@ -43,6 +43,7 @@ repositories {
 configurations {
     embedded
     compile.extendsFrom(embedded)
+    amp
 }
 
 dependencies {
@@ -64,6 +65,8 @@ dependencies {
     compile 'com.google.collections:google-collections:1.0'
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
+
+    amp(project(':'))
 }
 
 compileTypeScript {
@@ -89,6 +92,18 @@ jar {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({'lib/' + it.name}).join(',')}"
         instruction 'Import-Package', '!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",*'
     }
+}
+
+task amp(type: Zip) {
+    from(configurations.amp) {
+        into('config/dynamic-extensions/bundles/')
+    }
+
+    from(file('module.properties'))
+
+    baseName = 'care4alf'
+    extension 'amp'
+    destinationDir = file("$buildDir/amps")
 }
 
 alfrescoDynamicExtensions {
