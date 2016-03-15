@@ -3,6 +3,8 @@ package eu.xenit.care4alf.scheduledjobs;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,7 @@ import java.util.Set;
 @WebScript(baseUri = "/xenit/care4alf/scheduled", families = {"care4alf"}, description = "Show and execute scheduled jobs")
 @Authentication(AuthenticationType.ADMIN)
 public class ScheduledJobs {
+    private final Logger logger = LoggerFactory.getLogger(ScheduledJobs.class);
 
     @Autowired
     private MBeanServerConnection alfrescoMBeanServer;
@@ -56,14 +59,21 @@ public class ScheduledJobs {
     }
 
     @Uri(value="job/{name}/execute", method = HttpMethod.POST)
-    public void execute(@UriVariable final String name, final WebScriptResponse response)
+    public void execute(@UriVariable final String name)
             throws IOException, JSONException, MalformedObjectNameException, InstanceNotFoundException, ReflectionException, MBeanException {
+        String fullName = "Alfresco:Group=DEFAULT,Name=Schedule,Trigger="+name+",Type=MonitoredCronTrigger";
+        logger.info("Executing '{}'", name);
+        logger.info(fullName);
+
         Object result = alfrescoMBeanServer.invoke(
-                new ObjectName("Alfresco:Group=DEFAULT,Name=Schedule,Trigger="+name+",Type=MonitoredCronTrigger"),
+                new ObjectName(fullName),
                 "executeNow",
                 null,
                 null
                 );
+
+        if(result != null)
+            logger.info("Result {}", result.toString());
     }
 
 }
