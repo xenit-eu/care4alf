@@ -38,13 +38,12 @@ import java.util.*;
 @Component
 @Authentication(AuthenticationType.USER)
 @Transaction(TransactionType.REQUIRED)
-@WebScript(families = "predict")
+@WebScript(baseUri = "/xenit/care4alf/nlp")
 public class Nlp {
     private final static Logger logger = LoggerFactory.getLogger(Nlp.class);
 
     @Autowired
     NodeService nodeService;
-
 
     @Autowired
     PermissionService permissionService;
@@ -156,7 +155,6 @@ public class Nlp {
 
     public long getNumDocs() throws SQLException {
         //TODO uitkomst niet correct, maar wel in de buurt
-        //65526
         long count = -1;
         final Connection connection = dataSource.getConnection();
         try {
@@ -173,71 +171,6 @@ public class Nlp {
         }
         return count;
     }
-
-//    @Uri("/xenit/nlp/testsql/{table}")
-    public void sqlTest(@UriVariable String table, final WebScriptResponse response) throws EncoderException, IOException, JSONException, SQLException {
-
-        final String sql = "FROM " + table;
-//        final String sql = "FROM alf_qname";
-//        final String sql = "FROM alf_store";
-//        final String sql = "FROM alf_node WHERE store_id = 5 AND type_qname_id=76";
-
-        int nbRows = 1;
-        int nbColumns = 1;
-        if(table.equals("alf_store")) {
-            nbRows = 6;
-            nbColumns = 4;
-        }
-        if(table.equals("alf_qname")) {
-            nbRows = 100;
-            nbColumns = 4;
-        }
-        if(table.equals("alf_node")) {
-            nbRows = 100;
-            nbColumns = 13;
-        }
-        final JSONWriter jsonw = new JSONWriter(response.getWriter());
-
-        final Connection connection = dataSource.getConnection();
-        try {
-            final Statement stmt = connection.createStatement();
-            long count = 0;
-            final ResultSet rs2 = stmt.executeQuery("SELECT COUNT(*) " + sql);
-            if (rs2.next()) {
-                count = rs2.getLong(1);
-            }
-
-            final ResultSet rs = stmt.executeQuery("SELECT * " + sql);
-
-            ResultSetMetaData rsmd = rs.getMetaData();
-
-            jsonw.object();
-            jsonw.key("size");
-            jsonw.value(count);
-
-            jsonw.key("columns");
-            jsonw.array();
-            for(int j =1;j <= nbColumns; j++)
-                jsonw.value(rsmd.getColumnName(j));
-            jsonw.endArray();
-
-            for(int i = 1; i <= nbRows;i++){
-                rs.next();
-                jsonw.key("row " + i);
-                jsonw.array();
-                for(int j =1;j <= nbColumns; j++)
-                    jsonw.value(rs.getString(j));
-                jsonw.endArray();
-            }
-
-            jsonw.endObject();
-            rs.close();
-        } finally {
-            connection.close();
-        }
-    }
-
-
 
     public int getDocumentFrequency(String term) throws EncoderException, IOException, JSONException {
         if(this.dfCache.containsKey(term))
@@ -261,60 +194,24 @@ public class Nlp {
         return 0;
     }
 
-
-
-//    @Uri("/xenit/nlp/property/{noderef}")
-    public void getProperty(@UriVariable NodeRef noderef, final WebScriptResponse response) throws IOException, JSONException {
-        Map result = nodeService.getProperties(noderef);
-        final JSONWriter jsonw = new JSONWriter(response.getWriter());
-        jsonw.object();
-        for(Object key: result.keySet()){
-            jsonw.key(key.toString());
-            jsonw.value(result.get(key));
-        }
-        jsonw.endObject();
-    }
-
-//    @Uri("/xenit/nlp/testterm/{term}")
-    public void getTermFreq(@UriVariable String term, final WebScriptResponse response) throws EncoderException, IOException, JSONException {
-        JSONObject json = solrClient.post("/solr/alfresco/terms", ImmutableMultimap.<String, String>builder()
-                .put("terms.fl", "@{http://www.alfresco.org/model/content/1.0}content.__")
-                .put("terms.prefix", term)
-                .put("terms.limit", "10")
-                .put("wt", "json")
-                .build());
-        final JSONWriter jsonw = new JSONWriter(response.getWriter());
-
-        jsonw.object();
-        jsonw.key("object");
-        jsonw.value(json);
-        jsonw.endObject();
-    }
-
-//    @Uri("/xenit/nlp/numdocs")
-    public void getNumDocs(WebScriptResponse response) throws IOException, SQLException {
-        response.getWriter().write(Long.toString(this.getNumDocs()));
-    }
-
-//    @Uri("/xenit/nlp/content/{noderef}")
+    @Uri("content/{noderef}")
     public void content(@UriVariable NodeRef noderef, final WebScriptResponse response) throws IOException {
         response.getWriter().write(this.getText(noderef));
     }
 
-//    @Uri("/xenit/nlp/terms/{noderef}")
+    @Uri("terms/{noderef}")
     public void terms(@UriVariable NodeRef noderef, final WebScriptResponse response) throws IOException {
-//        JSONObject json = new JSONObject(getTf(this.getText(noderef)));
         JSONObject json = new JSONObject(getTerms(noderef));
         response.getWriter().write(json.toString());
     }
 
-//    @Uri("/xenit/nlp/term/{term}")
+    @Uri("df/{term}")
     public void term(@UriVariable String term, final WebScriptResponse response)
             throws JSONException, EncoderException, IOException {
         response.getWriter().write(Integer.toString(this.getDocumentFrequency(term)));
     }
 
-//    @Uri("/xenit/nlp/tfidf/{noderef}")
+    @Uri("tfidf/{noderef}")
     public void tfidf(@UriVariable NodeRef noderef, final WebScriptResponse response)
             throws JSONException, EncoderException, IOException, SQLException {
         Map<String, Double> tfidfs = this.getTfIdfs(noderef);
