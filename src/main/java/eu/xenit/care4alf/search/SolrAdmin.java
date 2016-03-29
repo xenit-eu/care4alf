@@ -1,5 +1,6 @@
 package eu.xenit.care4alf.search;
 
+import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
@@ -25,11 +26,12 @@ public class SolrAdmin {
     private SolrClient solrClient;
 
     @Uri("errors")
-    public void errors(final WebScriptResponse response) throws JSONException, EncoderException, IOException {
+    public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
         parameters.put("q", "ID:ERROR-*");
-        parameters.put("rows", "100");
+        parameters.put("start", start);
+        parameters.put("rows", rows);
         JSONObject json = solrClient.post("/solr/alfresco/select", parameters);
         response.getWriter().write(json.toString());
     }
