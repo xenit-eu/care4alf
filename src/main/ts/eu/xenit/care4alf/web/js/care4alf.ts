@@ -29,3 +29,4 @@
 /// <reference path="locks.ts" />
 /// <reference path="authorityexplorer.ts" />
 /// <reference path="authorityimporter.ts" />
+/// <reference path="solradmin.ts" />
