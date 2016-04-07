@@ -9,6 +9,7 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,7 +22,7 @@ import javax.sql.DataSource;
  * Created by willem on 4/6/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/dictionaryfixes", families = {"care4alf"}, description = "Dictionary fixes")
+@WebScript(baseUri = "/xenit/care4alf/dictionaryfixes", description = "Dictionary fixes")
 public class DictionaryFixes {
 
     @Autowired
@@ -55,5 +56,25 @@ public class DictionaryFixes {
             connection.close();
         }
         return properties;
+    }
+
+    @Uri("stats")
+    public void getStats(WebScriptResponse res) throws SQLException, IOException {
+        final Connection connection = dataSource.getConnection();
+        int n = -1;
+        try {
+            final Statement stmt = connection.createStatement();
+            Writer writer = res.getWriter();
+            final ResultSet rs = stmt.executeQuery(
+                    "select q.id, n.uri, q.local_name from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  where q.id in (select distinct(qname_id) from alf_node_properties)");
+            while (rs.next()) {
+                writer.write(rs.getString(1) + ";" + rs.getString(2) + ";" + rs.getString(3));
+                writer.write("\n");
+            }
+            writer.close();
+            rs.close();
+        } finally {
+            connection.close();
+        }
     }
 }
