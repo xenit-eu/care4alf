@@ -62,18 +62,43 @@ public class ScheduledJobs {
     public void execute(@UriVariable final String name)
             throws IOException, JSONException, MalformedObjectNameException, InstanceNotFoundException, ReflectionException, MBeanException {
         String fullName = "Alfresco:Group=DEFAULT,Name=Schedule,Trigger="+name+",Type=MonitoredCronTrigger";
-        logger.info("Executing '{}'", name);
+        String result = this.execute(fullName,"executeNow");
+        logger.info("Result {}", result);
+    }
+
+    private String execute(String fullName, String operation){
+        logger.info("Executing '{}'", fullName);
         logger.info(fullName);
 
-        Object result = alfrescoMBeanServer.invoke(
-                new ObjectName(fullName),
-                "executeNow",
-                null,
-                null
-                );
+        Object result = null;
+        try {
+            result = alfrescoMBeanServer.invoke(
+                    new ObjectName(fullName),
+                    operation,
+                    null,
+                    null
+            );
+        } catch (InstanceNotFoundException e) {
+            e.printStackTrace();
+        } catch (MBeanException e) {
+            e.printStackTrace();
+        } catch (ReflectionException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (MalformedObjectNameException e) {
+            e.printStackTrace();
+        }
 
         if(result != null)
-            logger.info("Result {}", result.toString());
+            return result.toString();
+
+        return "no_result";
+    }
+
+    @Uri("validateschema")
+    public void schemaValidation(WebScriptResponse res) throws IOException {
+        res.getWriter().write(this.execute("Alfresco:Name=DatabaseInformation,Tool=SchemaValidator", "validateSchema"));
     }
 
 }
