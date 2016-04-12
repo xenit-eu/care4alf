@@ -22,16 +22,16 @@ import java.io.IOException;
  */
 @Component
 @WebScript(description = "Monitoring")
+@Authentication(AuthenticationType.NONE)
 public class Monitoring {
 
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
     DescriptorDAO currentRepoDescriptorDAO;
 
-    @Authentication(AuthenticationType.NONE)
     @Uri("/xenit/care4alf/monitoring")
     public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
-        Descriptor descriptor = getDescriptor();//uses nodeservice and searchservice
+        Descriptor descriptor = getDescriptor();
         JSONObject obj = new JSONObject();
         final JSONWriter jsonRes = new JSONWriter(res.getWriter());
         jsonRes.object();
@@ -44,8 +44,18 @@ public class Monitoring {
         jsonRes.endObject();
     }
 
+    private void dbCheck(){
+        this.getDescriptor();//uses nodeservice and searchservice
+    }
+
     private Descriptor getDescriptor(){
         return currentRepoDescriptorDAO.getDescriptor();
+    }
+
+    @Uri("/xenit/care4alf/monitoring/db")
+    public void getDbStatus(WebScriptResponse res) throws IOException {
+        dbCheck();
+        res.getWriter().write("OK");
     }
 
 }
