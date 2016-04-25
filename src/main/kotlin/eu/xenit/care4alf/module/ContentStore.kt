@@ -130,7 +130,10 @@ public class ContentStore @Autowired constructor(
                     try {
                         contentService.getReader(nodeRef, ContentModel.PROP_CONTENT).getContentInputStream().close()
                     } catch(ex: Exception) {
-                        missingContent.add(MissingContent(nodeRef, content.getContentUrl(), ex.getMessage()))
+                        var contentUrl="<none>";
+                        if(content !=null && content.getContentUrl() != null)
+                            contentUrl=content.getContentUrl();
+                        missingContent.add(MissingContent(nodeRef, contentUrl, ex.getMessage()))
                     }
                 }
             }
