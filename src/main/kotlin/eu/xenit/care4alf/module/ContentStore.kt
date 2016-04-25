@@ -148,4 +148,4 @@ public class ContentStore @Autowired constructor(
     }
 }
 
-class MissingContent(val noderef: NodeRef, val contentUrl: String, val cause: String?)
+class MissingContent(val noderef: NodeRef, val contentUrl: String?, val cause: String?)
