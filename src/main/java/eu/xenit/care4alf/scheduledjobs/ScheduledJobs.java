@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.scheduledjobs;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import org.alfresco.repo.domain.schema.SchemaBootstrap;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 import javax.management.*;
 import javax.management.Attribute;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Set;
 
 /**
@@ -99,6 +102,15 @@ public class ScheduledJobs {
     @Uri("validateschema")
     public void schemaValidation(WebScriptResponse res) throws IOException {
         res.getWriter().write(this.execute("Alfresco:Name=DatabaseInformation,Tool=SchemaValidator", "validateSchema"));
+    }
+
+    @Autowired
+    SchemaBootstrap schemaBootstrap;
+    @Uri("validateschema.txt")
+    public void showSchemaValidation(WebScriptResponse res) throws IOException {
+        Writer writer = res.getWriter();
+        this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", (PrintWriter) writer);
+        writer.write("END.");
     }
 
 }
