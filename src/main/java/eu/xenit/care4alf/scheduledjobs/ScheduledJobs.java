@@ -106,7 +106,7 @@ public class ScheduledJobs {
 
     @Autowired
     SchemaBootstrap schemaBootstrap;
-    @Uri("validateschema.txt")
+    @Uri("validateschema/txt")
     public void showSchemaValidation(WebScriptResponse res) throws IOException {
         Writer writer = res.getWriter();
         this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", (PrintWriter) writer);
