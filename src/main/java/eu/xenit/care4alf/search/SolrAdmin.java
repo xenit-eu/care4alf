@@ -33,6 +33,7 @@ public class SolrAdmin {
         parameters.put("start", start);
         parameters.put("rows", rows);
         JSONObject json = solrClient.post("/solr/alfresco/select", parameters);
+        response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
 
@@ -45,6 +46,7 @@ public class SolrAdmin {
             parameters.put(name, request.getParameter(name));
         }
         JSONObject json = solrClient.post("/solr/" + uri, parameters);
+        response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
 }
