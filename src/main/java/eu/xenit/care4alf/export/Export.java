@@ -45,9 +45,6 @@ public class Export {
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private DictionaryService dictionaryService;
 
-    @Autowired
-    Nlp nlp;
-
     @Uri(value="/query", method = HttpMethod.GET)
     public void exportQuery(@RequestParam(required = false) String query,
                             @RequestParam(required = false) String separator,
