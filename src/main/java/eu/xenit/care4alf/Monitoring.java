@@ -6,8 +6,10 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Authenticatio
 import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.service.descriptor.Descriptor;
+import org.apache.commons.codec.EncoderException;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -27,7 +29,10 @@ public class Monitoring {
 
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
-    DescriptorDAO currentRepoDescriptorDAO;
+    private DescriptorDAO currentRepoDescriptorDAO;
+
+    @Autowired
+    private SolrAdmin solrAdmin;
 
     @Uri("/xenit/care4alf/monitoring")
     public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
@@ -56,6 +61,11 @@ public class Monitoring {
     public void getDbStatus(WebScriptResponse res) throws IOException {
         dbCheck();
         res.getWriter().write("OK");
+    }
+
+    @Uri(value="/xenit/care4alf/monitoring/solr/errors",defaultFormat = "text")
+    public void getSolrErrors(WebScriptResponse res) throws IOException, JSONException, EncoderException {
+        res.getWriter().write(Integer.toString(this.solrAdmin.getSolrErrors()));
     }
 
 }

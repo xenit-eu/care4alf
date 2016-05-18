@@ -2,7 +2,6 @@ package eu.xenit.care4alf.search;
 
 import com.google.common.collect.Multimap;
 import org.alfresco.httpclient.HttpClientFactory;
-import org.alfresco.repo.search.impl.lucene.LuceneQueryParserException;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
@@ -84,7 +83,7 @@ public class SolrClientImpl implements SolrClient {
 
             if (post.getStatusCode() != HttpServletResponse.SC_OK) {
                 logger.error("HTTP error: " + post.getResponseBodyAsString());
-                throw new LuceneQueryParserException("Request failed " + post.getStatusCode());
+                throw new IOException("Request failed " + post.getStatusCode());
             }
 
             final String responseBodyAsString = post.getResponseBodyAsString();

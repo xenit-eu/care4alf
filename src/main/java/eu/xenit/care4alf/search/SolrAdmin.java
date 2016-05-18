@@ -37,6 +37,16 @@ public class SolrAdmin {
         response.getWriter().write(json.toString());
     }
 
+    public int getSolrErrors() throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        parameters.put("q", "ID:ERROR-*");
+        parameters.put("start", "0");
+        parameters.put("rows", "0");
+        JSONObject json = solrClient.post("/solr/alfresco/select", parameters);
+        return json.getJSONObject("response").getInt("numFound");
+    }
+
     @Uri("proxy/{uri}")
     public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri) throws JSONException, EncoderException, IOException {
         String[] names = request.getParameterNames();
