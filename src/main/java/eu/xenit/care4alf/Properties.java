@@ -4,12 +4,13 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.namespace.QName;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,8 +23,8 @@ import javax.sql.DataSource;
  * Created by willem on 4/6/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/dictionaryfixes", description = "Dictionary fixes")
-public class DictionaryFixes {
+@WebScript(baseUri = "/xenit/care4alf/properties", description = "Properties")
+public class Properties {
 
     @Autowired
     DataSource dataSource;
@@ -31,9 +32,15 @@ public class DictionaryFixes {
     @Autowired
     DictionaryService dictionaryService;
 
-    @Uri("/")
-    public void restGetResidualProperties(WebScriptResponse res) throws SQLException, IOException {
-        res.getWriter().write(this.getResidualProperties().toString());
+    @Uri("/residual")
+    public void restGetResidualProperties(WebScriptResponse response) throws SQLException, IOException, JSONException {
+        response.setContentType("application/json");
+        final JSONWriter json = new JSONWriter(response.getWriter());
+        json.array();
+        for(QName prop : this.getResidualProperties()){
+            json.value(prop);
+        }
+        json.endArray();
     }
 
     public List<QName> getResidualProperties() throws SQLException {
@@ -58,23 +65,50 @@ public class DictionaryFixes {
         return properties;
     }
 
-    @Uri("stats")
-    public void getStats(WebScriptResponse res) throws SQLException, IOException {
+    @Uri("/")
+    public void list(WebScriptResponse response) throws SQLException, IOException, JSONException {
+        final JSONWriter json = new JSONWriter(response.getWriter());
+        json.array();
+        for(Object prop : this.list()){
+            json.value(prop);
+        }
+        json.endArray();
+    }
+
+    public List<PropertyInfo> list() throws SQLException {
+        List<PropertyInfo> list = new ArrayList<PropertyInfo>();
         final Connection connection = dataSource.getConnection();
-        int n = -1;
         try {
             final Statement stmt = connection.createStatement();
-            Writer writer = res.getWriter();
             final ResultSet rs = stmt.executeQuery(
-                    "select q.id, n.uri, q.local_name from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  where q.id in (select distinct(qname_id) from alf_node_properties)");
+                "select q.id, n.uri, q.local_name " +
+                "from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  " +
+                "where q.id in (select distinct(qname_id) from alf_node_properties)");
             while (rs.next()) {
-                writer.write(rs.getString(1) + ";" + rs.getString(2) + ";" + rs.getString(3));
-                writer.write("\n");
+                list.add(new PropertyInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
             }
-            writer.close();
             rs.close();
         } finally {
             connection.close();
+        }
+        return list;
+    }
+
+    class PropertyInfo{
+        private Long id;
+        private QName qname;
+
+        public PropertyInfo(Long id, QName qname) {
+            this.id = id;
+            this.qname = qname;
+        }
+
+        @Override
+        public String toString() {
+            return "PropertyInfo{" +
+                    "id=" + id +
+                    ", qname=" + qname +
+                    '}';
         }
     }
 }
