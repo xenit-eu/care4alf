@@ -30,3 +30,4 @@
 /// <reference path="authorityexplorer.ts" />
 /// <reference path="authorityimporter.ts" />
 /// <reference path="solradmin.ts" />
+/// <reference path="tail.ts" />
