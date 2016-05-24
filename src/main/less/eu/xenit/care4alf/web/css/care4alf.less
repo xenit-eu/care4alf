@@ -37,6 +37,7 @@ body {
     padding: 5px 10px;
   }
 }
+
 .body {
   background-color: rgb(242, 242, 242);
   padding: 20px;
@@ -86,5 +87,41 @@ a[anchor] {
       visibility: visible;
       cursor: pointer;
     }
+  }
+}
+
+.tablelog {
+  list-style-type: none;
+  padding: 0px;
+  .timestamp {
+    display: inline-block;
+    min-width: 40px;
+    color: dimgray;
+  }
+  .WARN {
+    color: orange;
+    padding: 0 5px;
+  }
+  .INFO {
+    color: blue;
+    padding: 0 5px;
+  }
+  .ERROR {
+    color: red;
+    padding: 0 5px;
+  }
+  .TRACE {
+    padding: 0 5px;
+    color: green;
+  }
+  .service {
+    width: 100%;
+    padding: 0 2px;
+  }
+  .thread {
+    padding: 0 2px;
+  }
+  .text {
+    width: 100%;
   }
 }

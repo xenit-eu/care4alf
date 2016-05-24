@@ -1,0 +1,26 @@
+<h3>Tail</h3>
+<div id="logtail">
+    <div>Lines to show<select ng-model="lines"
+                              ng-options="option.number for option in lineOptions track by option.count"></select>
+    </div>
+    <li ng-show="responseStatus == 'waiting'">
+        <ul><h4>handling request, please wait</h4></ul>
+    </li>
+    <ul ng-show="responseStatus == 'success'" class="tablelog">
+        <li ng-repeat="line in tail track by $index">
+
+            <span class="timestamp">{{line.timestamp}}</span>
+            <span ng-class="line.status">{{line.status}}</span>
+            <span class="service">{{line.service}}</span>
+            <span class="thread">{{line.thread}}</span>
+            <span class="text">{{line.text}}</span>
+        </li>
+    </ul>
+    <li ng-show="responseStatus == 'error'">
+        <p class="error"><h4>An error has occured while processing the request.</h4>
+        Consult the error log below</p>
+        <ul ng-repeat="line in tail track by $index">
+            <span>{{line}}</span>
+        </ul>
+    </li>
+</div>
