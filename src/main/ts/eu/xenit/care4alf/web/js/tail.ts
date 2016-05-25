@@ -3,6 +3,7 @@
 care4alf.controller('tail', ['$scope', '$timeout', '$http', ($scope, $timeout, $http:ng.IHttpService) => {
 
     $scope.tail = [];
+    $scope.logloading = true;
     $scope.responseStatus = 'waiting';
     var getlog = function () {
         $http.get("tail/tails?n=" + $scope.lines.count).success((response:string) => {
@@ -12,6 +13,7 @@ care4alf.controller('tail', ['$scope', '$timeout', '$http', ($scope, $timeout, $
         }).error((response) => {
             $scope.tail = response.data;
             $scope.responseStatus = 'error';
+            $scope.logloading = false;
         });
     };
 
@@ -20,5 +22,12 @@ care4alf.controller('tail', ['$scope', '$timeout', '$http', ($scope, $timeout, $
 
     $scope.lines = {count: 200, number: "200"};
     getlog();
+    document.getElementById('logtailbottom').scrollIntoView();
 }]);
+
+care4alf.filter('reverse', function () {
+    return function (items) {
+        return items.slice().reverse();
+    };
+});
 
