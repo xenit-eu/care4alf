@@ -1,5 +1,7 @@
 package eu.xenit.care4alf;
 
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import org.alfresco.repo.domain.propval.PropertyValueDAO;
@@ -26,6 +28,7 @@ import java.util.List;
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/attributes", families = {"care4alf"}, description = "Attributes")
+@Authentication(AuthenticationType.ADMIN)
 public class Attributes {
 
     @Autowired
