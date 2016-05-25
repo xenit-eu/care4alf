@@ -16,9 +16,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static javafx.scene.input.KeyCode.K;
-import static javafx.scene.input.KeyCode.V;
-
 /**
  * Created by willem on 5/10/16.
  */
@@ -39,7 +36,8 @@ public class Tail {
             @Override
             protected void writeJson(JSONWriter jsonWriter) throws JSONException {
                 jsonWriter.array();
-                for (String string : output) {
+                for (int i = output.size() - 1; i >= 0; i--) {
+                    String string = output.get(i);
                     Map<String, String> formated = formatLines(string);
                     jsonWriter.object();
                     for (Map.Entry<String, String> entry : formated.entrySet()) {
