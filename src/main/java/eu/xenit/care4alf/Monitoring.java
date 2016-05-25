@@ -78,7 +78,7 @@ public class Monitoring {
         res.getWriter().write(Integer.toString(this.solrAdmin.getSolrErrors()));
     }
 
-    @Uri(value="/xenit/care4alf/monitoring/cluster/dictionary",defaultFormat = "text")
+    @Uri(value="/xenit/care4alf/monitoring/cluster/dictionary",defaultFormat = "application/json")
     public void getDictionaryChecksums(WebScriptResponse response) throws IOException, JSONException, EncoderException {
         //TODO: compare 2 cluster nodes
         final JSONWriter json = new JSONWriter(response.getWriter());
