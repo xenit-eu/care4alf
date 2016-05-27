@@ -25,4 +25,24 @@
     <button type="submit" class="btn btn-default" ng-click="execute()">Execute {{loading?"(loading)":""}}</button>
 </form>
 
-<pre ng-show="result">{{result | json}}</pre>
+<h3>Jobs</h3>
+<button class="btn btn-danger" ng-click="clearJobs()">Clear</button>
+<button class="btn btn-default" ng-click="loadJobs()">Refresh</button>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Start</th>
+            <th>End</th>
+            <th>Successes</th>
+            <th>Errors</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="job in jobs">
+            <td>{{job.start}}</td>
+            <td>{{job.end}}</td>
+            <td>{{job.successes}}</td>
+            <td>{{job.errors}}</td>
+        </tr>
+    </tbody>
+</table>
