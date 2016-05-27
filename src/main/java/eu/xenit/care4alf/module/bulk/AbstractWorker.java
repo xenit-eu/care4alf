@@ -4,6 +4,7 @@ import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.json.JSONObject;
 
 /**
@@ -12,7 +13,9 @@ import org.json.JSONObject;
 public abstract class AbstractWorker extends BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
 
     protected NodeService nodeService;
+    protected NamespacePrefixResolver nameSpacePrefixResolver;
     protected JSONObject parameters;
+
 
     public AbstractWorker(JSONObject parameters)
     {
@@ -31,5 +34,9 @@ public abstract class AbstractWorker extends BatchProcessor.BatchProcessWorkerAd
     @Override
     public void afterProcess() throws Throwable {
 
+    }
+
+    public void setNameSpacePrefixResolver(NamespacePrefixResolver nameSpacePrefixResolver) {
+        this.nameSpacePrefixResolver = nameSpacePrefixResolver;
     }
 }
