@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +25,10 @@ import java.util.regex.Pattern;
 @WebScript(baseUri = "/xenit/care4alf/tail", families = {"care4alf"}, description = "Tail of logs")
 public class Tail {
     @Uri(value = "/tails")
-    public Resolution tail(@RequestParam(defaultValue = "200") int n, WebScriptResponse resp) throws IOException {
+    public Resolution tail(@RequestParam(defaultValue = "200") int n, @RequestParam(defaultValue = "/opt/alfresco/tomcat/logs/catalina.out") String path, WebScriptResponse resp) throws IOException {
         final ArrayList<String> output = new ArrayList<String>();
 
-        try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File("/opt/alfresco/tomcat/logs/catalina.out"))) {
+        try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
             for (int i = 0; i < n; i++)
                 output.add(reader.readLine());
         }
@@ -52,6 +53,22 @@ public class Tail {
         };
 
 
+    }
+
+    @Uri(value="/printtail",defaultFormat = "text")
+    public void printtail(@RequestParam(defaultValue = "200") int n, @RequestParam(defaultValue = "/opt/alfresco/tomcat/logs/catalina.out") String path, WebScriptResponse resp) throws IOException {
+        ArrayList<String> output = new ArrayList<String>();
+
+        try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
+            for (int i = 0; i < n; i++)
+                output.add(reader.readLine() + "\n");
+        }
+
+        Writer writer = resp.getWriter();
+
+        for (int i = n - 1; i >= 0; i--) {
+            writer.append(output.get(i));
+        }
     }
 
     public static Map<String, String> formatLines(String line) {

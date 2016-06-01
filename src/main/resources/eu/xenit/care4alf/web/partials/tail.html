@@ -2,6 +2,7 @@
 <div id="logtail">
     <div>Lines to show<select ng-model="lines"
                               ng-options="option.number for option in lineOptions track by option.count"></select>
+        <input style="width: 250px" type="text" ng-model="path"><button type="button" ng-click="reloadcontent()">Save</button>
     </div>
     <li ng-show="responseStatus == 'waiting'">
         <ul><h4>handling request, please wait</h4></ul>
@@ -25,5 +26,9 @@
     </li>
     <div id="logtailbottom">
 
+    </div>
+    <div>
+        <p>The logs can also be found on /tail/printtail with possible variables n => amount of lines to show,
+            path => custom path for log files</p>
     </div>
 </div>
