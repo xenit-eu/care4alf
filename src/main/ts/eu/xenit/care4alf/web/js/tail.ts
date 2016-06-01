@@ -5,8 +5,9 @@ care4alf.controller('tail', ['$scope', '$timeout', '$http', ($scope, $timeout, $
     $scope.tail = [];
     $scope.logloading = true;
     $scope.responseStatus = 'waiting';
+    $scope.path = "/opt/alfresco/tomcat/logs/catalina.out";
     var getlog = function () {
-        $http.get("tail/tails?n=" + $scope.lines.count).success((response:string) => {
+        $http.get("tail/tails?n=" + $scope.lines.count+"&path="+$scope.path).success((response:string) => {
             $scope.tail = angular.fromJson(response);
             $scope.responseStatus = 'success';
             $timeout(getlog, 5000);
@@ -22,6 +23,9 @@ care4alf.controller('tail', ['$scope', '$timeout', '$http', ($scope, $timeout, $
 
     $scope.lines = {count: 200, number: "200"};
     getlog();
+    $scope.reloadcontent = function(){
+      getlog();
+    };
     document.getElementById('logtailbottom').scrollIntoView();
 }]);
 
