@@ -1,10 +1,29 @@
-<h3>Actions</h3>
+<h3>Links</h3>
 <ul>
-    <li><a href="/alfresco/service/xenit/care4alf/solr/proxy/admin/cores?action=SUMMARY&wt=json">SUMMARY</a></li>
-    <li><a href="/alfresco/service/xenit/care4alf/solr/errors">ERRORS</a></li>
-    <li><a href="/alfresco/service/xenit/care4alf/solr/proxy/admin/cores?action=RETRY&wt=json">RETRY:</a> Try again to index any node that failed to index and was skipped</li>
-    <li><a href="/alfresco/service/xenit/care4alf/solr/proxy/admin/cores?action=FIX&wt=json">FIX:</a> Fix any issues as reported by the REPORT option</li>
+    <li><a href="solr/proxy/admin/cores?action=SUMMARY&wt=json">SUMMARY</a></li>
+    <li><a href="solr/errors">ERRORS</a></li>
+    <li><a href="solr/errors/nodes">ERRORS CSV</a></li>
+    <li><a href="solr/proxy/admin/cores?action=RETRY&wt=json">RETRY:</a> Try again to index any node that failed to index and was skipped</li>
+    <li><a href="solr/proxy/admin/cores?action=FIX&wt=json">FIX:</a> Fix any issues as reported by the REPORT option</li>
 </ul>
+<h3>Errors</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Exception</th>
+        <th>Count</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="error in errors">
+        <td>{{error.exception}}</td>
+        <td>{{error.count}}</td>
+        <td><button class="btn btn-danger" ng-click="errorFix(error.exception,'nocontentindexing')">No content indexing</button></td>
+    </tr>
+    </tbody>
+</table>
+<h3>Actions</h3>
 <table class="table">
     <thead>
     <tr>

@@ -1,4 +1,4 @@
-care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
+care4alf.controller('bulk', ($scope,$http: ng.IHttpService, $timeout) => {
     $scope.form = {};
     $scope.form.query = "PATH:\"/app:company_home/st:sites/cm:swsdp/cm:documentLibrary/cm:Agency_x0020_Files//*\" AND TYPE:\"cm:content\"";
     $scope.form.batchsize = 20;
@@ -6,14 +6,6 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
     $scope.form.action = "";
     $scope.actions = {};
 
-        /*$scope.form.action = "setproperty";
-        $scope.actions = {
-            delete:[],
-            archive:[],
-            settype:["Type"],
-            setproperty:["Property","Value"],
-            dummy: []
-        };*/
     $http.get("bulk/listActions").success(function(data){
         $scope.actions = data;
         var keys = Object.keys(data);
@@ -39,6 +31,19 @@ care4alf.controller('bulk', ($scope,$http: ng.IHttpService) => {
             $scope.form.stores = data;
             $scope.form.store = "workspace://SpacesStore";
         });
+
+    $scope.jobs={};
+    $scope.loadJobs = () => {
+        $http.get("bulk/processors").success((data:any) => {
+            $scope.jobs=data;
+        })
+    };
+    $scope.clearJobs = () => {
+        $http.delete("bulk/processors").success(()=>{
+            $scope.loadJobs();
+        });
+    };
+    $timeout($scope.loadJobs,5000);
 
     $scope.execute = () => {
         $scope.loading = true;

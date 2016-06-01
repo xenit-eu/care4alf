@@ -26,7 +26,7 @@ public class SetPropertyWorker extends AbstractWorker {
     public void process(final NodeRef nodeRef) throws Throwable {
         String property = this.parameters.getString("Property");
         String value = this.parameters.getString("Value");
-        this.nodeService.setProperty(nodeRef, QName.createQName(property), value);
+        this.nodeService.setProperty(nodeRef, QName.createQName(property, this.nameSpacePrefixResolver), value);
     }
 
 }
