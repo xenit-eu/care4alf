@@ -8,6 +8,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
 import org.json.JSONArray;
@@ -47,6 +48,9 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private NamespacePrefixResolver namespacePrefixResolver;
 
     @Autowired
     private DataSource dataSource;
@@ -148,6 +152,7 @@ public class Bulk implements ApplicationContextAware {
             try {
                 AbstractWorker ret = (AbstractWorker) ctr.newInstance(parameters);
                 ret.setNodeService(nodeService);
+                ret.setNameSpacePrefixResolver(namespacePrefixResolver);
                 return ret;
 
             } catch (InstantiationException e) {
