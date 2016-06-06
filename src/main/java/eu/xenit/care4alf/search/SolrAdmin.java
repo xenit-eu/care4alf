@@ -3,6 +3,7 @@ package eu.xenit.care4alf.search;
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.alfresco.model.ContentModel;
@@ -53,14 +54,14 @@ public class SolrAdmin {
         parameters.put("q", "ID:ERROR-*");
         parameters.put("start", Integer.toString(start));
         parameters.put("rows", Integer.toString(rows));
-        return solrClient.post("/solr/alfresco/select", parameters);
+        return solrClient.postJSON("/solr/alfresco/select", parameters, null);
     }
 
     public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
         parameters.put("action", "SUMMARY");
-        return solrClient.post("/solr/admin/cores", parameters).getJSONObject("Summary");
+        return solrClient.postJSON("/solr/admin/cores", parameters, null).getJSONObject("Summary");
     }
 
     public int getSolrErrors() throws JSONException, EncoderException, IOException {
@@ -76,7 +77,7 @@ public class SolrAdmin {
         {
             parameters.put(name, request.getParameter(name));
         }
-        JSONObject json = solrClient.post("/solr/" + uri, parameters);
+        JSONObject json = solrClient.postJSON("/solr/" + uri, parameters, null);
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
@@ -164,6 +165,11 @@ public class SolrAdmin {
         JSONObject summary = this.getSolrSummary();
         String lag = summary.getJSONObject("alfresco").getString("TX Lag");
         return Long.parseLong(lag.replace(" s",""));
+    }
+
+    @Uri("optimize")
+    public void optimize(WebScriptResponse res) throws IOException, EncoderException {
+        res.getWriter().write(solrClient.postMessage("/solr/alfresco/update", null, "<optimize />"));
     }
 
     public class SolrErrorDoc{
