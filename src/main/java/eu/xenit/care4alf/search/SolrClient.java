@@ -13,6 +13,6 @@ import java.io.IOException;
  * @author Laurent Van der Linden
  */
 public interface SolrClient {
-    JSONObject post(String url, Multimap<String, String> parameters) throws IOException, EncoderException, JSONException;
-    JSONObject post(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException;
+    JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException;
+    String postMessage(String url, Multimap<String, String> parameter, String message) throws IOException, EncoderException;
 }
