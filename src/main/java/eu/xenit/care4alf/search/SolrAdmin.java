@@ -56,6 +56,13 @@ public class SolrAdmin {
         return solrClient.post("/solr/alfresco/select", parameters);
     }
 
+    public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        parameters.put("action", "SUMMARY");
+        return solrClient.post("/solr/admin/cores", parameters).getJSONObject("Summary");
+    }
+
     public int getSolrErrors() throws JSONException, EncoderException, IOException {
         JSONObject json = this.getSolrErrorsJson(0,0);
         return json.getJSONObject("response").getInt("numFound");
@@ -145,6 +152,12 @@ public class SolrAdmin {
             errorDocs.add(errorDoc);
         }
         return errorDocs;
+    }
+
+    public long getSolrLag() throws EncoderException, JSONException, IOException {
+        JSONObject summary = this.getSolrSummary();
+        String lag = summary.getJSONObject("alfresco").getString("TX Lag");
+        return Long.parseLong(lag.replace(" s",""));
     }
 
     public class SolrErrorDoc{
