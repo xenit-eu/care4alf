@@ -119,11 +119,11 @@ public class SolrAdmin {
                     doc.getException(),
                     Long.toString(doc.getTxid()),
                     Long.toString(doc.getDbid()),
-                    nodeRef.toString(),
-                    this.nodeService.getType(nodeRef).toString(),
-                    (String) this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME),
-                    this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED).toString(),
-                    this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED).toString(),
+                    orEmpty(nodeRef),
+                    nodeRef == null ? "" : this.nodeService.getType(nodeRef).toString(),
+                    nodeRef == null ? "" : (String) this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME),
+                    nodeRef == null ? "" : this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED).toString(),
+                    nodeRef == null ? "" : this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED).toString(),
                     Long.toString(size)
             };
             for(String field : fields){
@@ -132,6 +132,10 @@ public class SolrAdmin {
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    private static String orEmpty(Object o){
+        return o == null?  "" : o.toString();
     }
 
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws EncoderException, JSONException, IOException {
@@ -182,7 +186,7 @@ public class SolrAdmin {
         }
 
         public String getException() {
-            return exception;
+            return orEmpty(exception);
         }
 
         public String getId() {
