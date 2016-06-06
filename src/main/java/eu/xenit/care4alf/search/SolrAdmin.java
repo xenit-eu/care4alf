@@ -112,7 +112,9 @@ public class SolrAdmin {
         for(SolrErrorDoc doc : docs){
             NodeRef nodeRef = this.nodeService.getNodeRef(doc.getDbid());
             ContentData content = (ContentData) this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
-            long size = content.getSize();
+            long size = -1;
+            if(content != null)
+                size = content.getSize();
             String[] fields = new String[]{
                     doc.getException(),
                     Long.toString(doc.getTxid()),
