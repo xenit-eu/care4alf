@@ -121,9 +121,9 @@ public class SolrAdmin {
                     Long.toString(doc.getDbid()),
                     orEmpty(nodeRef),
                     nodeRef == null ? "" : this.nodeService.getType(nodeRef).toString(),
-                    nodeRef == null ? "" : (String) this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME),
-                    nodeRef == null ? "" : this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED).toString(),
-                    nodeRef == null ? "" : this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED).toString(),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME)),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED)),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)),
                     Long.toString(size)
             };
             for(String field : fields){
