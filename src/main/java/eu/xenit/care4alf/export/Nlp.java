@@ -176,12 +176,12 @@ public class Nlp {
         if(this.dfCache.containsKey(term))
             return this.dfCache.get(term);
 
-        JSONObject json = solrClient.post("/solr/alfresco/terms", ImmutableMultimap.<String, String>builder()
+        JSONObject json = solrClient.postJSON("/solr/alfresco/terms", ImmutableMultimap.<String, String>builder()
                 .put("terms.fl", "@{http://www.alfresco.org/model/content/1.0}content.__")
                 .put("terms.prefix", term)
                 .put("terms.limit", "10")
                 .put("wt", "json")
-                .build());
+                .build(), null);
         JSONArray terms = json.getJSONArray("terms")
                 .getJSONArray(1);
         for(int i = 0; i < terms.length(); i+=2){
