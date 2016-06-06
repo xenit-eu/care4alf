@@ -78,6 +78,11 @@ public class Monitoring {
         res.getWriter().write(Integer.toString(this.solrAdmin.getSolrErrors()));
     }
 
+    @Uri(value="/xenit/care4alf/monitoring/solr/lag",defaultFormat = "text")
+    public void getSolrLags(WebScriptResponse res) throws IOException, JSONException, EncoderException {
+        res.getWriter().write(String.valueOf(this.solrAdmin.getSolrLag()));
+    }
+
     @Uri(value="/xenit/care4alf/monitoring/cluster/dictionary",defaultFormat = "application/json")
     public void getDictionaryChecksums(WebScriptResponse response) throws IOException, JSONException, EncoderException {
         //TODO: compare 2 cluster nodes
