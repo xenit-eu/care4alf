@@ -50,8 +50,8 @@ public class Properties {
             final Statement stmt = connection.createStatement();
             final ResultSet rs = stmt.executeQuery(
                     "select n.uri, q.local_name " +
-                    "from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  " +
-                    "where q.id in (select distinct(qname_id) from alf_node_properties)");
+                            "from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  " +
+                            "where q.id in (select distinct(qname_id) from alf_node_properties)");
             while (rs.next()) {
                 QName qname = QName.createQName(rs.getString(1), rs.getString(2));
                 if(this.dictionaryService.getProperty(qname) == null)
@@ -63,6 +63,16 @@ public class Properties {
             connection.close();
         }
         return properties;
+    }
+
+    public List<QName> getResidualProperties(String filter) throws SQLException {
+        List<QName> filtered = new ArrayList<QName>();
+        for(QName prop : this.getResidualProperties())
+        {
+            if(!prop.toString().contains(filter))
+                filtered.add(prop);
+        }
+        return filtered;
     }
 
     @Uri("/")

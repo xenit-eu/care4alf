@@ -1,0 +1,18 @@
+<h3>Monitoring</h3>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Metric</th>
+        <th>Value</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="(key, value) in vars">
+        <td>{{key}}</td>
+        <td>{{value}}</td>
+        <td ng-bind-html="info[key].description"></td>
+    </tr>
+    </tbody>
+</table>
