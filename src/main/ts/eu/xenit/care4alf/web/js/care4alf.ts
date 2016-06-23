@@ -31,3 +31,5 @@
 /// <reference path="authorityimporter.ts" />
 /// <reference path="solradmin.ts" />
 /// <reference path="tail.ts" />
+/// <reference path="monitoring.ts" />
+/// <reference path="sql.ts" />

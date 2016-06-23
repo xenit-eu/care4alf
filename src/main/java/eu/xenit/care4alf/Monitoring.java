@@ -6,6 +6,8 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Authenticatio
 import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
@@ -23,14 +25,17 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.CRC32;
 
 /**
  * Created by willem on 3/7/16.
  */
 @Component
-@WebScript(description = "Monitoring")
+@WebScript(families = "care4alf", description = "Monitoring")
 @Authentication(AuthenticationType.NONE)
 public class Monitoring {
 
@@ -43,6 +48,9 @@ public class Monitoring {
 
     @Autowired
     private DictionaryDAO dictionaryDAO;
+
+    @Autowired
+    private Properties properties;
 
     @Uri("/xenit/care4alf/monitoring")
     public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
@@ -59,8 +67,13 @@ public class Monitoring {
         jsonRes.endObject();
     }
 
-    private void dbCheck(){
-        this.getDescriptor();//uses nodeservice and searchservice
+    private long dbCheck(){
+        try {
+            this.getDescriptor();
+        }catch(Exception e){
+            return -1;
+        }
+        return 1;
     }
 
     private Descriptor getDescriptor(){
@@ -75,7 +88,7 @@ public class Monitoring {
 
     @Uri(value="/xenit/care4alf/monitoring/solr/errors",defaultFormat = "text")
     public void getSolrErrors(WebScriptResponse res) throws IOException, JSONException, EncoderException {
-        res.getWriter().write(Integer.toString(this.solrAdmin.getSolrErrors()));
+        res.getWriter().write(Long.toString(this.solrAdmin.getSolrErrors()));
     }
 
     @Uri(value="/xenit/care4alf/monitoring/solr/lag",defaultFormat = "text")
@@ -99,6 +112,33 @@ public class Monitoring {
             }
         }
         json.endObject();
+    }
+
+    private long getResidualProperties(String filter){
+        try {
+            return this.properties.getResidualProperties(filter).size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    @Uri(value="/xenit/care4alf/monitoring/vars")
+    public Resolution getVars(WebScriptResponse response) throws IOException, JSONException {
+        final Map<String,Long> vars = new HashMap<String,Long>();
+        vars.put("solr.errors", this.solrAdmin.getSolrErrors());
+        vars.put("solr.lag", this.solrAdmin.getSolrLag());
+        vars.put("db", this.dbCheck());
+        vars.put("properties.residual", this.getResidualProperties("alfresco"));
+
+        return new JsonWriterResolution() {
+            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                jsonWriter.object();
+                for (Map.Entry<String, Long> entry : vars.entrySet())
+                    jsonWriter.key(entry.getKey()).value(entry.getValue());
+                jsonWriter.endObject();
+            }
+        };
     }
 
     private long getChecksum(QName modelQName, ModelDefinition modelDefinition)

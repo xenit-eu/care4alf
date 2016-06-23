@@ -64,9 +64,17 @@ public class SolrAdmin {
         return solrClient.postJSON("/solr/admin/cores", parameters, null).getJSONObject("Summary");
     }
 
-    public int getSolrErrors() throws JSONException, EncoderException, IOException {
-        JSONObject json = this.getSolrErrorsJson(0,0);
-        return json.getJSONObject("response").getInt("numFound");
+    public long getSolrErrors() {
+        try {
+            JSONObject json = this.getSolrErrorsJson(0,0);
+            return json.getJSONObject("response").getLong("numFound");
+        } catch (JSONException e) {
+            return -1;
+        } catch (EncoderException e) {
+            return -1;
+        } catch (IOException e) {
+            return -1;
+        }
     }
 
     @Uri("proxy/{uri}")
@@ -161,10 +169,20 @@ public class SolrAdmin {
         return errorDocs;
     }
 
-    public long getSolrLag() throws EncoderException, JSONException, IOException {
-        JSONObject summary = this.getSolrSummary();
-        String lag = summary.getJSONObject("alfresco").getString("TX Lag");
-        return Long.parseLong(lag.replace(" s",""));
+    public long getSolrLag(){
+        JSONObject summary = null;
+        try {
+            summary = this.getSolrSummary();
+            String lag = summary.getJSONObject("alfresco").getString("TX Lag");
+            return Long.parseLong(lag.replace(" s",""));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (EncoderException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     @Uri("optimize")

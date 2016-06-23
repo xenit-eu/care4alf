@@ -1,0 +1,19 @@
+<form role="form">
+    <label for="query">Query:</label>
+    <textarea class="form-control" type="text" ng-model="sql.query" id="query">
+    </textarea>
+    <button type="submit" class="btn btn-default" ng-click="query()">Query</button>
+</form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Results</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="rows in results">
+        <td ng-repeat="el in rows">{{el}}</td>
+    </tr>
+    </tbody>
+</table>
