@@ -39,6 +39,17 @@ public class SolrAdminTest {
         Assert.assertEquals(0, lag);
     }
 
+    @Test
+    public void testTransactionsToIndex() throws Exception {
+        List<SolrAdmin.Transaction> transactions = this.solrAdmin.getTransactionsToIndex(0);
+        Assert.assertTrue(transactions.size() > 0);
+    }
+
+    @Test
+    public void testNodesToIndex() throws Exception {
+        Assert.assertEquals(0, this.solrAdmin.getNodesToIndex());
+    }
+
     final static String solrErrors="{\n" +
             "  response: {\n" +
             "    start: 0,\n" +

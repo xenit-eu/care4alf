@@ -126,9 +126,10 @@ public class Monitoring {
     @Uri(value="/xenit/care4alf/monitoring/vars")
     public Resolution getVars(WebScriptResponse response) throws IOException, JSONException {
         final Map<String,Long> vars = new HashMap<String,Long>();
+        vars.put("db", this.dbCheck());
         vars.put("solr.errors", this.solrAdmin.getSolrErrors());
         vars.put("solr.lag", this.solrAdmin.getSolrLag());
-        vars.put("db", this.dbCheck());
+        vars.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
         vars.put("properties.residual", this.getResidualProperties("alfresco"));
 
         return new JsonWriterResolution() {
