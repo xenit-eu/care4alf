@@ -19,9 +19,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +46,9 @@ public class SolrAdmin {
 
     @Autowired
     private SolrClient solrClient;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Uri("errors")
     public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
@@ -190,6 +199,46 @@ public class SolrAdmin {
         res.getWriter().write(solrClient.postMessage("/solr/alfresco/update", null, "<optimize />"));
     }
 
+    @Uri("transactions")
+    public void getTransactionsToIndex(WebScriptResponse response) throws IOException {
+        new ObjectMapper().writeValue(response.getWriter(), this.getTransactionsToIndex(0));
+    }
+
+    public List<Transaction> getTransactionsToIndex(long fromTxId) {
+        return new JdbcTemplate(dataSource).query(
+                "select TRANSACTION_ID, count(*) as n from alf_node where transaction_id >= " + Long.toString(fromTxId) + " group by TRANSACTION_ID order by n desc",
+                new Object[]{},
+                new RowMapper<Transaction>() {
+                    @Override
+                    public Transaction mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return new Transaction(rs.getLong(1),rs.getInt(2));
+                    }
+                });
+    }
+
+    private long geLastTxInIndex(){
+        JSONObject summary = null;
+        try {
+            summary = this.getSolrSummary();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (EncoderException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            return summary.getJSONObject("alfresco").getLong("Id for last TX in index");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return Long.MAX_VALUE;
+    }
+
+    public long getNodesToIndex() {
+        return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
+    }
+
     public class SolrErrorDoc{
         private long txid;
         private String exception;
@@ -223,6 +272,24 @@ public class SolrAdmin {
 
         public String getStackTrace() {
             return stackTrace;
+        }
+    }
+
+    public class Transaction{
+        private long txId;
+        private int count;
+
+        public Transaction(long txId, int count) {
+            this.txId = txId;
+            this.count = count;
+        }
+
+        public long getTxId() {
+            return txId;
+        }
+
+        public int getCount() {
+            return count;
         }
     }
 
