@@ -200,8 +200,8 @@ public class SolrAdmin {
     }
 
     @Uri("transactions")
-    public void getTransactionsToIndex(WebScriptResponse response) throws IOException {
-        new ObjectMapper().writeValue(response.getWriter(), this.getTransactionsToIndex(this.geLastTxInIndex()));
+    public void getTransactionsToIndex(WebScriptResponse response, @RequestParam(required = false) Long txId) throws IOException {
+        new ObjectMapper().writeValue(response.getWriter(), this.getTransactionsToIndex(txId == null ? this.geLastTxInIndex() : txId));
     }
 
     public List<Transaction> getTransactionsToIndex(long fromTxId) {
