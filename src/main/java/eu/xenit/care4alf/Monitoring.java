@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.CRC32;
@@ -51,6 +50,9 @@ public class Monitoring {
 
     @Autowired
     private Properties properties;
+
+    @Autowired
+    private Clustering clustering;
 
     @Uri("/xenit/care4alf/monitoring")
     public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
@@ -96,24 +98,6 @@ public class Monitoring {
         res.getWriter().write(String.valueOf(this.solrAdmin.getSolrLag()));
     }
 
-    @Uri(value="/xenit/care4alf/monitoring/cluster/dictionary",defaultFormat = "application/json")
-    public void getDictionaryChecksums(WebScriptResponse response) throws IOException, JSONException, EncoderException {
-        //TODO: compare 2 cluster nodes
-        final JSONWriter json = new JSONWriter(response.getWriter());
-        json.object();
-        final Collection<QName> models = dictionaryDAO.getModels();
-        for (QName modelName : models) {
-            final ModelDefinition modelDefinition = dictionaryDAO.getModel(modelName);
-            final Collection<NamespaceDefinition> namespaces = modelDefinition.getNamespaces();
-            for (NamespaceDefinition namespace : namespaces) {
-                json
-                        .key(namespace.getUri())
-                        .value(getChecksum(modelName, modelDefinition));
-            }
-        }
-        json.endObject();
-    }
-
     private long getResidualProperties(String filter){
         try {
             return this.properties.getResidualProperties(filter).size();
@@ -131,6 +115,7 @@ public class Monitoring {
         vars.put("solr.lag", this.solrAdmin.getSolrLag());
         vars.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
         vars.put("properties.residual", this.getResidualProperties("alfresco"));
+        vars.put("cluster.nodes", (long) this.clustering.getNumClusterMembers());
 
         return new JsonWriterResolution() {
             protected void writeJson(JSONWriter jsonWriter) throws JSONException {

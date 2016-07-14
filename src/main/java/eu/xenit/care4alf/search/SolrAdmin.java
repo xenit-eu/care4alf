@@ -220,16 +220,12 @@ public class SolrAdmin {
         JSONObject summary = null;
         try {
             summary = this.getSolrSummary();
+            return summary.getJSONObject("alfresco").getLong("Id for last TX in index");
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (EncoderException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            return summary.getJSONObject("alfresco").getLong("Id for last TX in index");
-        } catch (JSONException e) {
             e.printStackTrace();
         }
         return Long.MAX_VALUE;
