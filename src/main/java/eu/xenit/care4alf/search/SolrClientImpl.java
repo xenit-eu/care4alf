@@ -1,5 +1,6 @@
 package eu.xenit.care4alf.search;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
@@ -34,8 +35,17 @@ public class SolrClientImpl implements SolrClient {
     SolrChildApplicationContextFactory solrhttpClientFactory;
 
     @Override
-    public JSONObject post(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException
+    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException
     {
+        return new JSONObject(this.basePost(url, parameters, body == null? null : body.toString()));
+    }
+
+    @Override
+    public String postMessage(String url, Multimap<String, String> parameter, String body) throws IOException, EncoderException {
+        return basePost(url, null, body);
+    }
+
+    private String basePost(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
         HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
         final HttpClient httpClient = httpClientFactory.getHttpClient();
         HttpClientParams params = httpClient.getParams();
@@ -44,6 +54,10 @@ public class SolrClientImpl implements SolrClient {
 
         final URLCodec encoder = new URLCodec();
         StringBuilder urlBuilder = new StringBuilder();
+        if(parameters==null){
+            parameters = ArrayListMultimap.create();
+        }
+
         for (Map.Entry<String, String> entry : parameters.entries()) {
             if (urlBuilder.length() == 0) {
                 urlBuilder.append("?");
@@ -86,15 +100,10 @@ public class SolrClientImpl implements SolrClient {
                 throw new IOException("Request failed " + post.getStatusCode());
             }
 
-            final String responseBodyAsString = post.getResponseBodyAsString();
-            return new JSONObject(responseBodyAsString);
+            return post.getResponseBodyAsString();
         } finally {
             post.releaseConnection();
         }
     }
 
-    @Override
-    public JSONObject post(String url, Multimap<String, String> parameters) throws IOException, EncoderException, JSONException {
-        return post(url, parameters, null);
-    }
 }

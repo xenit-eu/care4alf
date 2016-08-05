@@ -6,6 +6,8 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Authenticatio
 import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
@@ -23,14 +25,16 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.CRC32;
 
 /**
  * Created by willem on 3/7/16.
  */
 @Component
-@WebScript(description = "Monitoring")
+@WebScript(families = "care4alf", description = "Monitoring")
 @Authentication(AuthenticationType.NONE)
 public class Monitoring {
 
@@ -43,6 +47,12 @@ public class Monitoring {
 
     @Autowired
     private DictionaryDAO dictionaryDAO;
+
+    @Autowired
+    private Properties properties;
+
+    @Autowired
+    private Clustering clustering;
 
     @Uri("/xenit/care4alf/monitoring")
     public void monitoring(final WebScriptResponse res) throws IOException, JSONException {
@@ -59,8 +69,13 @@ public class Monitoring {
         jsonRes.endObject();
     }
 
-    private void dbCheck(){
-        this.getDescriptor();//uses nodeservice and searchservice
+    private long dbCheck(){
+        try {
+            this.getDescriptor();
+        }catch(Exception e){
+            return -1;
+        }
+        return 1;
     }
 
     private Descriptor getDescriptor(){
@@ -75,25 +90,41 @@ public class Monitoring {
 
     @Uri(value="/xenit/care4alf/monitoring/solr/errors",defaultFormat = "text")
     public void getSolrErrors(WebScriptResponse res) throws IOException, JSONException, EncoderException {
-        res.getWriter().write(Integer.toString(this.solrAdmin.getSolrErrors()));
+        res.getWriter().write(Long.toString(this.solrAdmin.getSolrErrors()));
     }
 
-    @Uri(value="/xenit/care4alf/monitoring/cluster/dictionary",defaultFormat = "application/json")
-    public void getDictionaryChecksums(WebScriptResponse response) throws IOException, JSONException, EncoderException {
-        //TODO: compare 2 cluster nodes
-        final JSONWriter json = new JSONWriter(response.getWriter());
-        json.object();
-        final Collection<QName> models = dictionaryDAO.getModels();
-        for (QName modelName : models) {
-            final ModelDefinition modelDefinition = dictionaryDAO.getModel(modelName);
-            final Collection<NamespaceDefinition> namespaces = modelDefinition.getNamespaces();
-            for (NamespaceDefinition namespace : namespaces) {
-                json
-                        .key(namespace.getUri())
-                        .value(getChecksum(modelName, modelDefinition));
-            }
+    @Uri(value="/xenit/care4alf/monitoring/solr/lag",defaultFormat = "text")
+    public void getSolrLags(WebScriptResponse res) throws IOException, JSONException, EncoderException {
+        res.getWriter().write(String.valueOf(this.solrAdmin.getSolrLag()));
+    }
+
+    private long getResidualProperties(String filter){
+        try {
+            return this.properties.getResidualProperties(filter).size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
         }
-        json.endObject();
+    }
+
+    @Uri(value="/xenit/care4alf/monitoring/vars")
+    public Resolution getVars(WebScriptResponse response) throws IOException, JSONException {
+        final Map<String,Long> vars = new HashMap<String,Long>();
+        vars.put("db", this.dbCheck());
+        vars.put("solr.errors", this.solrAdmin.getSolrErrors());
+        vars.put("solr.lag", this.solrAdmin.getSolrLag());
+        vars.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
+        vars.put("properties.residual", this.getResidualProperties("alfresco"));
+        vars.put("cluster.nodes", (long) this.clustering.getNumClusterMembers());
+
+        return new JsonWriterResolution() {
+            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                jsonWriter.object();
+                for (Map.Entry<String, Long> entry : vars.entrySet())
+                    jsonWriter.key(entry.getKey()).value(entry.getValue());
+                jsonWriter.endObject();
+            }
+        };
     }
 
     private long getChecksum(QName modelQName, ModelDefinition modelDefinition)
