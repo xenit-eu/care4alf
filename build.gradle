@@ -62,11 +62,17 @@ dependencies {
     compile('org.jibx:jibx-run:1.2.3') { transitive = false }
     compile('com.googlecode.json-simple:json-simple:1.1')
     compile('javax.servlet:servlet-api:2.5')
-    compile 'com.google.collections:google-collections:1.0'
+    compile('com.google.collections:google-collections:1.0')
+    compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
+    compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
 
     amp(project(':'))
+//    compile('eu.xenit.apix:integration-testing:1.1.4'){
+//        exclude group: 'com.github.dynamicextensionsalfresco'
+//        exclude group: 'commons-codec'
+//    }
 }
 
 compileTypeScript {
@@ -82,6 +88,15 @@ lesscss {
     dest = file("${buildDir}/resources/main/")
     compress = false
 }
+
+sourceSets {
+    main { java { srcDirs = ['src/main/java'] } }
+}
+
+//sourceSets {
+//    main { java { srcDirs = ['src/main/java','src/test/java'] } }
+//    test { java { srcDirs = ["src/test/java"] } }
+//}
 
 jar {
     from(configurations.embedded) {

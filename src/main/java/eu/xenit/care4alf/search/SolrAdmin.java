@@ -3,6 +3,7 @@ package eu.xenit.care4alf.search;
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.alfresco.model.ContentModel;
@@ -18,9 +19,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +47,9 @@ public class SolrAdmin {
     @Autowired
     private SolrClient solrClient;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Uri("errors")
     public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
         JSONObject json = this.getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
@@ -53,12 +63,27 @@ public class SolrAdmin {
         parameters.put("q", "ID:ERROR-*");
         parameters.put("start", Integer.toString(start));
         parameters.put("rows", Integer.toString(rows));
-        return solrClient.post("/solr/alfresco/select", parameters);
+        return solrClient.postJSON("/solr/alfresco/select", parameters, null);
     }
 
-    public int getSolrErrors() throws JSONException, EncoderException, IOException {
-        JSONObject json = this.getSolrErrorsJson(0,0);
-        return json.getJSONObject("response").getInt("numFound");
+    public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        parameters.put("action", "SUMMARY");
+        return solrClient.postJSON("/solr/admin/cores", parameters, null).getJSONObject("Summary");
+    }
+
+    public long getSolrErrors() {
+        try {
+            JSONObject json = this.getSolrErrorsJson(0,0);
+            return json.getJSONObject("response").getLong("numFound");
+        } catch (JSONException e) {
+            return -1;
+        } catch (EncoderException e) {
+            return -1;
+        } catch (IOException e) {
+            return -1;
+        }
     }
 
     @Uri("proxy/{uri}")
@@ -69,7 +94,7 @@ public class SolrAdmin {
         {
             parameters.put(name, request.getParameter(name));
         }
-        JSONObject json = solrClient.post("/solr/" + uri, parameters);
+        JSONObject json = solrClient.postJSON("/solr/" + uri, parameters, null);
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
@@ -105,16 +130,18 @@ public class SolrAdmin {
         for(SolrErrorDoc doc : docs){
             NodeRef nodeRef = this.nodeService.getNodeRef(doc.getDbid());
             ContentData content = (ContentData) this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
-            long size = content.getSize();
+            long size = -1;
+            if(content != null)
+                size = content.getSize();
             String[] fields = new String[]{
                     doc.getException(),
                     Long.toString(doc.getTxid()),
                     Long.toString(doc.getDbid()),
-                    nodeRef.toString(),
-                    this.nodeService.getType(nodeRef).toString(),
-                    (String) this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME),
-                    this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED).toString(),
-                    this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED).toString(),
+                    orEmpty(nodeRef),
+                    nodeRef == null ? "" : this.nodeService.getType(nodeRef).toString(),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_NAME)),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_CREATED)),
+                    orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)),
                     Long.toString(size)
             };
             for(String field : fields){
@@ -123,6 +150,10 @@ public class SolrAdmin {
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    private static String orEmpty(Object o){
+        return o == null?  "" : o.toString();
     }
 
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws EncoderException, JSONException, IOException {
@@ -147,6 +178,63 @@ public class SolrAdmin {
         return errorDocs;
     }
 
+    public long getSolrLag(){
+        JSONObject summary = null;
+        try {
+            summary = this.getSolrSummary();
+            String lag = summary.getJSONObject("alfresco").getString("TX Lag");
+            return Long.parseLong(lag.replace(" s",""));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (EncoderException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    @Uri("optimize")
+    public void optimize(WebScriptResponse res) throws IOException, EncoderException {
+        res.getWriter().write(solrClient.postMessage("/solr/alfresco/update", null, "<optimize />"));
+    }
+
+    @Uri("transactions")
+    public void getTransactionsToIndex(WebScriptResponse response, @RequestParam(required = false) Long txId) throws IOException {
+        new ObjectMapper().writeValue(response.getWriter(), this.getTransactionsToIndex(txId == null ? this.geLastTxInIndex() : txId));
+    }
+
+    public List<Transaction> getTransactionsToIndex(long fromTxId) {
+        return new JdbcTemplate(dataSource).query(
+                "select TRANSACTION_ID, count(*) as n from alf_node where transaction_id >= " + Long.toString(fromTxId) + " group by TRANSACTION_ID order by n desc",
+                new Object[]{},
+                new RowMapper<Transaction>() {
+                    @Override
+                    public Transaction mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return new Transaction(rs.getLong(1),rs.getInt(2));
+                    }
+                });
+    }
+
+    private long geLastTxInIndex(){
+        JSONObject summary = null;
+        try {
+            summary = this.getSolrSummary();
+            return summary.getJSONObject("alfresco").getLong("Id for last TX in index");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (EncoderException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Long.MAX_VALUE;
+    }
+
+    public long getNodesToIndex() {
+        return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
+    }
+
     public class SolrErrorDoc{
         private long txid;
         private String exception;
@@ -167,7 +255,7 @@ public class SolrAdmin {
         }
 
         public String getException() {
-            return exception;
+            return orEmpty(exception);
         }
 
         public String getId() {
@@ -180,6 +268,24 @@ public class SolrAdmin {
 
         public String getStackTrace() {
             return stackTrace;
+        }
+    }
+
+    public class Transaction{
+        private long txId;
+        private int count;
+
+        public Transaction(long txId, int count) {
+            this.txId = txId;
+            this.count = count;
+        }
+
+        public long getTxId() {
+            return txId;
+        }
+
+        public int getCount() {
+            return count;
         }
     }
 

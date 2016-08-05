@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Component
 @RunWith(ApixIntegration.class)
-public class SolrErrorsTest {
+public class SolrAdminTest {
     @Autowired
     private SolrAdmin solrAdmin;
 
@@ -31,6 +31,23 @@ public class SolrErrorsTest {
         Assert.assertEquals("Read timed out", doc.getException());
         Assert.assertEquals("ERROR-5928313", doc.getId());
         Assert.assertEquals(5928313, doc.getDbid());
+    }
+
+    @Test
+    public void testSolrLag() throws Exception {
+        long lag = this.solrAdmin.getSolrLag();
+        Assert.assertEquals(0, lag);
+    }
+
+    @Test
+    public void testTransactionsToIndex() throws Exception {
+        List<SolrAdmin.Transaction> transactions = this.solrAdmin.getTransactionsToIndex(0);
+        Assert.assertTrue(transactions.size() > 0);
+    }
+
+    @Test
+    public void testNodesToIndex() throws Exception {
+        Assert.assertEquals(0, this.solrAdmin.getNodesToIndex());
     }
 
     final static String solrErrors="{\n" +
