@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 /**
  * Created by willem on 5/10/16.
+ * Editted by Thomas on 6/9/16
  */
 @Component
 @Authentication(AuthenticationType.ADMIN)
@@ -31,7 +32,7 @@ public class Tail {
         try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
             for (int i = 0; i < n; i++)
                 output.add(reader.readLine());
-        } catch(final Exception e){
+        } catch (final Exception e) {
             return new JsonWriterResolution() {
                 @Override
                 protected void writeJson(JSONWriter jsonWriter) throws JSONException {
@@ -42,7 +43,7 @@ public class Tail {
                     jsonWriter.key("timestamp").value(e.getClass());
                     jsonWriter.key("text").value(e.getLocalizedMessage());
                     jsonWriter.endObject();
-                    for( StackTraceElement element :elements){
+                    for (StackTraceElement element : elements) {
                         jsonWriter.object();
                         jsonWriter.key("text").value("at " + element.toString());
                         jsonWriter.endObject();
@@ -50,7 +51,8 @@ public class Tail {
                     jsonWriter.endArray();
                 }
             };
-        };
+        }
+        ;
 
         return new JsonWriterResolution() {
             @Override
@@ -74,24 +76,22 @@ public class Tail {
 
     }
 
-    @Uri(value="/printtail",defaultFormat = "text")
+    @Uri(value = "/printtail", defaultFormat = "text")
     public void printtail(@RequestParam(defaultValue = "200") int n, @RequestParam(defaultValue = "/opt/alfresco/tomcat/logs/catalina.out") String path, WebScriptResponse resp) throws IOException {
         ArrayList<String> output = new ArrayList<String>();
         Writer writer = resp.getWriter();
         try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
             for (int i = 0; i < n; i++)
                 output.add(reader.readLine() + "\n");
-        }
-        catch(Exception e){
-            String msg = e.toString()+"\n";
+        } catch (Exception e) {
+            String msg = e.toString() + "\n";
             writer.append(msg);
-            for(StackTraceElement element : e.getStackTrace()){
+            for (StackTraceElement element : e.getStackTrace()) {
                 msg = "\tat " + element.toString() + "\n";
                 writer.append(msg);
             }
             return;
         }
-
 
 
         for (int i = n - 1; i >= 0; i--) {
