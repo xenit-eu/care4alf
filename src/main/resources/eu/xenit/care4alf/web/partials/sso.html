@@ -1,0 +1,10 @@
+<h3>SSO</h3>
+<div class="form-group">
+    <label>Header length</label>
+    <input class="form-control" ng-model="headerLength">
+</div>
+
+<btn class="btn btn-primary" ng-click="sendRequest()">Send request</btn>
+<p>
+    <pre>{{response | json}}</pre>
+</p>
