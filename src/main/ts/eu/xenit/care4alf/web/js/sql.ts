@@ -1,3 +1,5 @@
+/// <reference path="care4alf.ts" />
+
 care4alf.controller('sql', ($scope,$http: ng.IHttpService) => {
     $scope.sql={};
     $scope.sql.query="SELECT 1";
