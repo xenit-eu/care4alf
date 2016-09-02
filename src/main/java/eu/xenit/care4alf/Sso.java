@@ -16,7 +16,7 @@ import java.sql.SQLException;
 @Component
 @WebScript(families = "care4alf", baseUri = "/xenit/care4alf/sso", description = "SSO")
 @Authentication(AuthenticationType.NONE)
-public class SSO {
+public class Sso {
     @Uri("/header")
     public void header(WebScriptRequest req, WebScriptResponse res) throws SQLException, IOException, JSONException {
         res.setContentType("application/json");
