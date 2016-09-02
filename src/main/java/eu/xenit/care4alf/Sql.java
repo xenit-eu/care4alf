@@ -21,7 +21,7 @@ import java.util.List;
 @WebScript(families = "care4alf", description = "SQL query")
 @Authentication(AuthenticationType.ADMIN)
 @Component
-public class SQL {
+public class Sql {
 
     @Autowired
     private DataSource dataSource;
