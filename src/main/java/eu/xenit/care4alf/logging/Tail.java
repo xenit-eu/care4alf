@@ -124,9 +124,13 @@ public class Tail {
                 count++;
             }
             matcher = Pattern.compile("\\]\\s+([^\\[]+)").matcher(line);
+            String text = "";
             while (matcher.find()) {
-                response.put("text", matcher.group(1));
+                for (int i = 0; i < matcher.groupCount(); i++) {
+                    text = text + matcher.group(i);
+                }
             }
+            response.put("text", text);
         }
         return response;
     }
