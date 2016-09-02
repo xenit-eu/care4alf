@@ -12,13 +12,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by Thomas.Straetmans on 02/09/2016.
  */
 
 
 @Component
-@Worker(action = "update", parameterNames = {"Regex", "Property", "Value"})
+@Worker(action = "update", parameterNames = {"Regex", "Property", "Format"})
 public class UpdateWorker extends AbstractWorker {
 
     @Autowired
@@ -38,10 +42,16 @@ public class UpdateWorker extends AbstractWorker {
     public void process(NodeRef entry) throws Throwable {
         String regex = parameters.getString("Regex");
         String property = parameters.getString("Property");
-        String value = parameters.getString("Value");
+        String format = parameters.getString("Format");
         String path = this.nodeService.getPath(entry).toPrefixString(services.getNamespaceService());
-        if (path.matches(regex)) {
-            nodeService.setProperty(entry, QName.createQName(property, this.nameSpacePrefixResolver), value);
+        Pattern pattern = Pattern.compile(regex);
+        Matcher m = pattern.matcher(path);
+        while (m.find()) {
+            if (m.group(1) != null) {
+                String value = m.group(1);
+                String propString = String.format(Locale.ENGLISH, format, value);
+                nodeService.setProperty(entry, QName.createQName(property, this.nameSpacePrefixResolver), propString);
+            }
         }
     }
 }
