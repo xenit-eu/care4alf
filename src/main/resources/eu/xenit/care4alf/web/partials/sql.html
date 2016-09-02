@@ -13,7 +13,7 @@
     </thead>
     <tbody>
     <tr ng-repeat="rows in results">
-        <td ng-repeat="el in rows">{{el}}</td>
+        <td ng-repeat="el in rows track by $index">{{el}}</td>
     </tr>
     </tbody>
 </table>
