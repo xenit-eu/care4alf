@@ -44,6 +44,7 @@ public class UpdateWorker extends AbstractWorker {
         String property = parameters.getString("Property");
         String format = parameters.getString("Format");
         String path = this.nodeService.getPath(entry).toPrefixString(services.getNamespaceService());
+        logger.debug("Processing the following: Regex={}, Property={}, Format={}, Path={}", regex, property, format, path);
         Pattern pattern = Pattern.compile(regex);
         Matcher m = pattern.matcher(path);
         while (m.find()) {
