@@ -8,7 +8,9 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
+import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.transaction.TransactionService;
 import org.alfresco.util.GUID;
 import org.json.JSONArray;
@@ -60,6 +62,12 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private NamespaceService namespaceService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     private List<BatchProcessor> processors = new ArrayList<BatchProcessor>();
 
@@ -153,6 +161,8 @@ public class Bulk implements ApplicationContextAware {
                 AbstractWorker ret = (AbstractWorker) ctr.newInstance(parameters);
                 ret.setNodeService(nodeService);
                 ret.setNameSpacePrefixResolver(namespacePrefixResolver);
+                ret.setNamespaceService(namespaceService);
+                ret.setPermissionService(permissionService);
                 return ret;
 
             } catch (InstantiationException e) {
@@ -175,8 +185,7 @@ public class Bulk implements ApplicationContextAware {
     @Uri("/xenit/care4alf/bulk/processors")
     public void getProcessors(final WebScriptResponse response) throws IOException, JSONException {
         JSONArray array = new JSONArray();
-        for(BatchProcessor processor : this.processors)
-        {
+        for (BatchProcessor processor : this.processors) {
             array.put(processorToJson(processor));
         }
         response.getWriter().write(array.toString());
