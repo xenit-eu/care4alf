@@ -25,10 +25,7 @@ import java.util.regex.Pattern;
 @Worker(action = "update", parameterNames = {"Regex", "Property", "Format"})
 public class UpdateWorker extends AbstractWorker {
 
-    @Autowired
-    ServiceRegistry services;
-
-    private final Logger logger = LoggerFactory.getLogger(Bulk.class);
+    private final Logger logger = LoggerFactory.getLogger(UpdateWorker.class);
 
     public UpdateWorker() {
         super(null);
@@ -43,14 +40,16 @@ public class UpdateWorker extends AbstractWorker {
         String regex = parameters.getString("Regex");
         String property = parameters.getString("Property");
         String format = parameters.getString("Format");
-        String path = this.nodeService.getPath(entry).toPrefixString(services.getNamespaceService());
+//        String path = this.nodeService.getPath(entry).toPrefixString(namespaceService);
+        String path = this.nodeService.getPath(entry).toDisplayPath(this.nodeService, this.permissionService) + "/";
         logger.debug("Processing the following: Regex={}, Property={}, Format={}, Path={}", regex, property, format, path);
         Pattern pattern = Pattern.compile(regex);
         Matcher m = pattern.matcher(path);
         while (m.find()) {
+            logger.debug("inside loop");
             if (m.group(1) != null) {
                 String value = m.group(1);
-                String propString = String.format(Locale.ENGLISH, format, value);
+                String propString = String.format(format, value);
                 nodeService.setProperty(entry, QName.createQName(property, this.nameSpacePrefixResolver), propString);
             }
         }
