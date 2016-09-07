@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
-import javax.management.*;
 import javax.management.Attribute;
+import javax.management.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;

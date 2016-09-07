@@ -1,26 +1,21 @@
 package eu.xenit.care4alf.module
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import org.springframework.stereotype.Component
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
 import eu.xenit.care4alf.json
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
-import org.springframework.beans.factory.annotation.Autowired
-import org.alfresco.service.cmr.workflow.WorkflowService
-import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam
-import org.alfresco.service.cmr.repository.StoreRef
-import org.alfresco.service.cmr.search.SearchService
 import org.alfresco.model.ContentModel
 import org.alfresco.service.cmr.repository.NodeService
+import org.alfresco.service.cmr.repository.StoreRef
+import org.alfresco.service.cmr.search.SearchService
+import org.alfresco.service.cmr.workflow.WorkflowService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * @author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/workflow/definitions", families = arrayOf("care4alf"), description = "Workflow definitions")
-Authentication(AuthenticationType.ADMIN)
+@Component
+@WebScript(baseUri = "/xenit/care4alf/workflow/definitions", families = arrayOf("care4alf"), description = "Workflow definitions")
+@Authentication(AuthenticationType.ADMIN)
 public class WorkflowDefinitions @Autowired constructor(
         private val workflowService: WorkflowService,
         private val nodeService: NodeService,
@@ -28,7 +23,7 @@ public class WorkflowDefinitions @Autowired constructor(
     ) {
     private val logger = org.slf4j.LoggerFactory.getLogger(javaClass)
 
-    Uri(defaultFormat = "json", method = HttpMethod.GET)
+    @Uri(defaultFormat = "json", method = HttpMethod.GET)
     fun list() = json {
         iterable(workflowService.getAllDefinitions()) { definition ->
             obj {
@@ -40,8 +35,8 @@ public class WorkflowDefinitions @Autowired constructor(
         }
     }
 
-    Uri(defaultFormat = "json", method = HttpMethod.DELETE)
-    fun delete(RequestParam workflowId: String) {
+    @Uri(defaultFormat = "json", method = HttpMethod.DELETE)
+    fun delete(@RequestParam workflowId: String) {
         logger.warn("Delete workflow definition and instances for id $workflowId.")
 
         val definition = workflowService.getDefinitionById(workflowId)

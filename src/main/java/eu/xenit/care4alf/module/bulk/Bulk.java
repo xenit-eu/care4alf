@@ -2,8 +2,7 @@ package eu.xenit.care4alf.module.bulk;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.batch.BatchProcessor;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.forms.FormData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -12,6 +11,7 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.transaction.TransactionService;
+import org.alfresco.util.Content;
 import org.alfresco.util.GUID;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,6 +23,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
@@ -30,11 +31,9 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created by willem on 3/10/15.
@@ -195,6 +194,15 @@ public class Bulk implements ApplicationContextAware {
     public void cleanProcessors(final WebScriptResponse response) throws IOException, JSONException {
         this.processors.clear();
     }
+
+    @Uri(value = "/xenit/care4alf/bluk/action/form", multipartProcessing = true, method = HttpMethod.POST)
+    public void bulkForm(WebScriptRequest request, WebScriptResponse response){
+        FormData formData = (FormData) request.parseContent();
+
+
+
+    }
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

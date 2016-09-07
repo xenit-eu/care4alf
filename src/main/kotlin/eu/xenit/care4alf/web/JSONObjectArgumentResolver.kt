@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component
 /**
  * Created by laurentvdl on 11/14/14.
  */
-Component
+@Component
 public class JSONObjectArgumentResolver : AbstractTypeBasedArgumentResolver<JSONObject>() {
-    override fun getExpectedArgumentType() = javaClass<JSONObject>()
+    override fun getExpectedArgumentType() = JSONObject::class.java
 
     override fun resolveArgument(request: WebScriptRequest, response: WebScriptResponse): JSONObject? {
         val content = request.getContent().getContent()
