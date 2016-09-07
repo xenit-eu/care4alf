@@ -1,14 +1,17 @@
 package xenit.care4alf.dumbster.smtp.eml;
 
-import java.io.*;
+import xenit.care4alf.dumbster.smtp.MailMessage;
+import xenit.care4alf.dumbster.smtp.MailMessageImpl;
+import xenit.care4alf.dumbster.smtp.SmtpState;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import xenit.care4alf.dumbster.smtp.MailMessage;
-import xenit.care4alf.dumbster.smtp.MailMessageImpl;
-import xenit.care4alf.dumbster.smtp.SmtpState;
 
 /**
  * An implementation of MailMessage to support lazy load of messages stored in EML files.

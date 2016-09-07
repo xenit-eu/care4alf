@@ -1,5 +1,11 @@
 package xenit.care4alf.dumbster.smtp.mailstores;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import xenit.care4alf.dumbster.smtp.MailMessage;
+import xenit.care4alf.dumbster.smtp.MailStore;
+import xenit.care4alf.dumbster.smtp.eml.EMLMailMessage;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -8,12 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import xenit.care4alf.dumbster.smtp.MailMessage;
-import xenit.care4alf.dumbster.smtp.MailStore;
-import xenit.care4alf.dumbster.smtp.eml.EMLMailMessage;
 
 /**
  * Store messages as EML files.

@@ -16,12 +16,7 @@
  */
 package xenit.care4alf.dumbster.smtp;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Container for a complete SMTP message - headers and message body.

@@ -12,7 +12,6 @@ import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.service.cmr.dictionary.ModelDefinition;
-import org.alfresco.service.cmr.dictionary.NamespaceDefinition;
 import org.alfresco.service.descriptor.Descriptor;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.codec.EncoderException;

@@ -1,25 +1,21 @@
 package eu.xenit.care4alf.module
 
-import org.springframework.beans.factory.InitializingBean
-import org.springframework.beans.factory.DisposableBean
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
 import eu.xenit.care4alf.json
-import xenit.care4alf.dumbster.smtp.SmtpServer
-import xenit.care4alf.dumbster.smtp.SmtpServerFactory
 import org.slf4j.LoggerFactory
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
+import org.springframework.beans.factory.DisposableBean
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
 import xenit.care4alf.dumbster.smtp.ServerOptions
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
+import xenit.care4alf.dumbster.smtp.SmtpServer
+import xenit.care4alf.dumbster.smtp.SmtpServerFactory
 
 /**
  * @author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/smtp", families = arrayOf("care4alf"), description = "dummy SMTP viewer")
-Authentication(AuthenticationType.ADMIN)
+@Component
+@WebScript(baseUri = "/xenit/care4alf/smtp", families = arrayOf("care4alf"), description = "dummy SMTP viewer")
+@Authentication(AuthenticationType.ADMIN)
 class DummyMail : InitializingBean, DisposableBean {
     val DEFAULT_PORT = 2500
 
@@ -27,14 +23,14 @@ class DummyMail : InitializingBean, DisposableBean {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    Uri("list")
+    @Uri("list")
     fun list() = json {
         iterable(smtpServer!!.getMessages().toList()) { message ->
             obj {
                 key("headers") {
                     obj {
                         for (headerName in message.getHeaderNames()) {
-                            entry(headerName, message.getHeaderValues(headerName).join(","))
+                            entry(headerName, message.getHeaderValues(headerName).joinToString(","))
                         }
                     }
                 }
@@ -42,12 +38,12 @@ class DummyMail : InitializingBean, DisposableBean {
         }
     }
 
-    Uri(value = "/list", method = HttpMethod.DELETE)
+    @Uri(value = "/list", method = HttpMethod.DELETE)
     fun clearMails() {
         smtpServer?.clearMessages()
     }
 
-    Uri("/config")
+    @Uri("/config")
     fun config() = json {
         obj {
             entry("port", DEFAULT_PORT)

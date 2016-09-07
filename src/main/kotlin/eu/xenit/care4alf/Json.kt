@@ -1,11 +1,9 @@
 package eu.xenit.care4alf
 
-import org.json.JSONObject
-import org.json.JSONWriter
-import java.util.ArrayList
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution
-import java.util.Enumeration
+import org.json.JSONWriter
+import java.util.*
 
 /**
  * JSON builder to safely construct JSON hierarchies

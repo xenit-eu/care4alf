@@ -1,14 +1,10 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
-import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
-import org.alfresco.repo.jscript.Actions;
-import org.alfresco.repo.jscript.Search;
-import org.alfresco.repo.lock.JobLockService;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.coci.CheckOutCheckInService;
-import org.alfresco.service.cmr.lock.LockStatus;
-import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.lock.LockService;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.ResultSetRow;
@@ -16,22 +12,13 @@ import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
-//import eu.xenit.care4alf.json;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.model.ContentModel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.alfresco.service.cmr.lock.LockService;
-import org.alfresco.repo.security.authentication.AuthenticationUtil;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.service.namespace.QName;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
 
-import org.alfresco.repo.lock.mem.LockState;
+//import eu.xenit.care4alf.json;
 
 /**
  * Created by mhgam on 20/10/2015.
