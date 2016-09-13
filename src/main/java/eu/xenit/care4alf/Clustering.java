@@ -1,6 +1,5 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,6 @@ import java.io.IOException;
  * Created by willem on 7/14/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/clustering", families = {"care4alf"}, description = "Clustering")
 public class Clustering {
     @Autowired
     private MBeanServerConnection alfrescoMBeanServer;
