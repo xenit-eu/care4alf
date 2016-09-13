@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Component
-import xenit.care4alf.dumbster.smtp.ServerOptions
-import xenit.care4alf.dumbster.smtp.SmtpServer
-import xenit.care4alf.dumbster.smtp.SmtpServerFactory
+import eu.xenit.care4alf.dumbster.smtp.ServerOptions
+import eu.xenit.care4alf.dumbster.smtp.SmtpServer
+import eu.xenit.care4alf.dumbster.smtp.SmtpServerFactory
 
 /**
  * @author Laurent Van der Linden

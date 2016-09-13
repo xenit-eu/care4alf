@@ -36,7 +36,7 @@ class Amps @Autowired constructor(
     @Transaction(readOnly = true)
     fun list() = json {
         val versionIds = getVersionQnameIds().joinToString(",")
-        val ids = jdbc.queryForList("select distinct(node_id) from alf_node_properties where qname_id in ($versionIds)", Long::class.java)
+        val ids = jdbc.queryForList("select distinct(node_id) from alf_node_properties where qname_id in ($versionIds)", java.lang.Long::class.java)
         val nodeRefs = ids.map({ id ->
             nodeService.getNodeRef(id as Long)
         })
