@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -75,7 +76,7 @@ public class SolrAdmin {
 
     public long getSolrErrors() {
         try {
-            JSONObject json = this.getSolrErrorsJson(0,0);
+            JSONObject json = this.getSolrErrorsJson(0, 0);
             return json.getJSONObject("response").getLong("numFound");
         } catch (JSONException e) {
             return -1;
@@ -90,8 +91,7 @@ public class SolrAdmin {
     public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri) throws JSONException, EncoderException, IOException {
         String[] names = request.getParameterNames();
         Multimap<String, String> parameters = ArrayListMultimap.create();
-        for(String name : names)
-        {
+        for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
         JSONObject json = solrClient.postJSON("/solr/" + uri, parameters, null);
@@ -111,12 +111,12 @@ public class SolrAdmin {
             @RequestParam(defaultValue = "100") final int rows) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> docs = this.getSolrErrorDocs(rows);
         int count = 0;
-        logger.debug("filter: '{}'",filter);
-        for(SolrErrorDoc doc : docs) {
-            logger.debug("Exception: '{}'",doc.getException());
-            if(doc.getException().equals(filter)){
+        logger.debug("filter: '{}'", filter);
+        for (SolrErrorDoc doc : docs) {
+            logger.debug("Exception: '{}'", doc.getException());
+            if (doc.getException().equals(filter)) {
                 NodeRef nodeRef = nodeService.getNodeRef(doc.getDbid());
-                nodeService.setProperty(nodeRef,ContentModel.PROP_IS_CONTENT_INDEXED,false);
+                nodeService.setProperty(nodeRef, ContentModel.PROP_IS_CONTENT_INDEXED, false);
                 count++;
             }
         }
@@ -127,11 +127,11 @@ public class SolrAdmin {
         StringBuilder sb = new StringBuilder();
         sb.append("exception;txid;dbid;noderef;type;name;created;modified;filesize\n");
         List<SolrErrorDoc> docs = this.getSolrErrorDocs(rows);
-        for(SolrErrorDoc doc : docs){
+        for (SolrErrorDoc doc : docs) {
             NodeRef nodeRef = this.nodeService.getNodeRef(doc.getDbid());
             ContentData content = (ContentData) this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
             long size = -1;
-            if(content != null)
+            if (content != null)
                 size = content.getSize();
             String[] fields = new String[]{
                     doc.getException(),
@@ -144,7 +144,7 @@ public class SolrAdmin {
                     orEmpty(this.nodeService.getProperty(nodeRef, ContentModel.PROP_MODIFIED)),
                     Long.toString(size)
             };
-            for(String field : fields){
+            for (String field : fields) {
                 sb.append(field).append(",");
             }
             sb.append("\n");
@@ -152,38 +152,38 @@ public class SolrAdmin {
         return sb.toString();
     }
 
-    private static String orEmpty(Object o){
-        return o == null?  "" : o.toString();
+    private static String orEmpty(Object o) {
+        return o == null ? "" : o.toString();
     }
 
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws EncoderException, JSONException, IOException {
-        JSONObject json = this.getSolrErrorsJson(0,rows);
+        JSONObject json = this.getSolrErrorsJson(0, rows);
         return parseSolrErrorDocs(json);
     }
 
     public List<SolrErrorDoc> parseSolrErrorDocs(JSONObject json) throws JSONException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
         JSONArray docs = json.getJSONObject("response").getJSONArray("docs");
-        for(int i = 0; i < docs.length(); i++){
+        for (int i = 0; i < docs.length(); i++) {
             JSONObject doc = docs.getJSONObject(i);
             SolrErrorDoc errorDoc = new SolrErrorDoc(
-                    doc.has("INTXID")?Long.parseLong(doc.getJSONArray("INTXID").getString(0)):-1,
-                    doc.has("EXCEPTIONMESSAGE")?doc.getJSONArray("EXCEPTIONMESSAGE").getString(0):"",
-                    doc.has("ID")?doc.getJSONArray("ID").getString(0):"",
-                    doc.has("DBID")?Long.parseLong(doc.getJSONArray("DBID").getString(0)):-1,
-                    doc.has("EXCEPTIONSTACK")?doc.getJSONArray("EXCEPTIONSTACK").getString(0):""
-                    );
+                    doc.has("INTXID") ? Long.parseLong(doc.getJSONArray("INTXID").getString(0)) : -1,
+                    doc.has("EXCEPTIONMESSAGE") ? doc.getJSONArray("EXCEPTIONMESSAGE").getString(0) : "",
+                    doc.has("ID") ? doc.getJSONArray("ID").getString(0) : "",
+                    doc.has("DBID") ? Long.parseLong(doc.getJSONArray("DBID").getString(0)) : -1,
+                    doc.has("EXCEPTIONSTACK") ? doc.getJSONArray("EXCEPTIONSTACK").getString(0) : ""
+            );
             errorDocs.add(errorDoc);
         }
         return errorDocs;
     }
 
-    public long getSolrLag(){
+    public long getSolrLag() {
         JSONObject summary = null;
         try {
             summary = this.getSolrSummary();
             String lag = summary.getJSONObject("alfresco").getString("TX Lag");
-            return Long.parseLong(lag.replace(" s",""));
+            return Long.parseLong(lag.replace(" s", ""));
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (EncoderException e) {
@@ -211,12 +211,12 @@ public class SolrAdmin {
                 new RowMapper<Transaction>() {
                     @Override
                     public Transaction mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        return new Transaction(rs.getLong(1),rs.getInt(2));
+                        return new Transaction(rs.getLong(1), rs.getInt(2));
                     }
                 });
     }
 
-    private long geLastTxInIndex(){
+    private long geLastTxInIndex() {
         JSONObject summary = null;
         try {
             summary = this.getSolrSummary();
@@ -235,7 +235,7 @@ public class SolrAdmin {
         return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
     }
 
-    public class SolrErrorDoc{
+    public class SolrErrorDoc {
         private long txid;
         private String exception;
         private String id;
@@ -271,7 +271,7 @@ public class SolrAdmin {
         }
     }
 
-    public class Transaction{
+    public class Transaction {
         private long txId;
         private int count;
 
@@ -289,4 +289,39 @@ public class SolrAdmin {
         }
     }
 
+    public long getModelErrors() throws EncoderException, JSONException, IOException {
+        long count = 0;
+        JSONObject json = this.getSolrSummary();
+        Object alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
+        //check archive null
+        Object archiveerror = (json.getJSONObject("archive") == null) ?
+                null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
+        if (alfrescoerror == null && archiveerror == null) return 0;
+        if (alfrescoerror != null) {
+            count += geterrors(alfrescoerror);
+        }
+        if (archiveerror != null) {
+            count += geterrors(archiveerror);
+        }
+        logger.debug("count: " + count);
+        return count;
+    }
+
+    private long geterrors(Object json) throws JSONException {
+        long count = 0;
+        JSONObject archerrorjson = ((JSONObject) json);
+        logger.debug("Keys: " + archerrorjson.keys());
+        Iterator<String> keys = archerrorjson.keys();
+        while (keys.hasNext()) {
+            logger.debug("Inside loop");
+            String key = keys.next();
+            try {
+                count += archerrorjson.getJSONArray(key).length();
+            } catch (Exception e) {
+                count++;
+            }
+        }
+        return count;
+    }
 }
+
