@@ -1,9 +1,9 @@
 package eu.xenit.care4alf.web
 
-import org.springframework.extensions.webscripts.WebScriptResponse
-import org.slf4j.Logger
 import com.github.dynamicextensionsalfresco.webscripts.annotations.ExceptionHandler
 import org.json.JSONWriter
+import org.slf4j.Logger
+import org.springframework.extensions.webscripts.WebScriptResponse
 import javax.servlet.http.HttpServletResponse
 
 /**
@@ -12,13 +12,13 @@ import javax.servlet.http.HttpServletResponse
 public interface RestErrorHandling {
     var logger: Logger
 
-    ExceptionHandler(Exception::class)
+    @ExceptionHandler(Exception::class)
     fun handleIllegalArgument(exception: Exception, response: WebScriptResponse) {
         logger.error("Controller failure", exception)
 
         var cause: Throwable = exception
-        while (cause.getCause() != null) {
-            cause = cause.getCause()!!
+        while (cause.cause != null) {
+            cause = cause.cause!!
         }
 
         if (cause is IllegalArgumentException) {
@@ -27,7 +27,7 @@ public interface RestErrorHandling {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
         }
         JSONWriter(response.getWriter()).`object`()
-            .key("message").value(cause.getMessage())
+            .key("message").value(cause.message)
         .endObject()
     }
 }
