@@ -1,18 +1,12 @@
 package eu.xenit.care4alf.module
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.*
-import org.springframework.stereotype.Component
+import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
 import eu.xenit.care4alf.json
-import org.alfresco.service.cmr.repository.NodeRef
-import org.alfresco.model.ContentModel
-import org.springframework.beans.factory.annotation.Autowired
-import org.alfresco.service.cmr.lock.LockService
 import org.alfresco.repo.security.authentication.AuthenticationUtil
-import org.alfresco.repo.transaction.RetryingTransactionHelper
-import org.alfresco.service.namespace.QName
-import java.io.Serializable
-import java.util.*
-import org.alfresco.repo.lock.mem.LockState
+import org.alfresco.service.cmr.lock.LockService
+import org.alfresco.service.cmr.repository.NodeRef
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * @author Laurent Van der Linden
@@ -21,8 +15,8 @@ import org.alfresco.repo.lock.mem.LockState
 //WebScript(baseUri = "/xenit/care4alf/locks", families = arrayOf("care4alf"), description = "manage locks")
 //Authentication(AuthenticationType.ADMIN)
 public class Locks @Autowired constructor(val lockService: LockService) {
-    Uri("/")
-    fun getLockInfo(RequestParam noderef: NodeRef) = json {
+    @Uri("/")
+    fun getLockInfo(@RequestParam noderef: NodeRef) = json {
         AuthenticationUtil.runAsSystem {
             //LockState s = null
             lockService

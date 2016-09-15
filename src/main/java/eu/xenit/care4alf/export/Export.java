@@ -4,7 +4,10 @@ import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.*;
+import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
@@ -12,14 +15,18 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by KevinB on 16/07/2015.

@@ -1,55 +1,44 @@
 package eu.xenit.care4alf.module
 
-import org.springframework.stereotype.Component
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
-import java.io.File
-import org.springframework.extensions.webscripts.WebScriptRequest
-import org.slf4j.LoggerFactory
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
-import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam
-import org.alfresco.service.cmr.repository.NodeRef
-import org.springframework.beans.factory.annotation.Autowired
-import org.alfresco.service.cmr.model.FileFolderService
-import eu.xenit.care4alf.json
-import org.alfresco.service.cmr.repository.NodeService
-import org.alfresco.model.ContentModel
-import org.alfresco.service.cmr.repository.StoreRef
-import org.json.JSONObject
-import java.io.Serializable
-import org.alfresco.service.namespace.QName
-import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter
-import org.alfresco.service.cmr.dictionary.DictionaryService
-import org.alfresco.service.namespace.NamespaceService
-import eu.xenit.care4alf.JsonObject
-import org.alfresco.service.cmr.dictionary.PropertyDefinition
-import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable
-import org.alfresco.service.cmr.search.SearchService
-import eu.xenit.care4alf.JsonArray
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
 import eu.xenit.care4alf.JsonRoot
-import org.alfresco.repo.policy.BehaviourFilter
-import org.springframework.beans.factory.annotation.Qualifier
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import java.util.Date
-import org.alfresco.util.ISO8601DateFormat
+import eu.xenit.care4alf.json
 import eu.xenit.care4alf.web.RestErrorHandling
-import org.alfresco.service.transaction.TransactionService
-import org.alfresco.service.cmr.security.PermissionService
-import org.alfresco.service.namespace.RegexQNamePattern
+import org.alfresco.model.ContentModel
 import org.alfresco.repo.domain.permissions.AclDAO
+import org.alfresco.repo.i18n.StaticMessageLookup
+import org.alfresco.repo.policy.BehaviourFilter
+import org.alfresco.service.cmr.dictionary.DictionaryService
+import org.alfresco.service.cmr.dictionary.PropertyDefinition
+import org.alfresco.service.cmr.model.FileFolderService
+import org.alfresco.service.cmr.repository.NodeRef
+import org.alfresco.service.cmr.repository.NodeService
+import org.alfresco.service.cmr.repository.StoreRef
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter
+import org.alfresco.service.cmr.search.SearchService
+import org.alfresco.service.cmr.security.PermissionService
+import org.alfresco.service.namespace.NamespaceService
+import org.alfresco.service.namespace.QName
+import org.alfresco.service.namespace.RegexQNamePattern
+import org.alfresco.service.transaction.TransactionService
+import org.json.JSONObject
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.extensions.webscripts.WebScriptRequest
 import org.springframework.extensions.webscripts.WebScriptResponse
-import org.alfresco.service.cmr.repository.ChildAssociationRef
+import org.springframework.stereotype.Component
+import java.io.Serializable
 
 /**
  * @author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/browser", families = arrayOf("care4alf"), description = "node browser", defaultFormat = "json")
-Authentication(AuthenticationType.ADMIN)
+@Component
+@WebScript(baseUri = "/xenit/care4alf/browser", families = arrayOf("care4alf"), description = "node browser", defaultFormat = "json")
+@Authentication(AuthenticationType.ADMIN)
 public class Browser @Autowired constructor(
         private val filefolderService: FileFolderService,
-        Qualifier("nodeService") private val nodeService: NodeService,
+        @Qualifier("nodeService") private val nodeService: NodeService,
         private val dictionaryService: DictionaryService,
         private val namespaceService: NamespaceService,
         private val searchService: SearchService,
@@ -61,17 +50,17 @@ public class Browser @Autowired constructor(
     override var logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
 
-    Uri(value = "/upload", method = HttpMethod.POST)
+    @Uri(value = "/upload", method = HttpMethod.POST)
     fun upload(request: WebScriptRequest) {
         logger.info(request.getContent().getContent())
     }
 
-    Uri(value = "/rootNodes")
+    @Uri(value = "/rootNodes")
     fun rootNodes() = json {
         iterable(nodeService.getAllRootNodes(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE), nodesToBasicJson())
     }
 
-    Uri(value = "/find", method = HttpMethod.POST)
+    @Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
         if (requestBody!!.toLowerCase().startsWith("workspace://")) {
@@ -83,8 +72,8 @@ public class Browser @Autowired constructor(
         }
     }
 
-    Uri("/details")
-    fun details(RequestParam noderef: NodeRef) = json {
+    @Uri("/details")
+    fun details(@RequestParam noderef: NodeRef) = json {
         val path = nodeService.getPath(noderef)
         val name = nodeService.getProperty(noderef, ContentModel.PROP_NAME)
         val dbid = nodeService.getProperty(noderef, ContentModel.PROP_NODE_DBID)
@@ -98,8 +87,8 @@ public class Browser @Autowired constructor(
             key("properties") {
                 obj {
                     for (pair in nodeService.getProperties(noderef)) {
-                        val qname = pair.getKey()
-                        val propertyValue = pair.getValue()
+                        val qname = pair.key
+                        val propertyValue = pair.value
 
                         if (propertyValue != null) {
                             val propDef = dictionaryService.getProperty(qname)
@@ -190,8 +179,8 @@ public class Browser @Autowired constructor(
         return converted
     }
 
-    Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
-    fun saveProperty(UriVariable noderef: NodeRef, UriVariable qname: QName, body: JSONObject) {
+    @Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
+    fun saveProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName, body: JSONObject) {
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         try {
             nodeService.setProperty(noderef, qname, body.getString("value") as? Serializable)
@@ -200,12 +189,12 @@ public class Browser @Autowired constructor(
         }
     }
 
-    Uri("/{noderef}/properties/{qname}", method = HttpMethod.DELETE)
-    fun deleteProperty(UriVariable noderef: NodeRef, UriVariable qname: QName) {
+    @Uri("/{noderef}/properties/{qname}", method = HttpMethod.DELETE)
+    fun deleteProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName) {
         nodeService.removeProperty(noderef, qname)
     }
 
-    Uri("/aspects")
+    @Uri("/aspects")
     fun aspects() = json {
         obj {
             dictionaryService.getAllModels().forEach { model ->
@@ -215,7 +204,7 @@ public class Browser @Autowired constructor(
                         iterable(modelAspects) { aspect ->
                             obj {
                                 entry("qname", aspect)
-                                entry("title", dictionaryService.getAspect(aspect).getTitle())
+                                entry("title", dictionaryService.getAspect(aspect).getTitle(StaticMessageLookup()))
                             }
                         }
                     }
@@ -224,7 +213,7 @@ public class Browser @Autowired constructor(
         }
     }
 
-    Uri("types")
+    @Uri("types")
     fun types() = json {
         obj {
             dictionaryService.getAllModels().forEach { model ->
@@ -234,7 +223,7 @@ public class Browser @Autowired constructor(
                         iterable(modelTypes) { type ->
                             obj {
                                 entry("qname", type)
-                                entry("title", dictionaryService.getType(type).getTitle())
+                                entry("title", dictionaryService.getType(type).getTitle(StaticMessageLookup()))
                             }
                         }
                     }
@@ -243,8 +232,8 @@ public class Browser @Autowired constructor(
         }
     }
 
-    Uri(value = "/{noderef}/aspects", method = HttpMethod.POST)
-    fun addAspect(UriVariable noderef: NodeRef, jsonBody: JSONObject) {
+    @Uri(value = "/{noderef}/aspects", method = HttpMethod.POST)
+    fun addAspect(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         // need a new transaction, so any on-commit handler can throw errors now and be properly intercepted
         transactionService.getRetryingTransactionHelper().doInTransaction({
             // bug in DE 1.1.3 causes direct QName binding to fail
@@ -252,38 +241,38 @@ public class Browser @Autowired constructor(
         }, false, true)
     }
 
-    Uri(value = "{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
-    fun removeAspect(UriVariable noderef: NodeRef, UriVariable aspect: String) {
+    @Uri(value = "{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
+    fun removeAspect(@UriVariable noderef: NodeRef, @UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
     }
 
-    Uri(value = "{noderef}/type", method = HttpMethod.PUT)
-    fun setType(UriVariable noderef: NodeRef, jsonBody: JSONObject) {
+    @Uri(value = "{noderef}/type", method = HttpMethod.PUT)
+    fun setType(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         nodeService.setType(noderef, QName.createQName(jsonBody.getString("type")))
     }
 
-    Uri(value = "{noderef}", method = HttpMethod.DELETE)
-    fun deleteNode(UriVariable noderef: NodeRef) {
+    @Uri(value = "{noderef}", method = HttpMethod.DELETE)
+    fun deleteNode(@UriVariable noderef: NodeRef) {
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
     }
 
-    Uri(value = "assoc/{id}", method = HttpMethod.DELETE)
-    fun deleteAssoc(UriVariable id: Long) {
+    @Uri(value = "assoc/{id}", method = HttpMethod.DELETE)
+    fun deleteAssoc(@UriVariable id: Long) {
         val associationRef = nodeService.getAssoc(id)
         nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())
     }
 
-    Uri(value = "/deletechild", method = HttpMethod.POST)
+    @Uri(value = "/deletechild", method = HttpMethod.POST)
     fun deleteChild(json: JSONObject) {
         val parentRef = NodeRef(json.getString("parent"));
         val childRef = NodeRef(json.getString("child"));
         nodeService.removeChild(parentRef, childRef);
     }
 
-    Uri(value = "/child", method = HttpMethod.POST)
+    @Uri(value = "/child", method = HttpMethod.POST)
     public fun addChild(json: JSONObject, response: WebScriptResponse) {
         val parentRef = NodeRef(json.getString("parent"))
         val childRef = NodeRef(json.getString("child"))
@@ -306,6 +295,6 @@ public class Browser @Autowired constructor(
     }
 
     fun format(propertyValue: Any): String {
-        return DefaultTypeConverter.INSTANCE.convert(javaClass<String>(), propertyValue)
+        return DefaultTypeConverter.INSTANCE.convert(String::class.java, propertyValue)
     }
 }

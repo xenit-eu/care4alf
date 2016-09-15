@@ -1,34 +1,30 @@
 package eu.xenit.care4alf.module
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
-import org.springframework.stereotype.Component
-import org.springframework.beans.factory.annotation.Autowired
-import org.alfresco.repo.i18n.MessageService
-import eu.xenit.care4alf.json
-import org.alfresco.repo.i18n.MessageServiceImpl
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService
 import com.github.dynamicextensionsalfresco.annotations.ServiceType
-import org.slf4j.LoggerFactory
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
+import eu.xenit.care4alf.json
 import eu.xenit.care4alf.web.LogHelper
+import org.alfresco.repo.i18n.MessageService
+import org.alfresco.repo.i18n.MessageServiceImpl
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import java.util.*
 
 /**
  * @author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/messages", families = arrayOf("care4alf"), description = "Message service diagnostic")
-Authentication(AuthenticationType.ADMIN)
-class Messages () : LogHelper {
+@Component
+@WebScript(baseUri = "/xenit/care4alf/messages", families = arrayOf("care4alf"), description = "Message service diagnostic")
+@Authentication(AuthenticationType.ADMIN)
+class Messages () : LogHelper() {
     override val logger = LoggerFactory.getLogger(javaClass)
 
-    Autowired AlfrescoService(ServiceType.LOW_LEVEL) var messageService: MessageService? = null
+    @Autowired @AlfrescoService(ServiceType.LOW_LEVEL) var messageService: MessageService? = null
 
-    Uri(value = "/bundles")
+    @Uri(value = "/bundles")
     fun list() = json {
         if (messageService is MessageServiceImpl) {
             iterable((messageService as MessageServiceImpl).getRegisteredBundles()) { bundle ->
@@ -39,10 +35,10 @@ class Messages () : LogHelper {
         }
     }
 
-    Uri("translate", method = HttpMethod.POST)
+    @Uri("translate", method = HttpMethod.POST)
     fun translate(body: JSONObject) = json {
         val key = body.getString("key")
-        iterable(Locale.getAvailableLocales().toArrayList()) { locale ->
+        iterable(Locale.getAvailableLocales().asList()) { locale ->
             obj {
                 entry(locale.toString(), messageService!!.getMessage(key, locale) ?: "-")
             }
