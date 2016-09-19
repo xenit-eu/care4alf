@@ -35,9 +35,8 @@ public class SolrClientImpl implements SolrClient {
     SolrChildApplicationContextFactory solrhttpClientFactory;
 
     @Override
-    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException
-    {
-        return new JSONObject(this.basePost(url, parameters, body == null? null : body.toString()));
+    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
+        return new JSONObject(this.basePost(url, parameters, body == null ? null : body.toString()));
     }
 
     @Override
@@ -54,7 +53,7 @@ public class SolrClientImpl implements SolrClient {
 
         final URLCodec encoder = new URLCodec();
         StringBuilder urlBuilder = new StringBuilder();
-        if(parameters==null){
+        if (parameters == null) {
             parameters = ArrayListMultimap.create();
         }
 
@@ -78,6 +77,7 @@ public class SolrClientImpl implements SolrClient {
         logger.info("solr query: {}", uri);
 
         PostMethod post = new PostMethod(uri);
+        body = "{}";
         if (body != null) {
             post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"), "application/json"));
         }

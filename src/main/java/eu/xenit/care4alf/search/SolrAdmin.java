@@ -5,12 +5,14 @@ import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import eu.xenit.care4alf.Config;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.codec.EncoderException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +52,9 @@ public class SolrAdmin {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private Config config;
+
     @Uri("errors")
     public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
         JSONObject json = this.getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
@@ -60,17 +65,32 @@ public class SolrAdmin {
     public JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
-        parameters.put("q", "ID:ERROR-*");
+        //parameters.put("q", "ID:ERROR-*");
+        parameters.put("q", "ERROR*");
         parameters.put("start", Integer.toString(start));
         parameters.put("rows", Integer.toString(rows));
-        return solrClient.postJSON("/solr/alfresco/select", parameters, null);
+        return solrClient.postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
+    }
+
+    @NotNull
+    private String selectOrQuery() {
+        String solrType = config.getProperty("index.subsystem.name");
+        logger.debug("solrType: " + solrType);
+
+        switch (solrType) {
+            case "solr4":
+                return "query";
+            case "solr":
+                return "select";
+        }
+        return "select";
     }
 
     public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
         parameters.put("action", "SUMMARY");
-        return solrClient.postJSON("/solr/admin/cores", parameters, null).getJSONObject("Summary");
+        return solrClient.postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
     }
 
     public long getSolrErrors() {
@@ -93,7 +113,7 @@ public class SolrAdmin {
         for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
-        JSONObject json = solrClient.postJSON("/solr/" + uri, parameters, null);
+        JSONObject json = solrClient.postJSON("/" + getSolrTypeUrl() + "/" + uri, parameters, null);
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
@@ -195,7 +215,7 @@ public class SolrAdmin {
 
     @Uri("optimize")
     public void optimize(WebScriptResponse res) throws IOException, EncoderException {
-        res.getWriter().write(solrClient.postMessage("/solr/alfresco/update", null, "<optimize />"));
+        res.getWriter().write(solrClient.postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />"));
     }
 
     @Uri("transactions")
@@ -288,13 +308,20 @@ public class SolrAdmin {
         }
     }
 
-    public long getModelErrors() throws EncoderException, JSONException, IOException {
+    public long getModelErrors() throws EncoderException, IOException, JSONException {
         long count = 0;
         JSONObject json = this.getSolrSummary();
-        Object alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
-        //check archive null
-        Object archiveerror = (json.getJSONObject("archive") == null) ?
-                null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
+
+        Object alfrescoerror = null;
+        Object archiveerror = null;
+        try {
+            alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
+            //check archive null
+            archiveerror = (json.getJSONObject("archive") == null) ?
+                    null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
+        } catch (JSONException e) {
+            logger.debug("no model errors found.");
+        }
         if (alfrescoerror == null && archiveerror == null) return 0;
         if (alfrescoerror != null) {
             count += geterrors(alfrescoerror);
@@ -321,6 +348,26 @@ public class SolrAdmin {
             }
         }
         return count;
+    }
+
+    private String getSolrTypeUrl() {
+        String solrTypeUrl = "solr";
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+
+        String solrType;
+        solrType = config.getProperty("index.subsystem.name");
+        logger.debug("solrType: " + solrType);
+        
+        switch (solrType) {
+            case "solr4":
+                solrTypeUrl = "solr4";
+                break;
+            case "solr":
+                solrTypeUrl = "solr";
+                break;
+        }
+
+        return solrTypeUrl;
     }
 }
 
