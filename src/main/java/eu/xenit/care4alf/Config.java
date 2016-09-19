@@ -30,11 +30,15 @@ public class Config {
         final JSONWriter json = new JSONWriter(res.getWriter());
         json.object();
         Enumeration<String> it = (Enumeration<String>) this.properties.propertyNames();
-        while(it.hasMoreElements()) {
+        while (it.hasMoreElements()) {
             String name = it.nextElement();
             json.key(name).value(this.properties.getProperty(name));
         }
         json.endObject();
+    }
+
+    public String getProperty(String name) {
+        return this.properties.getProperty(name);
     }
 
 }
