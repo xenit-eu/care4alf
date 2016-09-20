@@ -192,15 +192,15 @@ public class Bulk implements ApplicationContextAware {
         this.processors.clear();
     }
 
-    @Uri(value = "/xenit/care4alf/bulk/cancel", method = HttpMethod.DELETE)
-    public void cancelJobs(final WebScriptResponse response) {
-        logger.debug("Cancelling");
-        for (BulkJob bulkJob : this.processors) {
-            BatchProcessWorkProvider provider = bulkJob.getWorkProvider();
-            if (provider instanceof SearchWorkProvider) {
-                ((SearchWorkProvider) provider).cancel();
-            }
+    @Uri(value = "/xenit/care4alf/bulk/cancel/{index}", method = HttpMethod.DELETE)
+    public void cancelJobs(@UriVariable final String index, final WebScriptResponse response) {
+        logger.debug("Cancelling job nr {}", index);
+        BulkJob bulkJob = this.processors.get(Integer.parseInt(index));
+        BatchProcessWorkProvider provider = bulkJob.getWorkProvider();
+        if (provider instanceof SearchWorkProvider) {
+            ((SearchWorkProvider) provider).cancel();
         }
+
         response.setStatus(HttpStatus.SC_OK);
     }
 

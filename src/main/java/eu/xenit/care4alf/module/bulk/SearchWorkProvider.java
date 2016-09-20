@@ -55,12 +55,14 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
     @Override
     public Collection<NodeRef> getNextWork() {
-        if (this.cancel) {
-            return Collections.emptyList();
-        }
+
 
         if (this.nodeRefs == null) {
             fetchAllResults();
+        }
+
+        if (this.cancel) {
+            return Collections.emptyList();
         }
 
         if (skipCount >= this.nodeRefs.size())
