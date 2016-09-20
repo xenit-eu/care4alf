@@ -52,8 +52,8 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
             $scope.loadJobs();
         });
     };
-    $scope.cancelJobs = () => {
-        $http.delete("bulk/cancel").success(()=> {
+    $scope.cancelJobs = (index:number) => {
+        $http.delete("bulk/cancel/"+index).success(()=> {
             $scope.canceled = "Current jobs succesfully cancelled";
             $timeout(() => {
                 $scope.canceled = "";

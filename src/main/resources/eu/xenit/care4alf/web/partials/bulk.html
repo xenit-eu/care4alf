@@ -68,7 +68,6 @@
 <h3>Jobs</h3>
 <button class="btn btn-danger" ng-click="clearJobs()">Clear</button>
 <button class="btn btn-default" ng-click="loadJobs()">Refresh</button>
-<button class="btn btn-danger" ng-click="cancelJobs()">Cancel</button>
 <div>{{canceled}}</div>
 <table class="table">
     <thead>
@@ -80,11 +79,14 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="job in jobs">
+    <tr ng-repeat="job in jobs track by $index">
         <td>{{job.start}}</td>
         <td>{{job.end}}</td>
         <td>{{job.successes}}</td>
         <td>{{job.errors}}</td>
+        <td>
+            <button class="btn btn-danger" ng-click="cancelJobs($index)">Cancel</button>
+        </td>
     </tr>
     </tbody>
 </table>
