@@ -1,10 +1,11 @@
-care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
+care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     $scope.form = {};
     $scope.form.query = "PATH:\"/app:company_home/st:sites/cm:swsdp/cm:documentLibrary/cm:Agency_x0020_Files//*\" AND TYPE:\"cm:content\"";
     $scope.form.batchsize = 20;
     $scope.form.threads = 2;
     $scope.form.action = "";
     $scope.actions = {};
+    $scope.canceled = "";
 
     $scope.data = {
         availableOptions: [
@@ -42,7 +43,7 @@ care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
 
     $scope.jobs = {};
     $scope.loadJobs = () => {
-        $http.get("bulk/processors").success((data: any) => {
+        $http.get("bulk/processors").success((data:any) => {
             $scope.jobs = data;
         })
     };
@@ -51,15 +52,23 @@ care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
             $scope.loadJobs();
         });
     };
+    $scope.cancelJobs = () => {
+        $http.delete("bulk/cancel").success(()=> {
+            $scope.canceled = "Current jobs succesfully cancelled";
+            $timeout(() => {
+                $scope.canceled = "";
+            }, 2000);
+        })
+    };
     $timeout($scope.loadJobs, 5000);
 
     $scope.execute = () => {
         $scope.loading = true;
-        $http.post("bluk/form/action/"+$scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'} })
+        $http.post("bluk/form/action/" + $scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'}})
             .then(function (response) {
                 $scope.result = response.data;
                 $scope.loading = false;
-            },function(error){
+            }, function (error) {
                 $scope.result = "Error: " + error;
                 $scope.loading = false;
             });
@@ -67,11 +76,11 @@ care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
 
     var actionParameters = () => {
         var json = "{";
-        for (var key in $scope.form.parameters){
+        for (var key in $scope.form.parameters) {
             json += "\"" + key + "\":";
             json += "\"" + $scope.form.parameters[key] + "\",";
         }
-        if (length > 1){
+        if (length > 1) {
             json = json.slice(0, -1);
         }
         json += "}";
@@ -83,39 +92,39 @@ care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
     $scope.executeFile = () => {
         $scope.loading = true;
         let callInfo =
-        $http({
-            method: 'POST',
-            url: "bluk/form/action/" + $scope.form.action,
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-            data: {
-                type: 'file',
-                file: $scope.form.file,
-                batchsize: $scope.form.batchsize,
-                threads: $scope.form.threads,
-                parameters: actionParameters()
-            },
-            transformRequest: function (data, headersGetter) {
-                var formData = new FormData();
-                angular.forEach(data, function (value, key) {
-                    formData.append(key, value);
+            $http({
+                method: 'POST',
+                url: "bluk/form/action/" + $scope.form.action,
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                data: {
+                    type: 'file',
+                    file: $scope.form.file,
+                    batchsize: $scope.form.batchsize,
+                    threads: $scope.form.threads,
+                    parameters: actionParameters()
+                },
+                transformRequest: function (data, headersGetter) {
+                    var formData = new FormData();
+                    angular.forEach(data, function (value, key) {
+                        formData.append(key, value);
+                    });
+
+                    var headers = headersGetter();
+                    delete headers['Content-Type'];
+
+                    return formData;
+                }
+            })
+                .success(function (data) {
+                    $scope.result = data;
+                    $scope.loading = false;
+                })
+                .error(function (data, status) {
+                    $scope.result = "Error: " + data;
+                    $scope.loading = false;
                 });
-
-                var headers = headersGetter();
-                delete headers['Content-Type'];
-
-                return formData;
-            }
-        })
-        .success(function (data) {
-            $scope.result = data;
-            $scope.loading = false;
-        })
-        .error(function (data, status) {
-            $scope.result = "Error: " + data;
-            $scope.loading = false;
-        });
     };
 
     $scope.executeSearch = () => {
@@ -163,12 +172,12 @@ care4alf.controller('bulk', ($scope, $http: ng.IHttpService, $timeout) => {
 care4alf.directive('fileModel', ['$parse', function ($parse) {
     return {
         restrict: 'A',
-        link: function(scope, element, attrs) {
+        link: function (scope, element, attrs) {
             var model = $parse(attrs.fileModel);
             var modelSetter = model.assign;
 
-            element.bind('change', function(){
-                scope.$apply(function(){
+            element.bind('change', function () {
+                scope.$apply(function () {
                     modelSetter(scope, element[0].files[0]);
                 });
             });
