@@ -14,56 +14,56 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
+public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
     private final static Logger logger = LoggerFactory.getLogger(SearchWorkProvider.class);
 
-	private SearchService searchService;
-	private SearchParameters sp;
-	private int batchSize;
-	private int skipCount;
+    private SearchService searchService;
+    private SearchParameters sp;
+    private int batchSize;
+    private int skipCount;
     private boolean cancel;
     private List<NodeRef> nodeRefs;
 
-	public SearchWorkProvider(
+    public SearchWorkProvider(
             SearchService searchService,
             StoreRef storeRef,
             String queryLanguage,
             String query,
-			int batchSize) {
-		this.searchService = searchService;
-		this.batchSize = batchSize;
-		this.skipCount = 0;
+            int batchSize) {
+        this.searchService = searchService;
+        this.batchSize = batchSize;
+        this.skipCount = 0;
 
-		sp = new SearchParameters();
-		if(storeRef==null){
-			storeRef = new StoreRef("workspace", "SpacesStore");
-		}
-		
-		sp.addStore(storeRef);
-		sp.setLanguage(queryLanguage);
-		sp.setMaxItems(-1);
-		sp.addSort("ID", true);
-		sp.setQuery(query);
-	}
+        sp = new SearchParameters();
+        if (storeRef == null) {
+            storeRef = new StoreRef("workspace", "SpacesStore");
+        }
 
-	@Override
-	public int getTotalEstimatedWorkSize() {
-        if(this.nodeRefs == null)
+        sp.addStore(storeRef);
+        sp.setLanguage(queryLanguage);
+        sp.setMaxItems(-1);
+        sp.addSort("ID", true);
+        sp.setQuery(query);
+    }
+
+    @Override
+    public int getTotalEstimatedWorkSize() {
+        if (this.nodeRefs == null)
             return -1;
         return this.nodeRefs.size();
-	}
+    }
 
-	@Override
-	public Collection<NodeRef> getNextWork() {
-        if(this.cancel){
+    @Override
+    public Collection<NodeRef> getNextWork() {
+        if (this.cancel) {
             return Collections.emptyList();
         }
 
-        if(this.nodeRefs == null){
+        if (this.nodeRefs == null) {
             fetchAllResults();
         }
 
-        if(skipCount >= this.nodeRefs.size())
+        if (skipCount >= this.nodeRefs.size())
             return Collections.emptyList();
 
         int from = skipCount;
@@ -71,7 +71,7 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
         skipCount += batchSize;
 
         return this.nodeRefs.subList(from, to);
-	}
+    }
 
     private void fetchAllResults() {
         this.nodeRefs = new ArrayList<NodeRef>();
@@ -85,13 +85,13 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef>{
                 this.nodeRefs.addAll(rs.getNodeRefs());
                 start += 1000;
                 rs.close();
-            }while(rs.getNodeRefs().size() > 0);
+            } while (rs.getNodeRefs().size() > 0 && !cancel);
         } finally {
             if (rs != null) rs.close();
         }
     }
 
-    public void cancel(){
+    public void cancel() {
         this.cancel = true;
     }
 

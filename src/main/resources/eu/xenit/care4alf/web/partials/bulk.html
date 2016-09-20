@@ -32,7 +32,8 @@
                                                                      ng-model="form.parameters[param]"/>
             </div>
         </div>
-        <button type="submit" class="btn btn-default" ng-click="executeSearch()">Execute {{loading?"(loading)":""}}</button>
+        <button type="submit" class="btn btn-default" ng-click="executeSearch()">Execute {{loading?"(loading)":""}}
+        </button>
     </form>
 </div>
 <div ng-if="data.selectedOption.id === 'file'">
@@ -59,13 +60,16 @@
                                                                      ng-model="form.parameters[param]"/>
             </div>
         </div>
-        <button type="submit" class="btn btn-default" ng-click="executeFile()">Execute {{loading?"(loading)":""}}</button>
+        <button type="submit" class="btn btn-default" ng-click="executeFile()">Execute {{loading?"(loading)":""}}
+        </button>
     </form>
 </div>
 
 <h3>Jobs</h3>
 <button class="btn btn-danger" ng-click="clearJobs()">Clear</button>
 <button class="btn btn-default" ng-click="loadJobs()">Refresh</button>
+<button class="btn btn-danger" ng-click="cancelJobs()">Cancel</button>
+<div>{{canceled}}</div>
 <table class="table">
     <thead>
     <tr>

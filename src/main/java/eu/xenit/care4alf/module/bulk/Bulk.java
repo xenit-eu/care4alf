@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.module.bulk;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import org.alfresco.repo.batch.BatchProcessWorkProvider;
 import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.service.ServiceRegistry;
@@ -77,7 +78,7 @@ public class Bulk implements ApplicationContextAware {
     @Autowired
     private PermissionService permissionService;
 
-    private List<BatchProcessor> processors = new ArrayList<BatchProcessor>();
+    private List<BulkJob> processors = new ArrayList<>();
 
     @Uri(value = "/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
     public void bulk(@UriVariable final String action, JSONObject json, final WebScriptResponse response) throws IOException, JSONException {
@@ -180,8 +181,8 @@ public class Bulk implements ApplicationContextAware {
     @Uri("/xenit/care4alf/bulk/processors")
     public void getProcessors(final WebScriptResponse response) throws IOException, JSONException {
         JSONArray array = new JSONArray();
-        for (BatchProcessor processor : this.processors) {
-            array.put(processorToJson(processor));
+        for (BulkJob bulkJob : this.processors) {
+            array.put(processorToJson(bulkJob.getProcessor()));
         }
         response.getWriter().write(array.toString());
     }
@@ -189,6 +190,18 @@ public class Bulk implements ApplicationContextAware {
     @Uri(value = "/xenit/care4alf/bulk/processors", method = HttpMethod.DELETE)
     public void cleanProcessors(final WebScriptResponse response) throws IOException, JSONException {
         this.processors.clear();
+    }
+
+    @Uri(value = "/xenit/care4alf/bulk/cancel", method = HttpMethod.DELETE)
+    public void cancelJobs(final WebScriptResponse response) {
+        logger.debug("Cancelling");
+        for (BulkJob bulkJob : this.processors) {
+            BatchProcessWorkProvider provider = bulkJob.getWorkProvider();
+            if (provider instanceof SearchWorkProvider) {
+                ((SearchWorkProvider) provider).cancel();
+            }
+        }
+        response.setStatus(HttpStatus.SC_OK);
     }
 
     @Uri(value = "/xenit/care4alf/bluk/form/action/{action}", multipartProcessing = true, method = HttpMethod.POST)
@@ -232,8 +245,7 @@ public class Bulk implements ApplicationContextAware {
             processor = createSearchBatchProcessor(batchsize, threads, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
         } else if (type.equals("file")) {
             processor = createFileBatchProcessor(batchsize, threads, action, parameters, content);
-        }
-        else {
+        } else {
             // boohoo something went wrong
         }
 
@@ -254,37 +266,37 @@ public class Bulk implements ApplicationContextAware {
     private BatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
+        SearchWorkProvider workProvider = new SearchWorkProvider(searchService, storeRef, queryLanguage, query, batchSize);
 
         BatchProcessor<NodeRef> processor = new BatchProcessor<NodeRef>(
                 "care4alf-bulk-" + GUID.generate(),
                 transactionService.getRetryingTransactionHelper(),
-                new SearchWorkProvider(searchService, storeRef, queryLanguage, query, batchSize),
+                workProvider,
                 nbThreads, batchSize, null, null, 100);
 
 
-        processors.add(processor);
+        processors.add(new BulkJob(processor, workProvider));
         // blocks until workers have finished
         processor.process(worker, true);
         return processor;
     }
 
-    private BatchProcessor<NodeRef> createFileBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, InputStream content){
+    private BatchProcessor<NodeRef> createFileBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, InputStream content) {
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
+        FileWorkProvider workProvider = new FileWorkProvider(serviceRegistry, content, batchSize);
 
         BatchProcessor<NodeRef> processor = new BatchProcessor<NodeRef>(
                 "care4alf-bulk-" + GUID.generate(),
                 transactionService.getRetryingTransactionHelper(),
-                new FileWorkProvider(serviceRegistry, content, batchSize),
+                workProvider,
                 nbThreads, batchSize, null, null, 100);
 
-        processors.add(processor);
+        processors.add(new BulkJob(processor, workProvider));
         // blocks until workers have finished
         processor.process(worker, true);
         return processor;
     }
-
-
 
 
     @Override

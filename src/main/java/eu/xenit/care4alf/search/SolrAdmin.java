@@ -357,7 +357,7 @@ public class SolrAdmin {
         String solrType;
         solrType = config.getProperty("index.subsystem.name");
         logger.debug("solrType: " + solrType);
-        
+
         switch (solrType) {
             case "solr4":
                 solrTypeUrl = "solr4";
