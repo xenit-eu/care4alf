@@ -13,7 +13,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.codec.EncoderException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -74,16 +73,17 @@ public class SolrAdmin {
 
     @NotNull
     private String selectOrQuery() {
-        String solrType = config.getProperty("index.subsystem.name");
-        logger.debug("solrType: " + solrType);
-
-        switch (solrType) {
+        switch (getSearchSubSystemName()) {
             case "solr4":
                 return "query";
             case "solr":
                 return "select";
         }
         return "select";
+    }
+
+    private String getSearchSubSystemName(){
+        return config.getProperty("index.subsystem.name");
     }
 
     public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
@@ -185,9 +185,14 @@ public class SolrAdmin {
     }
 
     private SolrAdminClient getSolrAdminClient() {
+        switch (getSearchSubSystemName()) {
+            case "solr4":
+                return new Solr4AdminClientImpl();
+            case "solr":
+                return new Solr1AdminClientImpl();
+        }
         return new Solr1AdminClientImpl();
     }
-
 
     public long getSolrLag() {
         JSONObject summary = null;
@@ -310,8 +315,7 @@ public class SolrAdmin {
         String solrTypeUrl = "solr";
         Multimap<String, String> parameters = ArrayListMultimap.create();
 
-        String solrType;
-        solrType = config.getProperty("index.subsystem.name");
+        String solrType = this.getSearchSubSystemName();
         logger.debug("solrType: " + solrType);
 
         switch (solrType) {
