@@ -181,21 +181,13 @@ public class SolrAdmin {
     }
 
     public List<SolrErrorDoc> parseSolrErrorDocs(JSONObject json) throws JSONException {
-        List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
-        JSONArray docs = json.getJSONObject("response").getJSONArray("docs");
-        for (int i = 0; i < docs.length(); i++) {
-            JSONObject doc = docs.getJSONObject(i);
-            SolrErrorDoc errorDoc = new SolrErrorDoc(
-                    doc.has("INTXID") ? Long.parseLong(doc.getJSONArray("INTXID").getString(0)) : -1,
-                    doc.has("EXCEPTIONMESSAGE") ? doc.getJSONArray("EXCEPTIONMESSAGE").getString(0) : "",
-                    doc.has("ID") ? doc.getJSONArray("ID").getString(0) : "",
-                    doc.has("DBID") ? Long.parseLong(doc.getJSONArray("DBID").getString(0)) : -1,
-                    doc.has("EXCEPTIONSTACK") ? doc.getJSONArray("EXCEPTIONSTACK").getString(0) : ""
-            );
-            errorDocs.add(errorDoc);
-        }
-        return errorDocs;
+        return getSolrAdminClient().parseSolrErrorDocs(json);
     }
+
+    private SolrAdminClient getSolrAdminClient() {
+        return new Solr1AdminClientImpl();
+    }
+
 
     public long getSolrLag() {
         JSONObject summary = null;
@@ -252,42 +244,6 @@ public class SolrAdmin {
 
     public long getNodesToIndex() {
         return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
-    }
-
-    public class SolrErrorDoc {
-        private long txid;
-        private String exception;
-        private String id;
-        private long dbid;
-        private String stackTrace;
-
-        public SolrErrorDoc(long txid, String exception, String id, long dbid, String stackTrace) {
-            this.txid = txid;
-            this.exception = exception;
-            this.id = id;
-            this.dbid = dbid;
-            this.stackTrace = stackTrace;
-        }
-
-        public long getTxid() {
-            return txid;
-        }
-
-        public String getException() {
-            return orEmpty(exception);
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public long getDbid() {
-            return dbid;
-        }
-
-        public String getStackTrace() {
-            return stackTrace;
-        }
     }
 
     public class Transaction {
