@@ -1,7 +1,7 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.search.SolrAdmin;
+import eu.xenit.care4alf.search.*;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,16 +21,28 @@ public class SolrAdminTest {
     private SolrAdmin solrAdmin;
 
     @Test
-    public void testParseSolrErrorsJson() throws Exception {
-        JSONObject json = new JSONObject(solrErrors);
-        List<SolrAdmin.SolrErrorDoc> errorDocs = solrAdmin.parseSolrErrorDocs(json);//TODO: mock solrClient
+    public void testParseSolr1ErrorsJson() throws Exception {
+        JSONObject json = new JSONObject(solrErrors1);
+        SolrAdminClient client = new Solr1AdminClientImpl();
+        List<SolrErrorDoc> errorDocs = client.parseSolrErrorDocs(json);//TODO: mock solrClient
         Assert.assertTrue(errorDocs.size() >= 2);
 
-        SolrAdmin.SolrErrorDoc doc = errorDocs.get(0);
+        SolrErrorDoc doc = errorDocs.get(0);
         Assert.assertEquals(8712874, doc.getTxid());
         Assert.assertEquals("Read timed out", doc.getException());
         Assert.assertEquals("ERROR-5928313", doc.getId());
         Assert.assertEquals(5928313, doc.getDbid());
+    }
+
+    @Test
+    public void testParseSolr4ErrorsJson() throws Exception {
+        JSONObject json = new JSONObject(solrErrors4);
+        SolrAdminClient client = new Solr4AdminClientImpl();
+        List<SolrErrorDoc> errorDocs = client.parseSolrErrorDocs(json);//TODO: mock solrClient
+        Assert.assertTrue(errorDocs.size() >= 1);
+
+        SolrErrorDoc doc = errorDocs.get(0);
+        Assert.assertEquals(2337, doc.getDbid());
     }
 
     @Test
@@ -50,7 +62,7 @@ public class SolrAdminTest {
         Assert.assertEquals(0, this.solrAdmin.getNodesToIndex());
     }
 
-    final static String solrErrors="{\n" +
+    final static String solrErrors1="{\n" +
             "  response: {\n" +
             "    start: 0,\n" +
             "    docs: [\n" +
@@ -98,5 +110,29 @@ public class SolrAdminTest {
             "      rows: \"2\"\n" +
             "    }\n" +
             "  }\n" +
+            "}";
+
+    final static String solrErrors4 = "{\n" +
+            "response: {\n" +
+            "docs: [\n" +
+            "{\n" +
+            "_version_: 0,\n" +
+            "DBID: 2337,\n" +
+            "id: \"_DEFAULT_!800000000000000d!8000000000000921\"\n" +
+            "}\n" +
+            "],\n" +
+            "numFound: 389,\n" +
+            "start: 0\n" +
+            "},\n" +
+            "responseHeader: {\n" +
+            "QTime: 0,\n" +
+            "params: {\n" +
+            "q: \"ERROR*\",\n" +
+            "start: \"0\",\n" +
+            "rows: \"1\",\n" +
+            "wt: \"json\"\n" +
+            "},\n" +
+            "status: 0\n" +
+            "}\n" +
             "}";
 }
