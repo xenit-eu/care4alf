@@ -35,7 +35,7 @@ publishing {
         amp(MavenPublication) {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
-            version project.version + '-' + buildNumber
+            version '1.0.0' + '-' + buildNumber
             artifact file("build/amps/" + project.name +".amp")
             //artifact ampde
         }
