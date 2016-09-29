@@ -23,6 +23,43 @@ apply plugin: 'idea'
 apply plugin: 'alfresco-dynamic-extension'
 apply plugin: 'typescript'
 apply plugin: 'lesscss'
+apply plugin: 'maven-publish'
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            version project.version + '-' + buildNumber
+        }
+        amp(MavenPublication) {
+            artifactId project.name + '-amp'
+            version project.version + '-' + buildNumber
+            artifact file("build/amps/" + project.name +".amp")
+            //artifact ampde
+        }
+    }
+    repositories {
+        maven {
+            name 'snapshot'
+            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+        maven {
+            name 'release'
+            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+
+    }
+}
+
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
@@ -143,3 +180,5 @@ alfrescoDynamicExtensions {
 }
 
 jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
+
+
