@@ -20,4 +20,5 @@ public class AttributesTest {
     public void testListNotEmpty() throws Exception {
         Assert.assertTrue(this.attributes.list().size() >= 1);
     }
+
 }
