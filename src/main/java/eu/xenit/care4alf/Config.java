@@ -12,7 +12,9 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Created by willem on 9/1/16.
@@ -29,16 +31,14 @@ public class Config {
     public void listGlobalProperties(WebScriptResponse res) throws IOException, JSONException {
         final JSONWriter json = new JSONWriter(res.getWriter());
         json.object();
-        Enumeration<String> it = (Enumeration<String>) this.properties.propertyNames();
-        while (it.hasMoreElements()) {
-            String name = it.nextElement();
+        List<String> propertyNames = Collections.list((Enumeration<String>) this.properties.propertyNames());
+        Collections.sort(propertyNames);
+        for(String name : propertyNames)
             json.key(name).value(this.properties.getProperty(name));
-        }
         json.endObject();
     }
 
     public String getProperty(String name) {
         return this.properties.getProperty(name);
     }
-
 }
