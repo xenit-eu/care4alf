@@ -3,20 +3,19 @@ package eu.xenit.care4alf.module.bulk;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
 import org.alfresco.repo.batch.BatchProcessor;
-import org.alfresco.repo.domain.node.Node;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.transaction.TransactionService;
-import org.alfresco.util.Content;
 import org.alfresco.util.GUID;
 import org.apache.http.HttpStatus;
-import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +32,6 @@ import org.springframework.extensions.webscripts.servlet.FormData;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -77,6 +75,12 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     private PermissionService permissionService;
+
+    @Autowired
+    private ScriptService scriptService;
+
+    @Autowired
+    protected PersonService personService;
 
     private List<BulkJob> processors = new ArrayList<>();
 
@@ -159,6 +163,9 @@ public class Bulk implements ApplicationContextAware {
                 ret.setNameSpacePrefixResolver(namespacePrefixResolver);
                 ret.setNamespaceService(namespaceService);
                 ret.setPermissionService(permissionService);
+                ret.setScriptService(scriptService);
+                ret.setPersonService(personService);
+                ret.setServiceRegistery(serviceRegistry);
                 return ret;
 
             } catch (InstantiationException e) {
