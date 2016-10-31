@@ -1,20 +1,23 @@
 package eu.xenit.care4alf.search;
 
+import org.apache.commons.codec.EncoderException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by willem on 9/26/16.
  */
-public class Solr4AdminClientImpl implements SolrAdminClient{
+public class Solr4AdminClientImpl extends AbstractSolrAdminClient{
 
     @Override
-    public List<SolrErrorDoc> parseSolrErrorDocs(JSONObject json) throws JSONException {
+    public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
+        JSONObject json = this.getSolrErrorsJson(0, rows);
         JSONArray docs = json.getJSONObject("response").getJSONArray("docs");
         for (int i = 0; i < docs.length(); i++) {
             JSONObject doc = docs.getJSONObject(i);
@@ -28,6 +31,16 @@ public class Solr4AdminClientImpl implements SolrAdminClient{
             errorDocs.add(errorDoc);
         }
         return errorDocs;
+    }
+
+    @Override
+    protected String selectOrQuery() {
+        return "select";
+    }
+
+    @Override
+    protected String getSolrTypeUrl() {
+        return "solr4";
     }
 
 }
