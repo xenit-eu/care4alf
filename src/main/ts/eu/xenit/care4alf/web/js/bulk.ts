@@ -75,16 +75,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     };
 
     var actionParameters = () => {
-        var json = "{";
-        for (var key in $scope.form.parameters) {
-            json += "\"" + key + "\":";
-            json += "\"" + $scope.form.parameters[key] + "\",";
-        }
-        if (length > 1) {
-            json = json.slice(0, -1);
-        }
-        json += "}";
-
+        var json = JSON.stringify($scope.form.parameters);
         return json;
     };
 

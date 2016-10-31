@@ -2,9 +2,12 @@ package eu.xenit.care4alf.module.bulk;
 
 import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.ScriptService;
 import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.NamespaceService;
 import org.json.JSONObject;
@@ -19,6 +22,9 @@ public abstract class AbstractWorker extends BatchProcessor.BatchProcessWorkerAd
     protected JSONObject parameters;
     protected NamespaceService namespaceService;
     protected PermissionService permissionService;
+    protected ScriptService scriptService;
+    protected ServiceRegistry serviceRegistry;
+    protected PersonService personService;
 
 
     public AbstractWorker(JSONObject parameters) {
@@ -49,5 +55,17 @@ public abstract class AbstractWorker extends BatchProcessor.BatchProcessWorkerAd
 
     public void setPermissionService(PermissionService permissionService) {
         this.permissionService = permissionService;
+    }
+
+    public void setScriptService(ScriptService scriptService) {
+        this.scriptService = scriptService;
+    }
+
+    public void setPersonService(PersonService personService) {
+        this.personService = personService;
+    }
+
+    public void setServiceRegistery(ServiceRegistry serviceRegistry) {
+        this.serviceRegistry = serviceRegistry;
     }
 }
