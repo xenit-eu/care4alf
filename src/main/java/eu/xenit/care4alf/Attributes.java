@@ -1,13 +1,11 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.domain.propval.PropertyValueDAO;
-import org.alfresco.repo.usage.RepoUsageComponent;
 import org.alfresco.service.cmr.attributes.AttributeService;
 import org.alfresco.util.Pair;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,45 +31,27 @@ public class Attributes {
     @Autowired
     AttributeService attributeService;
 
-    @Autowired
-    RepoUsageComponent repoUsageComponent;
-
-    @Uri("repoUsages")
-    public void getRepoUsages(WebScriptResponse res) throws IOException {
-        Long lastUpdateUsers = (Long) attributeService.getAttribute(
-                ".repoUsages", "current", "lastUpdateUsers");
-        Long users = (Long) attributeService.getAttribute(
-                ".repoUsages", "current", "users");
-        Long lastUpdateDocuments = (Long) attributeService.getAttribute(
-                ".repoUsages", "current", "lastUpdateDocuments");
-        Long documents = (Long) attributeService.getAttribute(
-                ".repoUsages", "current", "documents");
-        Writer writer = res.getWriter();
-        writer.write(lastUpdateUsers.toString());
-        writer.write("\n");
-        writer.write(users.toString());
-        writer.write("\n");
-        writer.write(lastUpdateDocuments.toString());
-        writer.write("\n");
-        writer.write(documents.toString());
-    }
-
-    @Uri("usage")
-    public void getRepoUsage(WebScriptResponse response) throws IOException {
-        response.getWriter().write(this.repoUsageComponent.getUsage().toString());
-    }
-
     @Uri("/")
-    public void listAttributes(WebScriptResponse res) throws IOException, SQLException {
-        res.getWriter().write(this.list().toString());
+    public void listAttributes(WebScriptResponse res) throws IOException, SQLException, JSONException {
+        final JSONWriter json = new JSONWriter(res.getWriter());
+        json.array();
+        for(Attribute attribute : this.list()){
+            json.array();
+                json.value(attribute.getKey1());
+                json.value(attribute.getKey2());
+                json.value(attribute.getKey3());
+                json.value(attribute.getAtt());
+            json.endArray();
+        }
+        json.endArray();
     }
 
     @Autowired
     PropertyValueDAO propertyValueDAO;
     @Autowired
     private DataSource dataSource;
-    public List<Pair<String, Serializable>> list() throws SQLException {
-        List<Pair<String, Serializable>> attributes = new ArrayList<Pair<String, Serializable>>();
+    public List<Attribute> list() throws SQLException {
+        List<Attribute> attributes = new ArrayList<Attribute>();
         String query = "select * from alf_prop_unique_ctx";
         final Connection connection = dataSource.getConnection();
         try {
@@ -85,16 +64,61 @@ public class Attributes {
                 Pair<Long,Serializable> pair1 = propertyValueDAO.getPropertyValueById(key1);
                 Pair<Long,Serializable> pair2 = propertyValueDAO.getPropertyValueById(key2);
                 Pair<Long,Serializable> pair3 = propertyValueDAO.getPropertyValueById(key3);
-                attributes.add(new Pair<String, Serializable>(
-                        String.format("%s %s %s", pair1.getSecond(), pair2.getSecond(), pair3.getSecond()),
-                        this.attributeService.getAttribute(pair1.getSecond(), pair2.getSecond(), pair3.getSecond())));
-
+                attributes.add(new Attribute(
+                                pair1.getSecond() == null?null:pair1.getSecond().toString(),
+                                pair2.getSecond() == null?null:pair2.getSecond().toString(),
+                                pair3.getSecond() == null?null:pair3.getSecond().toString(),
+                                this.attributeService.getAttribute(pair1.getSecond(), pair2.getSecond(), pair3.getSecond())
+                        )
+                );
             }
             rs.close();
         } finally {
             connection.close();
         }
         return attributes;
+    }
+
+    @Uri(value = "/", method = HttpMethod.POST)
+    public void addAttribute(WebScriptResponse res, @RequestParam(delimiter = ";") String[] keys, @RequestParam String value) throws IOException, SQLException, JSONException {
+        this.attributeService.createAttribute(value, keys);
+    }
+
+    @Uri(value = "/", method = HttpMethod.DELETE)
+    public void removeAttribute(WebScriptResponse res, @RequestParam(delimiter = ";") String[] keys) throws IOException, SQLException, JSONException {
+        this.attributeService.removeAttribute(keys);
+    }
+
+    class Attribute{
+        private String key1, key2, key3;
+        private Serializable att;
+
+        public Attribute(String value1, String value2, String key3, Serializable att) {
+            this.key1 = value1;
+            this.key2 = value2;
+            this.key3 = key3;
+            this.att = att;
+        }
+
+        public String getKey1() {
+            return key1;
+        }
+
+        public String getKey2() {
+            return key2;
+        }
+
+        public String getKey3() {
+            return key3;
+        }
+
+        public Serializable getAtt() {
+            return att;
+        }
+
+        public String toString(){
+            return String.format("(%s,%s,%s) '%s'", this.getKey1(), this.getKey2(), this.getKey3(), this.getAtt().toString());
+        }
     }
 
 }
