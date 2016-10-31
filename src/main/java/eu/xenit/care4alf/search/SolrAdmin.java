@@ -28,7 +28,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -128,7 +127,7 @@ public class SolrAdmin {
             final WebScriptResponse res,
             @UriVariable final String filter,
             @RequestParam(defaultValue = "100") final int rows) throws IOException, JSONException, EncoderException {
-        List<SolrErrorDoc> docs = this.getSolrErrorDocs(rows);
+        List<SolrErrorDoc> docs = this.getSolrAdminClient().getSolrErrorDocs(rows);
         int count = 0;
         logger.debug("filter: '{}'", filter);
         for (SolrErrorDoc doc : docs) {
@@ -145,7 +144,7 @@ public class SolrAdmin {
     public String getSolrErrorNodes(int rows) throws EncoderException, JSONException, IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("exception;txid;dbid;noderef;type;name;created;modified;filesize\n");
-        List<SolrErrorDoc> docs = this.getSolrErrorDocs(rows);
+        List<SolrErrorDoc> docs = this.getSolrAdminClient().getSolrErrorDocs(rows);
         for (SolrErrorDoc doc : docs) {
             NodeRef nodeRef = this.nodeService.getNodeRef(doc.getDbid());
             ContentData content = (ContentData) this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
@@ -175,16 +174,7 @@ public class SolrAdmin {
         return o == null ? "" : o.toString();
     }
 
-    public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws EncoderException, JSONException, IOException {
-        JSONObject json = this.getSolrErrorsJson(0, rows);
-        return parseSolrErrorDocs(json);
-    }
-
-    public List<SolrErrorDoc> parseSolrErrorDocs(JSONObject json) throws JSONException {
-        return getSolrAdminClient().parseSolrErrorDocs(json);
-    }
-
-    private SolrAdminClient getSolrAdminClient() {
+    private AbstractSolrAdminClient getSolrAdminClient() {
         switch (getSearchSubSystemName()) {
             case "solr4":
                 return new Solr4AdminClientImpl();
@@ -330,4 +320,3 @@ public class SolrAdmin {
         return solrTypeUrl;
     }
 }
-
