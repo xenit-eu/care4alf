@@ -2,26 +2,28 @@ package eu.xenit.care4alf.module.bulk.workers;
 
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
+import eu.xenit.care4alf.script.C4AStringScriptLocation;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.ScriptLocation;
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.util.MD5;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
 /**
  * Created by Younes on 10/31/16.
+ *
+ * Executes a javascript snippet on each and every node
  */
 @Component
 @Worker( action = "javaScript", parameterNames = {"script", "runAs"})
@@ -42,7 +44,11 @@ public class JavaScriptWorker extends AbstractWorker {
     public void process(final NodeRef nodeRef) throws Throwable {
         logger.info("Processing node: "  + nodeRef);
 
-        final String script = (this.parameters.has("script"))?this.parameters.getString("script"):"";
+        // Bulk action parameters actually only support textinput controls; the javascript snippet needs to be entered
+        // in an escaped format using some tool like : http://www.freeformatter.com/javascript-escape.html
+        // FIXME add support for textarea as a parameter formcontrol and remove the unnecessary escaping
+        final String script = (this.parameters.has("script"))?
+                StringEscapeUtils.unescapeJavaScript(this.parameters.getString("script")):"";
 
         final String runAs = (this.parameters.has("runAs"))?this.parameters.getString("runAs"):"admin";
 
@@ -75,7 +81,7 @@ public class JavaScriptWorker extends AbstractWorker {
                     nodeRef,
                     null));
 
-            ScriptLocation scriptLocation = new C4AStringScriptLocation(script);
+            ScriptLocation scriptLocation = C4AStringScriptLocation.getC4AStringScriptLocationForString(script);
             this.scriptService.executeScript(scriptLocation, scriptModel);
         } catch (Throwable e) {
             if (logger.isDebugEnabled()) {
@@ -108,45 +114,11 @@ public class JavaScriptWorker extends AbstractWorker {
                 false);
         if (refs.size() != 1)
         {
-            throw new IllegalStateException("Invalid company home path: " + APP_COMPANY_HOME_PATH + " - found: " + refs.size());
+            throw new IllegalStateException("Invalid company home path: " + APP_COMPANY_HOME_PATH + " - found: "
+                    + refs.size());
         }
         companyHomeRef = refs.get(0);
 
         return companyHomeRef;
-    }
-
-
-    private class C4AStringScriptLocation implements ScriptLocation{
-        private String script;
-        private String path;
-
-        public C4AStringScriptLocation(String script){
-            this.script = script;
-            path = MD5.Digest(this.script.getBytes(Charset.forName("UTF-8"))) + ".js";
-        }
-        @Override
-        public InputStream getInputStream() {
-            return new ByteArrayInputStream(script.getBytes(Charset.forName("UTF-8")));
-        }
-
-        @Override
-        public Reader getReader() {
-            return new StringReader(this.script);
-        }
-
-        @Override
-        public String getPath() {
-            return path;
-        }
-
-        @Override
-        public boolean isCachable() {
-            return true;
-        }
-
-        @Override
-        public boolean isSecure() {
-            return false;
-        }
     }
 }
