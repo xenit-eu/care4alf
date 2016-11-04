@@ -63,10 +63,13 @@ public class Browser @Autowired constructor(
     @Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
-        if (requestBody!!.toLowerCase().startsWith("workspace://")) {
-//            if (NodeRef.isNodeRef(requestBody)) {
 
-                iterable(NodeRef.getNodeRefs(requestBody) ,nodesToBasicJson())
+        if(requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())){
+            val dbid = requestBody?.toLong()
+            val nodeRef = nodeService.getNodeRef(dbid)
+            iterable(listOf(nodeRef),nodesToBasicJson())
+        } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
+            iterable(NodeRef.getNodeRefs(requestBody) ,nodesToBasicJson())
         } else {
             iterable(searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_FTS_ALFRESCO, requestBody).getNodeRefs(), nodesToBasicJson())
         }
