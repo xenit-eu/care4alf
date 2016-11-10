@@ -1,4 +1,4 @@
-ext.alfrescoVersion = '4.2.3.1'
+ext.alfrescoVersion = '4.1.10'
 ext.springVersion = '3.0.5.RELEASE'
 
 buildscript {
@@ -65,8 +65,8 @@ publishing {
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
 compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 }
 
 repositories {
@@ -117,6 +117,7 @@ dependencies {
 //        exclude group: 'com.github.dynamicextensionsalfresco'
 //        exclude group: 'commons-codec'
 //    }
+    testCompile 'org.mockito:mockito-all:1.9.5'
 }
 
 compileTypeScript {
