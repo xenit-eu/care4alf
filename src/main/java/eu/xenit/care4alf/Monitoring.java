@@ -8,6 +8,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
@@ -20,7 +21,10 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +41,7 @@ import java.util.zip.CRC32;
 @Component
 @WebScript(families = "care4alf", description = "Monitoring")
 @Authentication(AuthenticationType.NONE)
-public class Monitoring {
+public class Monitoring implements ApplicationContextAware {
 
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
@@ -56,6 +60,13 @@ public class Monitoring {
     private Clustering clustering;
 
     private final Logger logger = LoggerFactory.getLogger(Monitoring.class);
+
+    private ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
 
 
     @Uri("/xenit/care4alf/monitoring")
@@ -128,6 +139,16 @@ public class Monitoring {
         logger.debug("solr.properties.residual done");
         vars.put("cluster.nodes", (long) this.clustering.getNumClusterMembers());
         logger.debug("cluster.nodes done");
+
+        // find all beans implementing the MonitoredSource interface and get the metrics to add.
+        Map<String, MonitoredSource> monitoredSources = this.applicationContext.getBeansOfType(MonitoredSource.class);
+        for (MonitoredSource source : monitoredSources.values()) {
+            Map<String, Long> metrics = source.getMonitoringMetrics();
+            for (String key : metrics.keySet()) {
+                vars.put(key, metrics.get(key));
+                logger.debug(key + " done");
+            }
+        }
 
         return new JsonWriterResolution() {
             protected void writeJson(JSONWriter jsonWriter) throws JSONException {
