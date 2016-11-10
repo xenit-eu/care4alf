@@ -1,6 +1,8 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
+version='1.0.1'
+
 buildscript {
     ext.kotlin_version = '1.0.3'
     repositories {
@@ -35,10 +37,17 @@ publishing {
         amp(MavenPublication) {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
-            version '1.0.0' + '-' + buildNumber
+            version '1.0.1' + '-' + buildNumber
             artifact file("build/amps/" + project.name +".amp")
             //artifact ampde
         }
+        integrationJar(MavenPublication) {
+            artifactId project.name + '-integration'
+            groupId 'eu.xenit'
+            version project.version + '-' + buildNumber
+            artifact file("build/libs/" + project.name +"-integration.jar")
+        }
+
     }
     repositories {
         maven {
@@ -106,6 +115,8 @@ dependencies {
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
     compile('eu.xenit.apix:integration-testing:1.2.24')
+
+    testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
 
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -182,4 +193,13 @@ alfrescoDynamicExtensions {
 
 jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
 
-
+// generates an "integration" jar containing only interfaces
+// that other modules which want to publish information to care4alf
+// can implement.
+task integrationJar(type: Jar) {
+    baseName = 'care4alf-integration'
+    dependsOn compileJava
+    from('src/main/java') {
+        include 'eu/xenit/care4alf/integration/**/*'
+    }
+}
