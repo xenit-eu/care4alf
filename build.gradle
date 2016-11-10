@@ -151,6 +151,7 @@ jar {
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
         instruction 'Import-Package', '!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
+        instruction '-noee', 'true'
     }
 }
 
