@@ -35,12 +35,13 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            groupId 'eu.xenit'
             version project.version + '-' + buildNumber
         }
         amp(MavenPublication) {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
-            version '1.0.1' + '-' + buildNumber
+            version project.version + '-' + buildNumber
             artifact file("build/amps/${project.name}-${project.version}.amp")
             //artifact ampde
         }
