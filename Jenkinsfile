@@ -22,7 +22,7 @@ node {
         sh "./gradlew clean test --continue -i"
 
         stage 'Building AMP'
-        sh "./gradlew :installBundle :amp --continue -i"
+        sh "./gradlew :amp --continue -i"
         
         stage 'Building integrationJar'
         sh "./gradlew :integrationJar --continue -i"

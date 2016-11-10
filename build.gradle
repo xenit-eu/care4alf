@@ -9,21 +9,24 @@ buildscript {
         jcenter()
         mavenCentral()
         maven {
-            url 'https://github.com/sothmann/typescript-gradle-plugin/raw/mavenrepo/'
+            //url 'https://github.com/sothmann/typescript-gradle-plugin/raw/mavenrepo/'
+            url "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
         classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.3.+')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.0.5'
+        classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.8.0'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
+        classpath "com.moowork.gradle:gradle-node-plugin:0.13"
     }
 }
 
 apply plugin: 'kotlin'
 apply plugin: 'idea'
 apply plugin: 'alfresco-dynamic-extension'
-apply plugin: 'typescript'
+apply plugin: 'com.moowork.node'
+apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
 apply plugin: 'maven-publish'
 
@@ -38,14 +41,14 @@ publishing {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
             version '1.0.1' + '-' + buildNumber
-            artifact file("build/amps/" + project.name +".amp")
+            artifact file("build/amps/${project.name}-${project.version}.amp")
             //artifact ampde
         }
         integrationJar(MavenPublication) {
             artifactId project.name + '-integration'
             groupId 'eu.xenit'
             version project.version + '-' + buildNumber
-            artifact file("build/libs/" + project.name +"-integration.jar")
+            artifact file("build/libs/${project.name}-integration-${project.version}.jar")
         }
 
     }
@@ -130,12 +133,6 @@ dependencies {
 //    }
 }
 
-compileTypeScript {
-    sourcemap = false
-    source = 'src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
-    out = file("${buildDir}/ts/eu/xenit/care4alf/web/js/care4alf.js")
-}
-
 lesscss {
     source = fileTree('src/main/less') {
         include '**/*.less'
@@ -202,4 +199,28 @@ task integrationJar(type: Jar) {
     from('src/main/java') {
         include 'eu/xenit/care4alf/integration/**/*'
     }
+}
+
+
+// make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
+// instead of 'tsc' command line which is not present on Jenkins server !j
+import com.moowork.gradle.node.NodeExtension
+import com.moowork.gradle.node.variant.VariantBuilder
+
+node {
+    download = true
+}
+
+String nodeExecutable() {
+    NodeExtension nodeExt = NodeExtension.get(project)
+    return new VariantBuilder(nodeExt).build().nodeExec
+}
+
+compileTypeScript {
+    sourcemap = false
+    source = 'src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
+    outFile = file("${buildDir}/ts/eu/xenit/care4alf/web/js/care4alf.js")
+
+    compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
+    dependsOn "npmInstall"
 }
