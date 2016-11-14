@@ -24,9 +24,10 @@ node {
         publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
     }    
 
+
     try {
         stage 'Testing'
-            sh "./gradlew clean :installBundle :test --continue -i"
+        sh "./gradlew clean :installBundle :test --continue -i"
 
         stage 'Building AMP'
         sh "./gradlew :amp --continue -i"
