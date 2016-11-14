@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.CRC32;
 
@@ -122,6 +123,9 @@ public class Monitoring implements ApplicationContextAware {
         }
     }
 
+    @Autowired
+    List<MonitoredSource> allMonitoredSources;
+
     @Uri(value = "/xenit/care4alf/monitoring/vars")
     public Resolution getVars(WebScriptResponse response) throws IOException, JSONException, EncoderException {
         final Map<String, Long> vars = new HashMap<String, Long>();
@@ -141,8 +145,8 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("cluster.nodes done");
 
         // find all beans implementing the MonitoredSource interface and get the metrics to add.
-        Map<String, MonitoredSource> monitoredSources = this.applicationContext.getBeansOfType(MonitoredSource.class);
-        for (MonitoredSource source : monitoredSources.values()) {
+        logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
+        for (MonitoredSource source : allMonitoredSources) {
             Map<String, Long> metrics = source.getMonitoringMetrics();
             for (String key : metrics.keySet()) {
                 vars.put(key, metrics.get(key));
