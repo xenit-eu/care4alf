@@ -1,6 +1,13 @@
 
 node {
 
+    // installBundle for dyn ext  for test
+    env.ORG_GRADLE_PROJECT_host="gio.dev.xenit.eu"
+    env.ORG_GRADLE_PROJECT_protocol="https"
+    env.ORG_GRADLE_PROJECT_port="443"
+    env.ORG_GRADLE_PROJECT_username="admin"
+    env.ORG_GRADLE_PROJECT_password="admin"
+
     stage 'Checkout'
     checkout scm
 
@@ -19,7 +26,7 @@ node {
 
     try {
         stage 'Testing'
-        sh "./gradlew clean test --continue -i"
+            sh "./gradlew clean :installBundle :test --continue -i"
 
         stage 'Building AMP'
         sh "./gradlew :amp --continue -i"
