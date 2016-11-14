@@ -177,9 +177,9 @@ task amp(type: Zip) {
 alfrescoDynamicExtensions {
     repository {
         endpoint {
-            protocol = project.hasProperty('protocol') ? project.protocol : 'http'
-            host = project.hasProperty('host') ? project.host : 'localhost'
-            port = project.hasProperty('port') ? project.port : '8080'
+            protocol = project.hasProperty('protocol') ? project.protocol : 'https'
+            host = project.hasProperty('host') ? project.host : 'gio.dev.xenit.eu'
+            port = project.hasProperty('port') ? project.port : '443'
             serviceUrl = '/alfresco/service'
         }
         authentication {
