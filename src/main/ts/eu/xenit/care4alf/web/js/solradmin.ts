@@ -1,7 +1,8 @@
 /// <reference path="care4alf.ts" />
 
 care4alf.controller('solradmin', ($scope,$http: ng.IHttpService) => {
-    $http.get('solr/proxy/alfresco/admin/luke?numTerms=0').success((data:any) => {
+    $scope.fields=[];
+    $http.get('solr/proxy/alfresco/admin/luke?numTerms=0&wt=json').success((data:any) => {
         $scope.fields = Object.keys(data.fields);
     });
 
