@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.CRC32;
 
+
 /**
  * Created by willem on 3/7/16.
  */
@@ -43,6 +44,7 @@ import java.util.zip.CRC32;
 @WebScript(families = "care4alf", description = "Monitoring")
 @Authentication(AuthenticationType.NONE)
 public class Monitoring implements ApplicationContextAware {
+
 
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
@@ -123,7 +125,7 @@ public class Monitoring implements ApplicationContextAware {
         }
     }
 
-    @Autowired
+    @Autowired(required = false)
     List<MonitoredSource> allMonitoredSources;
 
     @Uri(value = "/xenit/care4alf/monitoring/vars")
@@ -146,11 +148,13 @@ public class Monitoring implements ApplicationContextAware {
 
         // find all beans implementing the MonitoredSource interface and get the metrics to add.
         logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
-        for (MonitoredSource source : allMonitoredSources) {
-            Map<String, Long> metrics = source.getMonitoringMetrics();
-            for (String key : metrics.keySet()) {
-                vars.put(key, metrics.get(key));
-                logger.debug(key + " done");
+        if (allMonitoredSources != null) {
+            for (MonitoredSource source : allMonitoredSources) {
+                Map<String, Long> metrics = source.getMonitoringMetrics();
+                for (String key : metrics.keySet()) {
+                    vars.put(key, metrics.get(key));
+                    logger.debug(key + " done");
+                }
             }
         }
 
