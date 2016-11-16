@@ -99,7 +99,7 @@ public class SolrAdmin {
         for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
-        String result = solrClient.postMessage("/" + getSolrTypeUrl() + "/" + uri, parameters, null);
+        String result = solrClient.get("/" + getSolrTypeUrl() + "/" + uri, parameters);
         response.setContentType("application/json");
         response.getWriter().write(result);
     }
