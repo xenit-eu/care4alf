@@ -117,6 +117,9 @@ public class SolrAdmin {
         response.getWriter().write(json.toString());
     }
 
+    @Autowired
+    private SolrClientImpl solrClientImpl;
+
     @Uri("errors/nodes")
     public void getRESTSolrErrorNodes(final WebScriptResponse response, @RequestParam(defaultValue = "100") int rows) throws IOException, JSONException, EncoderException {
         response.getWriter().write(this.getSolrErrorNodes(rows));
@@ -174,14 +177,22 @@ public class SolrAdmin {
         return o == null ? "" : o.toString();
     }
 
+
+
+    @Autowired
+    Solr4AdminClientImpl solr4AdminClient;
+
+    @Autowired
+    Solr1AdminClientImpl solr1AdminClient;
+
     private AbstractSolrAdminClient getSolrAdminClient() {
         switch (getSearchSubSystemName()) {
             case "solr4":
-                return new Solr4AdminClientImpl();
+                return solr4AdminClient;
             case "solr":
-                return new Solr1AdminClientImpl();
+                return solr1AdminClient;
         }
-        return new Solr1AdminClientImpl();
+        return solr1AdminClient;
     }
 
     public long getSolrLag() {

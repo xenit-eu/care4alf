@@ -19,6 +19,9 @@ import java.util.List;
 @Component
 public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
 
+    @Autowired
+    SolrClient solrClient;
+
     @Override
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
@@ -36,6 +39,16 @@ public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
             errorDocs.add(errorDoc);
         }
         return errorDocs;
+    }
+
+    private JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        //parameters.put("q", "ID:ERROR-*");
+        parameters.put("q", "ERROR*");
+        parameters.put("start", Integer.toString(start));
+        parameters.put("rows", Integer.toString(rows));
+        return solrClient.postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
     }
 
     @Override
