@@ -40,8 +40,8 @@ public class SolrClientImpl implements SolrClient {
     }
 
     @Override
-    public String postMessage(String url, Multimap<String, String> parameter, String body) throws IOException, EncoderException {
-        return basePost(url, null, body);
+    public String postMessage(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
+        return basePost(url, parameters, body);
     }
 
     private String basePost(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
