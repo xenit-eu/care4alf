@@ -45,9 +45,6 @@ public class SolrAdmin {
     private NodeService nodeService;
 
     @Autowired
-    private SolrClient solrClient;
-
-    @Autowired
     private DataSource dataSource;
 
     @Autowired
@@ -55,19 +52,9 @@ public class SolrAdmin {
 
     @Uri("errors")
     public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
-        JSONObject json = this.getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
+        JSONObject json = this.getSolrAdminClient().getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
-    }
-
-    public JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
-        Multimap<String, String> parameters = ArrayListMultimap.create();
-        parameters.put("wt", "json");
-        //parameters.put("q", "ID:ERROR-*");
-        parameters.put("q", "ERROR*");
-        parameters.put("start", Integer.toString(start));
-        parameters.put("rows", Integer.toString(rows));
-        return solrClient.postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
     }
 
     @NotNull
@@ -85,16 +72,13 @@ public class SolrAdmin {
         return config.getProperty("index.subsystem.name");
     }
 
-    public JSONObject getSolrSummary() throws JSONException, EncoderException, IOException {
-        Multimap<String, String> parameters = ArrayListMultimap.create();
-        parameters.put("wt", "json");
-        parameters.put("action", "SUMMARY");
-        return solrClient.postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
+    public JSONObject getSolrSummaryJson() throws JSONException, EncoderException, IOException {
+        return this.getSolrAdminClient().getSolrSummaryJson();
     }
 
     public long getSolrErrors() {
         try {
-            JSONObject json = this.getSolrErrorsJson(0, 0);
+            JSONObject json = this.getSolrAdminClient().getSolrErrorsJson(0, 0);
             return json.getJSONObject("response").getLong("numFound");
         } catch (JSONException e) {
             return -1;
@@ -105,6 +89,9 @@ public class SolrAdmin {
         }
     }
 
+    @Autowired
+    SolrClient solrClient;
+    
     @Uri("proxy/{uri}")
     public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri) throws JSONException, EncoderException, IOException {
         String[] names = request.getParameterNames();
@@ -112,9 +99,9 @@ public class SolrAdmin {
         for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
-        JSONObject json = solrClient.postJSON("/" + getSolrTypeUrl() + "/" + uri, parameters, null);
+        String result = solrClient.postMessage("/" + getSolrTypeUrl() + "/" + uri, parameters, null);
         response.setContentType("application/json");
-        response.getWriter().write(json.toString());
+        response.getWriter().write(result);
     }
 
     @Autowired
@@ -198,7 +185,7 @@ public class SolrAdmin {
     public long getSolrLag() {
         JSONObject summary = null;
         try {
-            summary = this.getSolrSummary();
+            summary = this.getSolrAdminClient().getSolrSummaryJson();
             String lag = summary.getJSONObject("alfresco").getString("TX Lag");
             return Long.parseLong(lag.replace(" s", ""));
         } catch (JSONException e) {
@@ -236,7 +223,7 @@ public class SolrAdmin {
     private long geLastTxInIndex() {
         JSONObject summary = null;
         try {
-            summary = this.getSolrSummary();
+            summary = this.getSolrAdminClient().getSolrSummaryJson();
             return summary.getJSONObject("alfresco").getLong("Id for last TX in index");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -272,7 +259,7 @@ public class SolrAdmin {
 
     public long getModelErrors() throws EncoderException, IOException, JSONException {
         long count = 0;
-        JSONObject json = this.getSolrSummary();
+        JSONObject json = this.getSolrAdminClient().getSolrSummaryJson();
 
         Object alfrescoerror = null;
         Object archiveerror = null;
