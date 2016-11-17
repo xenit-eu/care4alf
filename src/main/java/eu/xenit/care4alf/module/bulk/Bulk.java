@@ -82,7 +82,7 @@ public class Bulk implements ApplicationContextAware {
     @Autowired
     protected PersonService personService;
 
-    private List<BulkJob> processors = new ArrayList<>();
+    private List<BulkJob> processors = new ArrayList<BulkJob>();
 
     @Uri(value = "/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
     public void bulk(@UriVariable final String action, JSONObject json, final WebScriptResponse response) throws IOException, JSONException {

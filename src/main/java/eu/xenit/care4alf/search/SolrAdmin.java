@@ -57,17 +57,6 @@ public class SolrAdmin {
         response.getWriter().write(json.toString());
     }
 
-    @NotNull
-    private String selectOrQuery() {
-        switch (getSearchSubSystemName()) {
-            case "solr4":
-                return "query";
-            case "solr":
-                return "select";
-        }
-        return "select";
-    }
-
     private String getSearchSubSystemName(){
         return config.getProperty("index.subsystem.name");
     }
@@ -173,12 +162,9 @@ public class SolrAdmin {
     Solr1AdminClientImpl solr1AdminClient;
 
     private AbstractSolrAdminClient getSolrAdminClient() {
-        switch (getSearchSubSystemName()) {
-            case "solr4":
-                return solr4AdminClient;
-            case "solr":
-                return solr1AdminClient;
-        }
+        String searchSubSystem = getSearchSubSystemName();
+        if(searchSubSystem.equals("solr4"))
+            return solr4AdminClient;
         return solr1AdminClient;
     }
 
@@ -300,21 +286,6 @@ public class SolrAdmin {
     }
 
     private String getSolrTypeUrl() {
-        String solrTypeUrl = "solr";
-        Multimap<String, String> parameters = ArrayListMultimap.create();
-
-        String solrType = this.getSearchSubSystemName();
-        logger.debug("solrType: " + solrType);
-
-        switch (solrType) {
-            case "solr4":
-                solrTypeUrl = "solr4";
-                break;
-            case "solr":
-                solrTypeUrl = "solr";
-                break;
-        }
-
-        return solrTypeUrl;
+        return this.getSearchSubSystemName();
     }
 }
