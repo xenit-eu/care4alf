@@ -33,7 +33,8 @@ public class SolrAdminTest {
 
     @Test
     public void testNodesToIndex() throws Exception {
-        Assert.assertEquals(0, this.solrAdmin.getNodesToIndex());
+        long nodesToIndex = this.solrAdmin.getNodesToIndex();
+        Assert.assertTrue(nodesToIndex >= 0 && nodesToIndex <= 100);
     }
 
     @Test
