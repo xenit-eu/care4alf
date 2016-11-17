@@ -1,13 +1,11 @@
 package eu.xenit.care4alf;
 
 import com.google.common.collect.ArrayListMultimap;
-import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.search.*;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.stereotype.Component;
@@ -20,7 +18,6 @@ import static org.mockito.Mockito.*;
  * Created by willem on 9/27/16.
  */
 @Component
-@RunWith(ApixIntegration.class)
 public class SolrAdminClientTest {
     @Mock
     private SolrClient solrClient;
@@ -32,8 +29,9 @@ public class SolrAdminClientTest {
 
     @Test
     public void testParseSolr1ErrorsJson() throws Exception {
-        AbstractSolrAdminClient client = new Solr1AdminClientImpl();
         when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JSONObject.class))).thenReturn(new JSONObject(solrErrors1));
+        AbstractSolrAdminClient client = new Solr1AdminClientImpl();
+        client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
         Assert.assertTrue(errorDocs.size() >= 2);
 
@@ -46,9 +44,9 @@ public class SolrAdminClientTest {
 
     @Test
     public void testParseSolr4ErrorsJson() throws Exception {
-        JSONObject json = new JSONObject(solrErrors4);
         when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JSONObject.class))).thenReturn(new JSONObject(solrErrors4));
         AbstractSolrAdminClient client = new Solr4AdminClientImpl();
+        client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
         Assert.assertTrue(errorDocs.size() >= 1);
 

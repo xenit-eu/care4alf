@@ -19,9 +19,6 @@ import java.util.List;
 @Component
 public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
 
-    @Autowired
-    SolrClient solrClient;
-
     @Override
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();

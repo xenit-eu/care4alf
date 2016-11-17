@@ -36,4 +36,9 @@ public class SolrAdminTest {
         Assert.assertEquals(0, this.solrAdmin.getNodesToIndex());
     }
 
+    @Test
+    public void testSolrErrors() throws Exception {
+        Assert.assertEquals(0, this.solrAdmin.getSolrErrors());
+    }
+
 }
