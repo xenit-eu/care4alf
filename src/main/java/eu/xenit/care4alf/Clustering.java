@@ -17,7 +17,7 @@ public class Clustering {
     public int getNumClusterMembers(){
         try {
             AttributeList attributes = alfrescoMBeanServer.getAttributes(new ObjectName("Alfresco:Name=Cluster,Tool=Admin"), new String[]{"NumClusterMembers"});
-            int numClusterMembers = (int) ((Attribute) attributes.get(0)).getValue();
+            int numClusterMembers = (Integer) ((Attribute) attributes.get(0)).getValue();
             return numClusterMembers;
         } catch (InstanceNotFoundException e) {
             e.printStackTrace();

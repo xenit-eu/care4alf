@@ -67,7 +67,7 @@ public class FileWorkProvider implements BatchProcessWorkProvider<NodeRef> {
     private void getAllNodes(){
         try {
             if (nodeRefs == null){
-                nodeRefs = new ArrayList<>();
+                nodeRefs = new ArrayList<NodeRef>();
             }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(content));
