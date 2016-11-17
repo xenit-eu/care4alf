@@ -16,8 +16,16 @@ import java.util.List;
  */
 @Component
 public abstract class AbstractSolrAdminClient {
+    private SolrClient solrClient;
+
+    protected SolrClient getSolrClient() {
+        return this.solrClient;
+    }
+
     @Autowired
-    SolrClient solrClient;
+    public void setSolrClient(SolrClient solrClient) {
+        this.solrClient = solrClient;
+    }
 
     public List<SolrErrorDoc> getSolrErrorDocs() throws IOException, JSONException, EncoderException{
         return this.getSolrErrorDocs(100);
@@ -32,7 +40,7 @@ public abstract class AbstractSolrAdminClient {
         parameters.put("q", "ERROR*");
         parameters.put("start", Integer.toString(start));
         parameters.put("rows", Integer.toString(rows));
-        return solrClient.postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
+        return getSolrClient().postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
     }
 
     protected abstract String selectOrQuery();
@@ -42,6 +50,7 @@ public abstract class AbstractSolrAdminClient {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
         parameters.put("action", "SUMMARY");
-        return solrClient.postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
+        return this.getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
     }
+
 }

@@ -1,12 +1,9 @@
 package eu.xenit.care4alf.search;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import org.apache.commons.codec.EncoderException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -18,9 +15,6 @@ import java.util.List;
  */
 @Component
 public class Solr4AdminClientImpl extends AbstractSolrAdminClient{
-
-    @Autowired
-    SolrClient solrClient;
 
     @Override
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
