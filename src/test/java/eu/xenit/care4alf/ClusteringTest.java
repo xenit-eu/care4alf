@@ -18,6 +18,7 @@ public class ClusteringTest {
 
     @Test
     public void testGetNumClusterMembers(){
-        Assert.assertEquals(1,this.clustering.getNumClusterMembers());
+        int nClusterMembers = this.clustering.getNumClusterMembers();
+        Assert.assertTrue(nClusterMembers <= 1 && nClusterMembers >= 0);
     }
 }
