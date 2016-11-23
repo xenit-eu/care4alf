@@ -12,7 +12,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.apache.commons.codec.EncoderException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -246,6 +245,10 @@ public class SolrAdmin {
     public long getModelErrors() throws EncoderException, IOException, JSONException {
         long count = 0;
         JSONObject json = this.getSolrAdminClient().getSolrSummaryJson();
+
+        if(json.has("Error") && (int) json.get("Error")==-2){
+            return -1;
+        }
 
         Object alfrescoerror = null;
         Object archiveerror = null;

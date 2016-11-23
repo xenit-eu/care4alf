@@ -2,6 +2,7 @@
 
 care4alf.controller('monitoring', ($scope,$http: ng.IHttpService) => {
     $scope.vars={};
+    $scope.license={};
     $scope.info={
         "properties.residual":{
                 "description":'Number of <a href="properties/residual">residual</a> properties'
@@ -11,9 +12,15 @@ care4alf.controller('monitoring', ($scope,$http: ng.IHttpService) => {
         },
         "solr.lag.nodes":{
             "description": 'Number of nodes to index. If this is too high, check the <a href="solr/transactions">transaction</a> sizes'
+        },
+        "days":{
+            "description": 'Number of days remaining'
         }
     };
     $http.get('monitoring/vars').success((result:any) => {
-        $scope.vars=result;
+        $scope.vars = result;
+    });
+    $http.get('monitoring/license').success((result:any) => {
+        $scope.license = result;
     });
 });

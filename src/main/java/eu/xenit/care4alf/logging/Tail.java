@@ -53,7 +53,6 @@ public class Tail {
                 }
             };
         }
-        ;
 
         return new JsonWriterResolution() {
             @Override

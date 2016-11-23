@@ -1,5 +1,5 @@
 <h3>Monitoring</h3>
-
+<h4></h4>
 <table class="table">
     <thead>
     <tr>
@@ -14,5 +14,15 @@
         <td>{{value}}</td>
         <td ng-bind-html="info[key].description"></td>
     </tr>
+    </tbody>
+</table>
+<h4>License info</h4>
+<table class="table">
+    <tbody>
+        <tr ng-repeat="(key, value) in license">
+            <td>{{key}}</td>
+            <td>{{value}}</td>
+            <td ng-bind-html="info[key].description"></td>
+        </tr>
     </tbody>
 </table>
