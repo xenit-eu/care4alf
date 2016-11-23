@@ -14,6 +14,8 @@ import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
 import org.alfresco.service.cmr.dictionary.ModelDefinition;
 import org.alfresco.service.descriptor.Descriptor;
+import org.alfresco.service.license.LicenseDescriptor;
+import org.alfresco.service.license.LicenseService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.codec.EncoderException;
 import org.json.JSONException;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +64,9 @@ public class Monitoring implements ApplicationContextAware {
 
     @Autowired
     private Clustering clustering;
+
+    @Autowired
+    private LicenseService licenseService;
 
     private final Logger logger = LoggerFactory.getLogger(Monitoring.class);
 
@@ -163,6 +169,23 @@ public class Monitoring implements ApplicationContextAware {
                 jsonWriter.object();
                 for (Map.Entry<String, Long> entry : vars.entrySet())
                     jsonWriter.key(entry.getKey()).value(entry.getValue());
+                jsonWriter.endObject();
+            }
+        };
+    }
+
+    @Uri(value="/xenit/care4alf/monitoring/license")
+    public Resolution getLicenseInfo(){
+        final LicenseDescriptor license = licenseService.getLicense();
+        final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
+        return new JsonWriterResolution() {
+            @Override
+            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                jsonWriter.object();
+                jsonWriter.key("days").value(license.getRemainingDays());
+                jsonWriter.key("valid.until").value(sdf.format(license.getValidUntil()));
+                jsonWriter.key("license.holder").value(license.getHolderOrganisation());
+                jsonWriter.key("cluster").value(license.isClusterEnabled());
                 jsonWriter.endObject();
             }
         };

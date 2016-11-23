@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Map;
 
 /**
@@ -37,17 +38,32 @@ public class SolrClientImpl implements SolrClient {
 
     @Override
     public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
-        return new JSONObject(this.basePost(url, parameters, body == null ? null : body.toString()));
+        try {
+            return new JSONObject(this.basePost(url, parameters, body == null ? null : body.toString()));
+        } catch (ConnectException ce){
+            logger.error("Solr connection issues. Please check Solr is started and connected correctly");
+            return new JSONObject("{\"Summary\": {\"Error\": -2}}");
+        }
     }
 
     @Override
     public String postMessage(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
-        return basePost(url, parameters, body);
+        try {
+            return this.basePost(url, parameters, body);
+        } catch (ConnectException ce){
+            logger.error("Solr connection issues. Please check Solr is started and connected correctly");
+            return "No Solr connected";
+        }
     }
 
     @Override
     public String get(String url, Multimap<String, String> parameters) throws IOException, EncoderException {
-        return this.baseGET(url, parameters);
+        try {
+            return this.baseGET(url, parameters);
+        } catch (ConnectException ce){
+            logger.error("Solr connection issues. Please check Solr is started and connected correctly");
+            return "No Solr connected";
+        }
     }
 
     private String basePost(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
