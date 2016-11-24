@@ -151,6 +151,7 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("solr.properties.residual done");
         vars.put("cluster.nodes", (long) this.clustering.getNumClusterMembers());
         logger.debug("cluster.nodes done");
+        vars.put("licence.valid", (long) this.licenseService.getLicense().getRemainingDays());
 
         // find all beans implementing the MonitoredSource interface and get the metrics to add.
         logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
