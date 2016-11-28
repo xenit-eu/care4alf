@@ -9,6 +9,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.jmx.JMXConnector;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
@@ -67,6 +68,9 @@ public class Monitoring implements ApplicationContextAware {
 
     @Autowired
     private LicenseService licenseService;
+
+    @Autowired
+    private JMXConnector jmxConnector;
 
     private final Logger logger = LoggerFactory.getLogger(Monitoring.class);
 
@@ -203,6 +207,11 @@ public class Monitoring implements ApplicationContextAware {
         modelDefinition.toXML(ModelDefinition.XMLBindingType.DEFAULT, stream);
 
         return crc.getValue();
+    }
+
+    @Uri(value = "/xenit/care4alf/monitoring/jmx")
+    public void getJMXData(WebScriptResponse res) throws IOException {
+        res.getWriter().write(jmxConnector.getData());
     }
 
 }
