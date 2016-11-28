@@ -1,0 +1,13 @@
+<h3>Classification/Category Installer</h3>
+<div>
+
+    <form>
+        <p>
+            Select a file : <input type="file" ng-model-instant id="uploadfile" multiple onchange="angular.element(this).scope().setFiles(this)" />
+        </p>
+        <input type="button" value="Upload It" ng-click="go()" />
+    </form>
+    <div ng-if="succes">
+        {{succes}}
+    </div>
+</div>
