@@ -1,12 +1,11 @@
 package eu.xenit.care4alf.jmx;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
+import java.lang.management.*;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Thomas.Straetmans on 24/11/2016.
@@ -35,8 +34,33 @@ public class JMXConnector {
             report += "\n";
         }
 
-        ManagementFactory.getThreadMXBean();
-        ManagementFactory.getOperatingSystemMXBean();
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        report += "\nDeadlocked threads: "+threadMXBean.findDeadlockedThreads();
+        report += "\n";
+        report += "Number of threads: "+threadMXBean.getThreadCount();
+        report += "\n";
+        report += "Number of deamon threads: "+threadMXBean.getDaemonThreadCount();
+        report += "\n";
+        report += "Id's of currently running threads: "+threadMXBean.getAllThreadIds();
+        report += "\n";
+
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        Map<String, String> map = runtimeMXBean.getSystemProperties();
+        report += "\nSystem Properties:";
+        for(Map.Entry<String, String> entry: map.entrySet()){
+            report += "\n  - "+entry.getKey()+" : "+ StringEscapeUtils.escapeJava(entry.getValue());
+        }
+        report += "\n";
+
+        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+        report += "\nSystem Load Average: " + operatingSystemMXBean.getSystemLoadAverage();
+        report += "\n";
+        report += "\nAvailable Processors: " + operatingSystemMXBean.getAvailableProcessors();
+        report += "\n";
+
+        ManagementFactory.getPlatformMBeanServer();
+
+
         return report;
     }
 }
