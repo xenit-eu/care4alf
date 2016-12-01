@@ -4,8 +4,8 @@ care4alf.controller('category',['$scope', '$http', function ($scope, $http: ng.I
     $scope.go = function() {
         var fd = new FormData();
         fd.append('file', $scope.files[0]);
-        fd.append('name', 'testname');
-        fd.append('namespace', "testSpace");
+        fd.append('name', $scope.name);
+        fd.append('namespace', $scope.namespace);
         $scope.uploadFile(fd).then((response) => {
             $scope.succes = "JSON succesfully uploaded."
         });

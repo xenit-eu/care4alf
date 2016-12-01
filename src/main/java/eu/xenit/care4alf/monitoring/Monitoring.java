@@ -1,4 +1,4 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
@@ -8,6 +8,8 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import eu.xenit.care4alf.Clustering;
+import eu.xenit.care4alf.Properties;
 import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.jmx.JMXConnector;
 import eu.xenit.care4alf.search.SolrAdmin;
