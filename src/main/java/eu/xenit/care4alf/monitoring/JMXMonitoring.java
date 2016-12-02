@@ -54,6 +54,4 @@ public class JMXMonitoring implements MonitoredSource {
         metrics.put("system.threads",(long) threadMXBean.getThreadCount());
         return metrics;
     }
-
-
 }
