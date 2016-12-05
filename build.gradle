@@ -1,7 +1,7 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
-version='1.0.2'
+version='1.0.3'
 
 buildscript {
     ext.kotlin_version = '1.0.3'
@@ -12,6 +12,13 @@ buildscript {
             //url 'https://github.com/sothmann/typescript-gradle-plugin/raw/mavenrepo/'
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url 'https://artifactory.xenit.eu/artifactory/plugins-release-local'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
     }
     dependencies {
         classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.3.+')
@@ -19,10 +26,12 @@ buildscript {
         classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.8.0'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
         classpath "com.moowork.gradle:gradle-node-plugin:0.13"
+        classpath 'eu.xenit.gradle.plugins:ampde_gradle_plugin:1.0.0'
     }
 }
 
 apply plugin: 'kotlin'
+apply plugin: 'ampde'
 apply plugin: 'idea'
 apply plugin: 'alfresco-dynamic-extension'
 apply plugin: 'com.moowork.node'
@@ -94,8 +103,15 @@ repositories {
 
 configurations {
     embedded
-    compile.extendsFrom(embedded)
     amp
+    ampdeLib {
+        transitive = false
+    }
+    compile {
+        extendsFrom embedded
+        extendsFrom installDep
+        extendsFrom ampdeLib
+    }
 }
 
 dependencies {
@@ -118,7 +134,7 @@ dependencies {
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
-    compile('eu.xenit.apix:integration-testing:1.2.24')
+    ampdeLib('eu.xenit.apix:integration-testing:1.2.24')
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
 
@@ -127,7 +143,6 @@ dependencies {
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
     //embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
 
-    amp(project(':'))
 //    compile('eu.xenit.apix:integration-testing:1.1.4'){
 //        exclude group: 'com.github.dynamicextensionsalfresco'
 //        exclude group: 'commons-codec'
@@ -160,18 +175,6 @@ jar {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
         instruction 'Import-Package', '!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
     }
-}
-
-task amp(type: Zip) {
-    from(configurations.amp) {
-        into('config/dynamic-extensions/bundles/')
-    }
-
-    from(file('module.properties'))
-
-    baseName = 'care4alf'
-    extension 'amp'
-    destinationDir = file("$buildDir/amps")
 }
 
 alfrescoDynamicExtensions {
