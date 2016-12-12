@@ -120,6 +120,10 @@ dependencies {
 
     compile('eu.xenit.apix:integration-testing:1.2.24')
 
+    compile 'com.codahale.metrics:metrics-core:3.0.2'
+    compile 'com.codahale.metrics:metrics-graphite:3.0.2'
+    compile 'com.basistech:metrics-statsd:3.0.0'
+
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
 
 

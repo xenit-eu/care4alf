@@ -1,0 +1,26 @@
+allprojects {
+    buildscript {
+        repositories {
+            jcenter()
+            mavenLocal()
+
+            maven {
+                url 'https://artifactory.xenit.eu/artifactory/libs-release'
+                credentials {
+                    username property("eu.xenit.artifactory.username")
+                    password property("eu.xenit.artifactory.password")
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url 'https://artifactory.xenit.eu/artifactory/libs-release'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+    }
+
+}
