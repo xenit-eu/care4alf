@@ -2,7 +2,7 @@
 node {
 
     // installBundle for dyn ext  for test
-    env.ORG_GRADLE_PROJECT_host="gio.dev.xenit.eu"
+    env.ORG_GRADLE_PROJECT_host="c4a.dev.xenit.eu"
     env.ORG_GRADLE_PROJECT_protocol="https"
     env.ORG_GRADLE_PROJECT_port="443"
     env.ORG_GRADLE_PROJECT_username="admin"

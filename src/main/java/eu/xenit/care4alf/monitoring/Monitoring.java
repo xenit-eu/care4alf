@@ -15,11 +15,9 @@ import eu.xenit.care4alf.jmx.JMXConnector;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.repo.dictionary.DictionaryDAO;
-import org.alfresco.service.cmr.dictionary.ModelDefinition;
 import org.alfresco.service.descriptor.Descriptor;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
-import org.alfresco.service.namespace.QName;
 import org.apache.commons.codec.EncoderException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,13 +32,11 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.CRC32;
 
 
 /**
@@ -140,8 +136,7 @@ public class Monitoring implements ApplicationContextAware {
     @Autowired(required = false)
     List<MonitoredSource> allMonitoredSources;
 
-    @Uri(value = "/xenit/care4alf/monitoring/vars")
-    public Resolution getVars(WebScriptResponse response) throws IOException, JSONException, EncoderException {
+    public Map<String, Long> getAllMetrics() throws Exception {
         final Map<String, Long> vars = new HashMap<String, Long>();
         vars.put("db", this.dbCheck());
         logger.debug("db done");
@@ -171,6 +166,13 @@ public class Monitoring implements ApplicationContextAware {
             }
         }
 
+        return vars;
+    }
+
+    @Uri(value = "/xenit/care4alf/monitoring/vars")
+    public Resolution getVars(WebScriptResponse response) throws Exception {
+        final Map<String, Long> vars = this.getAllMetrics();
+
         return new JsonWriterResolution() {
             protected void writeJson(JSONWriter jsonWriter) throws JSONException {
                 jsonWriter.object();
@@ -196,19 +198,6 @@ public class Monitoring implements ApplicationContextAware {
                 jsonWriter.endObject();
             }
         };
-    }
-
-    private long getChecksum(QName modelQName, ModelDefinition modelDefinition) {
-        final CRC32 crc = new CRC32();
-        final OutputStream stream = new OutputStream() {
-            public void write(int b) throws IOException {
-                crc.update(b);
-            }
-        };
-
-        modelDefinition.toXML(ModelDefinition.XMLBindingType.DEFAULT, stream);
-
-        return crc.getValue();
     }
 
     @Uri(value = "/xenit/care4alf/monitoring/jmx")
