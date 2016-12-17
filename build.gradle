@@ -1,7 +1,7 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
-version='1.0.2'
+version='1.0.4'
 
 buildscript {
     ext.kotlin_version = '1.0.3'
@@ -120,8 +120,7 @@ dependencies {
 
     compile('eu.xenit.apix:integration-testing:1.2.24')
 
-    compile 'com.codahale.metrics:metrics-core:3.0.2'
-    compile 'com.codahale.metrics:metrics-graphite:3.0.2'
+
     compile 'com.basistech:metrics-statsd:3.0.0'
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
@@ -182,7 +181,7 @@ alfrescoDynamicExtensions {
     repository {
         endpoint {
             protocol = project.hasProperty('protocol') ? project.protocol : 'https'
-            host = project.hasProperty('host') ? project.host : 'gio.dev.xenit.eu'
+            host = project.hasProperty('host') ? project.host : 'c4a.dev.xenit.eu'
             port = project.hasProperty('port') ? project.port : '443'
             serviceUrl = '/alfresco/service'
         }
