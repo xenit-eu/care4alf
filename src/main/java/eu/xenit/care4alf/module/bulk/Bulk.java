@@ -270,7 +270,7 @@ public class Bulk implements ApplicationContextAware {
 
     }
 
-    private BatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
+    public BatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
         SearchWorkProvider workProvider = new SearchWorkProvider(searchService, storeRef, queryLanguage, query, batchSize);
