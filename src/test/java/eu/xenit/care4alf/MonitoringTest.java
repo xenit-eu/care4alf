@@ -1,13 +1,19 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
+import eu.xenit.care4alf.monitoring.GraphiteMetricsShipper;
 import eu.xenit.care4alf.monitoring.JMXMonitoring;
+import eu.xenit.care4alf.monitoring.Monitoring;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.management.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +28,12 @@ public class MonitoringTest {
 
     @Autowired
     private JMXMonitoring jmxMonitoring;
+
+    @Autowired
+    private Monitoring monitoring;
+
+    @Autowired
+    GraphiteMetricsShipper shipper;
 
     @Test
     public void testBeansExist(){
@@ -39,5 +51,22 @@ public class MonitoringTest {
         assertTrue(map.get("memory.eden.max.MB") > 0L);
         assertTrue(map.get("system.processors") > 0);
         assertTrue(map.get("system.threads")> 0);
+    }
+
+    @Test
+    public void metricCantContainSpaces() throws Exception {
+        List<String> keys = new ArrayList<>(monitoring.getAllMetrics().keySet());
+        for(String key:keys){
+            if(key.contains(" ")){
+                Assert.fail("Key contains space: " + key);
+            }
+        }
+    }
+
+    @Test
+    public void getHostName() {
+        String name = shipper.getServerName();
+        System.out.println(name);
+        Assert.assertTrue(name != null);
     }
 }
