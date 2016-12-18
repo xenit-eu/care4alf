@@ -34,14 +34,12 @@ public class JMXMonitoring implements MonitoredSource {
                 metrics.put("memory."+name+".used.MB", usage.getUsed()/ 1024000);
                 metrics.put("memory."+name+".max.MB", usage.getMax()/ 1024000);
             }
-            MemoryUsage usage = pool.getUsage();
-
         }
 
         List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
         for(GarbageCollectorMXBean bean : gcBeans){
-            metrics.put("gc."+bean.getName()+".count",bean.getCollectionCount());
-            metrics.put("gc."+bean.getName()+".time.ms",bean.getCollectionTime());
+            metrics.put("gc."+bean.getName().replace(" ","")+".count",bean.getCollectionCount());
+            metrics.put("gc."+bean.getName().replace(" ","")+".time.ms",bean.getCollectionTime());
         }
 
         OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();

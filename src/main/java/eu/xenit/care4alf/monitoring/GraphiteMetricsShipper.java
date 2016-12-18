@@ -11,12 +11,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
 
 /**
  * Created by willem on 12/13/16.
  */
 @Component
 @ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "* 0/5 * * * ?")
+//@ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "0/10 * * * * ?")
 public class GraphiteMetricsShipper implements Job {
     private final Logger logger = LoggerFactory.getLogger(GraphiteMetricsShipper.class);
 
@@ -30,7 +34,11 @@ public class GraphiteMetricsShipper implements Job {
     private java.util.Properties properties;
 
     private boolean enabled = false;
-    private String prefix = "alfresco";//TODO: integrate
+    private String name;
+
+    public String getServerName(){
+        return this.name;
+    }
 
     @PostConstruct
     public void initGraphiteClient(){
@@ -39,11 +47,15 @@ public class GraphiteMetricsShipper implements Job {
         if(!enabled)
             return;
 
-        this.prefix = properties.getProperty("c4a.monitoring.graphite.prefix");
+        try {
+            this.name = properties.getProperty("c4a.monitoring.graphite.prefix", InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            this.name = "alfresco";
+        }
 
         this.client = new GraphiteClient(
-                properties.getProperty("c4a.monitoring.graphite.host", "172.21.0.2"),
-                Integer.parseInt(properties.getProperty("c4a.monitoring.graphite.port", "2003"))
+            properties.getProperty("c4a.monitoring.graphite.host", "carbon"),
+            Integer.parseInt(properties.getProperty("c4a.monitoring.graphite.port", "2003"))
         );
     }
 
@@ -54,7 +66,11 @@ public class GraphiteMetricsShipper implements Job {
 
         logger.debug("Fetching and sending metrics to Graphite");
         try {
-            client.send(monitoring.getAllMetrics());
+            Map<String, Long> prefixed = monitoring.getAllMetrics();
+            for(Map.Entry<String, Long> metric: monitoring.getAllMetrics().entrySet()){
+                prefixed.put(this.name + "." + metric.getKey(), metric.getValue());
+            }
+            client.send(prefixed);
         } catch (Exception e) {
             logger.warn("Can't send metrics to Graphite");
             if(logger.isDebugEnabled())
