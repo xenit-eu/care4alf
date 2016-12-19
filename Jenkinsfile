@@ -30,8 +30,15 @@ node {
         sh "./gradlew clean :installBundle :test --continue -i"
 
         stage 'Building AMP'
-        sh "./gradlew :amp --continue -i"
-        
+        sh "./gradlew :ampde --continue -i"
+
+        def artifacts = [
+           'build/libs/*.jar',
+           'build/distributions/*.amp'
+        ]
+
+        archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
+
         stage 'Building integrationJar'
         sh "./gradlew :integrationJar --continue -i"
 
