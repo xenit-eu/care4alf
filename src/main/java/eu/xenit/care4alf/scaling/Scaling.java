@@ -57,12 +57,12 @@ public class Scaling {
         return r;
     }
 
-    private int get(String var) throws SQLException {
+    public int getVar(String var) throws SQLException {
         return query(this.queries.get(var));
     }
 
     @Uri("NTAX/{var}")
-    public void getN(final @UriVariable String var, final WebScriptResponse response) throws IOException, SQLException, JSONException {
+    public void getRestVar(final @UriVariable String var, final WebScriptResponse response) throws IOException, SQLException, JSONException {
         final JSONWriter json = new JSONWriter(response.getWriter());
         json.object();
         json.key(var);
@@ -71,14 +71,21 @@ public class Scaling {
     }
 
     @Uri("NTAX")
-    public void getNTAX(final WebScriptResponse response) throws IOException, SQLException, JSONException {
+    public void getRestNTAX(final WebScriptResponse response) throws IOException, SQLException, JSONException {
         final JSONWriter json = new JSONWriter(response.getWriter());
-        String[] vars = new String[]{"N1","N2","N3","T","A","X"};
         json.object();
-        for (String var : vars) {
-            json.key(var);
-            json.value(this.get(var));
+        for(Map.Entry<String,Integer> entry : this.getNTAX().entrySet()){
+            json.key(entry.getKey());
+            json.value(entry.getValue());
         }
         json.endObject();
+    }
+
+    public Map<String,Integer> getNTAX() throws SQLException {
+        Map<String,Integer> results = new HashMap<>();
+        for (String var : new String[]{"N1","N2","N3","T","A","X"}) {
+            results.put(var, this.getVar(var));
+        }
+        return results;
     }
 }
