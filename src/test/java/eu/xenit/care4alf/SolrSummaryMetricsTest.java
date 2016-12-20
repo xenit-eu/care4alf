@@ -59,4 +59,27 @@ public class SolrSummaryMetricsTest {
         Assert.assertEquals((Long)1L,map.get("solr.summary.alfresco.filterCache.warmupTime"));
     }
 
+    @Test
+    public void testTransformSeconds(){
+        // alfresco.TX Lag=0 s
+        Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("0 s"));
+        Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("0 Seconds"));
+    }
+
+    @Test
+    public void testTransformBoolean(){
+        //alfresco.ModelTracker Active=false
+        Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("false"));
+        Assert.assertEquals((Long)1L,SolrSummaryMetrics.transformValue("true"));
+    }
+
+    @Test
+    public void testTransformFloat(){
+        //alfresco.Acl index time (ms).Varience
+        //alfresco.On disk (GB)=0.001589
+        Assert.assertEquals((Long)1L,SolrSummaryMetrics.transformValue("0.001589"));
+        Assert.assertEquals((Long)11L,SolrSummaryMetrics.transformValue("10.612132"));
+        //Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("3.548307686694029E-4"));
+    }
+
 }

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.apache.commons.codec.EncoderException;
+import org.apache.xpath.operations.Number;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -19,6 +20,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by willem on 12/19/16.
@@ -54,15 +57,46 @@ public class SolrSummaryMetrics implements MonitoredSource{
         Map<String,Long> r = new HashMap<>();
         for(Map.Entry<String,String> entry: map.entrySet()){
             try {
-                r.put("solr.summary."+entry.getKey()
-                        .replace(" ","")
-                        .replace("/",""),
-                        Long.parseLong(entry.getValue()));
-            }catch (NumberFormatException e){
+                r.put(
+                        "solr.summary."+transformKey(entry.getKey()),
+                        transformValue(entry.getValue()));
+            }
+            catch (NumberFormatException e){
                 logger.debug("Can't parse {}",entry.toString());
             }
         }
         return r;
+    }
+
+    public static String transformKey(String key){
+        return key.replace(" ","")
+                .replace("/","");
+    }
+
+    public static Long transformValue(String value){
+        {
+            if (value.matches("\\d*"))
+                return Long.parseLong(value);
+        }
+
+        {
+            Pattern secondsPattern = Pattern.compile("(\\d*) [\"s\"|\"Seconds\"]");
+            Matcher matcher = secondsPattern.matcher(value);
+            if (matcher.find())
+                return Long.parseLong(matcher.group(1));
+        }
+
+        {
+            if(value.equals("true")) return 1L;
+            if(value.equals("false")) return 0L;
+        }
+
+        {
+            if (value.matches("(\\d*\\.\\d*)"))
+                return (long)(Math.ceil(Float.parseFloat(value)));
+        }
+
+        throw new NumberFormatException();
     }
 
     public static Map<String,String> flatten(JSONObject jsonObject) throws IOException {
