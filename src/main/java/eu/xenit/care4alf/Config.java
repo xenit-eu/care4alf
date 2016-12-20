@@ -1,10 +1,8 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +18,7 @@ import java.util.List;
  * Created by willem on 9/1/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/config")
+@WebScript(baseUri = "/xenit/care4alf/config", families = {"care4alf"}, description = "Config")
 @Authentication(AuthenticationType.ADMIN)
 public class Config {
     @Autowired()
@@ -41,4 +39,23 @@ public class Config {
     public String getProperty(String name) {
         return this.properties.getProperty(name);
     }
+
+    public void addProperty(String key, String value){
+        this.properties.setProperty(key, value);
+    }
+
+    public void removeProperty(String key){
+        this.properties.remove(key);
+    }
+
+    @Uri(value = "/", method = HttpMethod.POST)
+    public void restAddProperty(JSONObject json) throws JSONException {
+        this.addProperty(json.getString("key"), json.getString("value"));
+    }
+
+    @Uri(value = "/{key}", method = HttpMethod.DELETE)
+    public void restDeleteProperty(@UriVariable String key) throws JSONException {
+        this.removeProperty(key);
+    }
+
 }
