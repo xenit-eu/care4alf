@@ -42,7 +42,7 @@ public class GraphiteMetricsShipper implements Job {
 
     @PostConstruct
     public void initGraphiteClient(){
-        this.enabled = Boolean.parseBoolean(properties.getProperty("c4a.monitoring.graphite.enabled", "true"));
+        this.enabled = Boolean.parseBoolean(properties.getProperty("c4a.monitoring.graphite.enabled", "false"));
 
         if(!enabled)
             return;
