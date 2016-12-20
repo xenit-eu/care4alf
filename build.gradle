@@ -111,6 +111,10 @@ configurations {
         extendsFrom embedded
         extendsFrom installDep
         extendsFrom ampdeLib
+        extendsFrom installDep
+    }
+    installDep {
+        transitive = false
     }
 }
 
@@ -135,6 +139,7 @@ dependencies {
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
     ampdeLib('eu.xenit.apix:integration-testing:1.2.24')
+    installDep('eu.xenit.apix:integration-testing:1.2.24')
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
 
@@ -227,4 +232,10 @@ compileTypeScript {
 
     compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
     dependsOn "npmInstall"
+}
+
+import com.github.dynamicextensionsalfresco.gradle.tasks.*
+
+project.tasks.create('installDependencies', InstallBundle).configure {
+    configuration = project.configurations.installDep
 }
