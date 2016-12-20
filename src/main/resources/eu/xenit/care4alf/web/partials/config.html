@@ -1,0 +1,22 @@
+<h3>Config</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Key</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><input ng-model="key"/></td>
+        <td><input ng-model="value"/></td>
+        <td><button class="button" ng-click="save(key,value)">Add</button></td>
+    </tr>
+    <tr ng-repeat="(key, value) in properties">
+        <td>{{key}}</td>
+        <td><input ng-model="value"/></td>
+        <td><button class="button" ng-click="save(key, value)">save</button></td>
+        <td><button class="button" ng-click="remove(key)">remove</button></td>
+    </tr>
+    </tbody>
+</table>

@@ -35,3 +35,4 @@
 /// <reference path="monitoring.ts" />
 /// <reference path="sql.ts" />
 /// <reference path="sso.ts" />
+/// <reference path="config.ts" />
