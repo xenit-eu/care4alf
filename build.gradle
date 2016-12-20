@@ -186,7 +186,7 @@ alfrescoDynamicExtensions {
     repository {
         endpoint {
             protocol = project.hasProperty('protocol') ? project.protocol : 'https'
-            host = project.hasProperty('host') ? project.host : 'c4a.dev.xenit.eu'
+            host = project.hasProperty('host') ? project.host : 'jenkins-c4a.dev.xenit.eu'
             port = project.hasProperty('port') ? project.port : '443'
             serviceUrl = '/alfresco/service'
         }
