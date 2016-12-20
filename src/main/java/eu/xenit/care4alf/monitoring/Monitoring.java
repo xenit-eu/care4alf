@@ -158,6 +158,8 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
         if (allMonitoredSources != null) {
             for (MonitoredSource source : allMonitoredSources) {
+                if(source == null)
+                    continue;
                 Map<String, Long> metrics = source.getMonitoringMetrics();
                 for (String key : metrics.keySet()) {
                     vars.put(key, metrics.get(key));
