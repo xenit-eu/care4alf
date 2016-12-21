@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.management.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +45,8 @@ public class MonitoringTest {
     @Test
     public void dataRealistic(){
         Map<String, Long> map = jmxMonitoring.getMonitoringMetrics();
-        assertTrue(map.get("memory.eden.used.MB") > 0L);
-        assertTrue(map.get("memory.eden.max.MB") > 0L);
-        assertTrue(map.get("system.processors") > 0);
-        assertTrue(map.get("system.threads")> 0);
+        assertTrue(map.get("jvm.memory.eden.used.MB") > 0L);
+        assertTrue(map.get("jvm.memory.eden.max.MB") > 0L);
     }
 
     @Test
