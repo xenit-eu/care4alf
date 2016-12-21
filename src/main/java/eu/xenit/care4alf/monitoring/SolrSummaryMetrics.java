@@ -92,6 +92,11 @@ public class SolrSummaryMetrics implements MonitoredSource{
         }
 
         {
+            if(value.equals("NaN")) return 0L;
+            if(value.equals("null")) return 0L;
+        }
+
+        {
             if (value.matches("(\\d*\\.\\d*)"))
                 return (long)(Math.ceil(Float.parseFloat(value)));
         }
