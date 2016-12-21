@@ -31,25 +31,17 @@ public class JMXMonitoring implements MonitoredSource {
             }
             if(name != null){
                 MemoryUsage usage = pool.getUsage();
-                metrics.put("memory."+name+".used.MB", usage.getUsed()/ 1024000);
-                metrics.put("memory."+name+".max.MB", usage.getMax()/ 1024000);
+                metrics.put("jvm.memory."+name+".used.MB", usage.getUsed()/ 1024000);
+                metrics.put("jvm.memory."+name+".max.MB", usage.getMax()/ 1024000);
             }
         }
 
         List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
         for(GarbageCollectorMXBean bean : gcBeans){
-            metrics.put("gc."+bean.getName().replace(" ","")+".count",bean.getCollectionCount());
-            metrics.put("gc."+bean.getName().replace(" ","")+".time.ms",bean.getCollectionTime());
+            metrics.put("jvm.gc."+bean.getName().replace(" ","")+".count",bean.getCollectionCount());
+            metrics.put("jvm.gc."+bean.getName().replace(" ","")+".time.ms",bean.getCollectionTime());
         }
 
-        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-
-        metrics.put("system.processors",(long) operatingSystemMXBean.getAvailableProcessors());
-        metrics.put("system.loadaverage.times100",(long) (operatingSystemMXBean.getSystemLoadAverage()*100));
-
-        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-
-        metrics.put("system.threads",(long) threadMXBean.getThreadCount());
         return metrics;
     }
 }
