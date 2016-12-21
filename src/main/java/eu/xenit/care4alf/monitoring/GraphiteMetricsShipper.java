@@ -20,7 +20,6 @@ import java.util.Map;
  */
 @Component
 @ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "* 0/5 * * * ?")
-//@ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "0/10 * * * * ?")
 public class GraphiteMetricsShipper implements Job {
     private final Logger logger = LoggerFactory.getLogger(GraphiteMetricsShipper.class);
 
@@ -34,7 +33,7 @@ public class GraphiteMetricsShipper implements Job {
     private java.util.Properties properties;
 
     private boolean enabled = false;
-    private String name;
+    private String name = "alfresco";
 
     public String getServerName(){
         return this.name;
@@ -50,7 +49,7 @@ public class GraphiteMetricsShipper implements Job {
         try {
             this.name = properties.getProperty("c4a.monitoring.graphite.prefix", InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
-            this.name = "alfresco";
+            logger.warn("Couldn't fetch hostname");
         }
 
         this.client = new GraphiteClient(
