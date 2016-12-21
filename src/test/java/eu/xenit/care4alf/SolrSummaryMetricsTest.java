@@ -74,6 +74,13 @@ public class SolrSummaryMetricsTest {
     }
 
     @Test
+    public void testTransformNumbers(){
+        //alfresco.ModelTracker Active=false
+        Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("NaN"));
+        Assert.assertEquals((Long)0L,SolrSummaryMetrics.transformValue("null"));
+    }
+
+    @Test
     public void testTransformFloat(){
         //alfresco.Acl index time (ms).Varience
         //alfresco.On disk (GB)=0.001589
