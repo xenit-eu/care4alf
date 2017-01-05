@@ -178,7 +178,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', '!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
+        instruction 'Import-Package', 'javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
     }
 }
 
