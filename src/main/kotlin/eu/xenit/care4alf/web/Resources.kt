@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
  * @author Laurent Van der Linden
  */
 @Component
-@WebScript(families = arrayOf("care4alf"))
+@WebScript(families = arrayOf("care4alf-noui"))
 @Authentication(AuthenticationType.NONE)
 @Transaction(readOnly = true)
 public class Resources : AbstractBundleResourceHandler() {

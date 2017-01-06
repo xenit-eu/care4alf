@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 
 @Component
-@WebScript(baseUri = "/xenit/care4alf/thread", families = {"care4alf"}, description = "Solr administration")
+@WebScript(baseUri = "/xenit/care4alf/thread", families = {"care4alf-noui"})
 public class Threaddump {
 
     @Uri("dump")

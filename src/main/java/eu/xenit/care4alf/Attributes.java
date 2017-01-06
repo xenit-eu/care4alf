@@ -24,7 +24,7 @@ import java.util.List;
  * Created by willem on 4/18/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/attributes", families = {"care4alf"}, description = "Attributes")
+@WebScript(baseUri = "/xenit/care4alf/attributes", families = {"care4alf-noui"}, description = "Attributes")
 @Authentication(AuthenticationType.ADMIN)
 public class Attributes {
 
