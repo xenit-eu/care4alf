@@ -21,14 +21,15 @@ public class JMXMonitoring implements MonitoredSource {
         List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (MemoryPoolMXBean pool : memoryPoolMXBeans) {
             String name = null;
-            switch (pool.getName()){
-                case "Par Eden Space": name = "eden";
-                    break;
-                case "Par Survivor Space": name = "survivor";
-                    break;
-                case "CMS Old Gen": name = "old";
-                    break;
-            }
+            String poolName = pool.getName().toLowerCase();
+            if(poolName.contains("eden"))
+                name = "eden";
+            else if(poolName.contains("survivor"))
+                name = "survivor";
+            else if(poolName.contains("old"))
+                name = "old";
+            else
+                name = poolName.toLowerCase().replace(" ","");
             if(name != null){
                 MemoryUsage usage = pool.getUsage();
                 metrics.put("jvm.memory."+name+".used.MB", usage.getUsed()/ 1024000);
