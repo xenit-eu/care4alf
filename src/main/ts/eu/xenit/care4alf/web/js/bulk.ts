@@ -3,6 +3,8 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     $scope.form.query = "PATH:\"/app:company_home/st:sites/cm:swsdp/cm:documentLibrary/cm:Agency_x0020_Files//*\" AND TYPE:\"cm:content\"";
     $scope.form.batchsize = 20;
     $scope.form.threads = 2;
+    $scope.form.batchnumber = 10;
+    $scope.form.maxlag = 180;
     $scope.form.action = "";
     $scope.actions = {};
     $scope.canceled = "";
@@ -94,6 +96,8 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     file: $scope.form.file,
                     batchsize: $scope.form.batchsize,
                     threads: $scope.form.threads,
+                    batchnumber: $scope.form.batchnumber,
+                    maxlag: $scope.form.maxlag,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
@@ -133,6 +137,8 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     query: $scope.form.query,
                     batchsize: $scope.form.batchsize,
                     threads: $scope.form.threads,
+                    batchnumber: $scope.form.batchnumber,
+                    maxlag: $scope.form.maxlag,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
