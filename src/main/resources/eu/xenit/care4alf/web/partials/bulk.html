@@ -21,6 +21,12 @@
             <label class="control-label">Number of threads</label><input class="form-control" ng-model="form.threads"/>
         </div>
         <div class="">
+            <label class="control-label">How many batches before checking for solr lag ?</label><input class="form-control" ng-model="form.batchnumber"/>
+        </div>
+        <div class="">
+            <label class="control-label">Maximum solr lag (in seconds) allowed ?</label><input class="form-control" ng-model="form.maxlag"/>
+        </div>
+        <div class="">
             <label class="control-label">Action</label><select class="form-control"
                                                                ng-options="a as a for a in form.getActions()"
                                                                ng-model="form.action"></select>
@@ -47,6 +53,12 @@
         </div>
         <div class="">
             <label class="control-label">Number of threads</label><input class="form-control" ng-model="form.threads"/>
+        </div>
+        <div class="">
+            <label class="control-label">How many batches before checking for solr lag ?</label><input class="form-control" ng-model="form.batchnumber"/>
+        </div>
+        <div class="">
+            <label class="control-label">Maximum solr lag (in seconds) allowed ?</label><input class="form-control" ng-model="form.maxlag"/>
         </div>
         <div class="">
             <label class="control-label">Action</label><select class="form-control"
