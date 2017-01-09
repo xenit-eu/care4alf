@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.module.bulk;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
 import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.service.ServiceRegistry;
@@ -80,6 +81,9 @@ public class Bulk implements ApplicationContextAware {
     private ScriptService scriptService;
 
     @Autowired
+    private SolrAdmin solrAdmin;
+
+    @Autowired
     protected PersonService personService;
 
     private List<BulkJob> processors = new ArrayList<BulkJob>();
@@ -91,11 +95,13 @@ public class Bulk implements ApplicationContextAware {
         String queryLanguage = "fts-alfresco";
         int batchSize = json.getInt("batchsize");
         int nbThreads = json.getInt("threads");
+        int nbBatches = json.getInt("batchnumber");
+        int maxLag = json.getInt("maxlag");
         JSONObject parameters = json.getJSONObject("parameters");
 
         logger.info(String.format("Starting bulk action '%s'", action));
 
-        BatchProcessor<NodeRef> processor = createSearchBatchProcessor(batchSize, nbThreads, action, parameters, query, storeRef, queryLanguage);
+        BatchProcessor<NodeRef> processor = createSearchBatchProcessor(batchSize, nbThreads, nbBatches, maxLag, action, parameters, query, storeRef, queryLanguage);
         if (processor == null) {
             response.getWriter().write(String.format("No '%s' worker found", action));
             return;
@@ -226,6 +232,8 @@ public class Bulk implements ApplicationContextAware {
         String query = null;
         Integer batchsize = null;
         Integer threads = null;
+        Integer nbBatches = null;
+        Integer maxLag = null;
         JSONObject parameters = null;
         InputStream content = null;
 
@@ -240,6 +248,10 @@ public class Bulk implements ApplicationContextAware {
                 batchsize = Integer.valueOf(formField.getValue());
             } else if (formField.getName().equals("threads")) {
                 threads = Integer.valueOf(formField.getValue());
+            } else if (formField.getName().equals("batchnumber")) {
+                nbBatches = Integer.valueOf(formField.getValue());
+            } else if (formField.getName().equals("maxlag")) {
+                maxLag = Integer.valueOf(formField.getValue());
             } else if (formField.getName().equals("parameters")) {
                 parameters = new JSONObject(formField.getValue());
             } else if (formField.getName().equals("file")) {
@@ -249,7 +261,7 @@ public class Bulk implements ApplicationContextAware {
 
         BatchProcessor<NodeRef> processor = null;
         if (type.equals("search")) {
-            processor = createSearchBatchProcessor(batchsize, threads, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
+            processor = createSearchBatchProcessor(batchsize, threads, nbBatches, maxLag, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
         } else if (type.equals("file")) {
             processor = createFileBatchProcessor(batchsize, threads, action, parameters, content);
         } else {
@@ -270,10 +282,10 @@ public class Bulk implements ApplicationContextAware {
 
     }
 
-    public BatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
+    public BatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, int nbBatches, int maxLag, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
         BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
-        SearchWorkProvider workProvider = new SearchWorkProvider(searchService, storeRef, queryLanguage, query, batchSize);
+        SearchWorkProvider workProvider = new SearchWorkProvider(searchService, nodeService, storeRef, queryLanguage, query, batchSize);
 
         BatchProcessor<NodeRef> processor = new BatchProcessor<NodeRef>(
                 "care4alf-bulk-" + GUID.generate(),

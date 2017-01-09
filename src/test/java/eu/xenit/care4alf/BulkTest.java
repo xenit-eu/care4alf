@@ -30,6 +30,8 @@ public class BulkTest {
         BatchProcessor<NodeRef> processor = bulk.createSearchBatchProcessor(
                 20,
                 2,
+                10,
+                180,
                 "dummy",
                 null,
                 "TYPE:\"cm:content\"",
