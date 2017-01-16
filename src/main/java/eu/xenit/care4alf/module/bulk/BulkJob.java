@@ -1,7 +1,7 @@
 package eu.xenit.care4alf.module.bulk;
 
+import eu.xenit.care4alf.BetterBatchProcessor;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
-import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.service.cmr.repository.NodeRef;
 
 /**
@@ -9,20 +9,20 @@ import org.alfresco.service.cmr.repository.NodeRef;
  */
 public class BulkJob {
 
-    private BatchProcessor processor;
+    private BetterBatchProcessor processor;
 
     private BatchProcessWorkProvider<NodeRef> workProvider;
 
-    public BulkJob(BatchProcessor batchProcessor, BatchProcessWorkProvider<NodeRef> workProvider) {
+    public BulkJob(BetterBatchProcessor batchProcessor, BatchProcessWorkProvider<NodeRef> workProvider) {
         setProcessor(batchProcessor);
         setWorkProvider(workProvider);
     }
 
-    public BatchProcessor getProcessor() {
+    public BetterBatchProcessor getProcessor() {
         return processor;
     }
 
-    public void setProcessor(BatchProcessor processor) {
+    public void setProcessor(BetterBatchProcessor processor) {
         this.processor = processor;
     }
 

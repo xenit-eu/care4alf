@@ -1,5 +1,6 @@
 package eu.xenit.care4alf.module.bulk;
 
+import eu.xenit.care4alf.BetterBatchProcessor;
 import org.alfresco.repo.batch.BatchProcessor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
@@ -15,7 +16,7 @@ import org.json.JSONObject;
 /**
  * Created by willem on 5/12/15.
  */
-public abstract class AbstractWorker extends BatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
+public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
 
     protected NodeService nodeService;
     protected NamespacePrefixResolver nameSpacePrefixResolver;
