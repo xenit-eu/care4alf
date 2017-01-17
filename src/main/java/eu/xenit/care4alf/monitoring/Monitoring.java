@@ -138,7 +138,7 @@ public class Monitoring implements ApplicationContextAware {
 
     public Map<String, Long> getAllMetrics() throws Exception {
         final Map<String, Long> vars = new HashMap<String, Long>();
-        vars.put("db", this.dbCheck());
+        vars.put("db.healthy", this.dbCheck());
         logger.debug("db done");
         vars.put("solr.errors", this.solrAdmin.getSolrErrors());
         logger.debug("solr.errors done");

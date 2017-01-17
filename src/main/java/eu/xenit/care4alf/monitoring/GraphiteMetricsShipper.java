@@ -33,10 +33,10 @@ public class GraphiteMetricsShipper implements Job {
     private java.util.Properties properties;
 
     private boolean enabled = false;
-    private String name = "alfresco";
+    private String serverName = "alfresco";
 
     public String getServerName(){
-        return this.name;
+        return this.serverName;
     }
 
     @PostConstruct
@@ -47,7 +47,7 @@ public class GraphiteMetricsShipper implements Job {
             return;
 
         try {
-            this.name = properties.getProperty("c4a.monitoring.graphite.prefix", InetAddress.getLocalHost().getHostName());
+            this.serverName = properties.getProperty("c4a.monitoring.graphite.prefix", InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
             logger.warn("Couldn't fetch hostname");
         }
@@ -67,7 +67,7 @@ public class GraphiteMetricsShipper implements Job {
         try {
             Map<String, Long> prefixed = monitoring.getAllMetrics();
             for(Map.Entry<String, Long> metric: monitoring.getAllMetrics().entrySet()){
-                prefixed.put(this.name + "." + metric.getKey(), metric.getValue());
+                prefixed.put(this.serverName + "." + metric.getKey(), metric.getValue());
             }
             client.send(prefixed);
         } catch (Exception e) {

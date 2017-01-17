@@ -2,7 +2,6 @@ package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.monitoring.GraphiteMetricsShipper;
-import eu.xenit.care4alf.monitoring.JMXMonitoring;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,9 +24,6 @@ import static junit.framework.TestCase.assertTrue;
 public class MonitoringTest {
 
     @Autowired
-    private JMXMonitoring jmxMonitoring;
-
-    @Autowired
     private Monitoring monitoring;
 
     @Autowired
@@ -43,13 +39,6 @@ public class MonitoringTest {
     }
 
     @Test
-    public void dataRealistic(){
-        Map<String, Long> map = jmxMonitoring.getMonitoringMetrics();
-        assertTrue(map.get("jvm.memory.eden.used.MB") > 0L);
-        assertTrue(map.get("jvm.memory.eden.max.MB") > 0L);
-    }
-
-    @Test
     public void metricCantContainSpaces() throws Exception {
         List<String> keys = new ArrayList<>(monitoring.getAllMetrics().keySet());
         for(String key:keys){
@@ -61,8 +50,24 @@ public class MonitoringTest {
 
     @Test
     public void getHostName() {
-        String name = shipper.getServerName();
-        System.out.println(name);
-        Assert.assertTrue(name != null);
+        String serverName = shipper.getServerName();
+        System.out.println(serverName);
+        Assert.assertTrue(serverName != null);
     }
+
+    @Test
+    public void noConflictingNameSpaces() throws Exception {
+        List<String> keys = new ArrayList<>(monitoring.getAllMetrics().keySet());
+        //Assert.assertFalse(keys.contains("solr.lag") && keys.contains("solr.lag.nodes"));
+        for(String key : keys){
+            for(String conflictKey : keys){
+                if(key.equals(conflictKey))
+                    continue;
+
+                if(conflictKey.contains(key+"."))
+                    System.out.println(String.format("Conflicting key between '%s' and '%s'", key, conflictKey));
+            }
+        }
+    }
+
 }

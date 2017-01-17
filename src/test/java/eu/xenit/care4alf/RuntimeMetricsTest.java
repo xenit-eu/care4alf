@@ -23,7 +23,11 @@ public class RuntimeMetricsTest {
     @Test
     public void testRuntimeMetrics(){
         Map<String, Long> metrics = runtimeMetrics.getMonitoringMetrics();
-        Assert.assertEquals(6, metrics.size());
+        Assert.assertTrue(metrics.size() > 0);
+        Assert.assertTrue(metrics.containsKey("jvm.memory.runtime.free"));
+        Assert.assertTrue(metrics.containsKey("jvm.memory.runtime.max"));
+        Assert.assertTrue(metrics.containsKey("jvm.memory.runtime.total"));
+        Assert.assertTrue(metrics.containsKey("jvm.threads.count"));
     }
 
 }
