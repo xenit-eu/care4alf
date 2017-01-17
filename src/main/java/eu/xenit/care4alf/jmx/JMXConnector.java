@@ -28,6 +28,7 @@ public class JMXConnector {
         List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (MemoryPoolMXBean pool : memoryPoolMXBeans) {
             report += "\nMemory Pool: " + pool.getName();
+            report += "\nType: " + pool.getType().name();
             MemoryUsage usage = pool.getUsage();
             report += "\n   Max : " + usage.getMax() / 1024000 + "MB";
             report += "\n   Used: " + usage.getUsed() / 1024000 + "MB";
