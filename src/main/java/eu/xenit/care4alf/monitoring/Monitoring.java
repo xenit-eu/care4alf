@@ -65,9 +65,6 @@ public class Monitoring implements ApplicationContextAware {
     private Clustering clustering;
 
     @Autowired
-    private LicenseService licenseService;
-
-    @Autowired
     private JMXConnector jmxConnector;
 
     private final Logger logger = LoggerFactory.getLogger(Monitoring.class);
@@ -152,7 +149,6 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("solr.properties.residual done");
         vars.put("cluster.nodes", (long) this.clustering.getNumClusterMembers());
         logger.debug("cluster.nodes done");
-        vars.put("license.valid", (long) this.licenseService.getLicense().getRemainingDays());
 
         // find all beans implementing the MonitoredSource interface and get the metrics to add.
         logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
@@ -180,23 +176,6 @@ public class Monitoring implements ApplicationContextAware {
                 jsonWriter.object();
                 for (Map.Entry<String, Long> entry : vars.entrySet())
                     jsonWriter.key(entry.getKey()).value(entry.getValue());
-                jsonWriter.endObject();
-            }
-        };
-    }
-
-    @Uri(value="/xenit/care4alf/monitoring/license")
-    public Resolution getLicenseInfo(){
-        final LicenseDescriptor license = licenseService.getLicense();
-        final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
-        return new JsonWriterResolution() {
-            @Override
-            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-                jsonWriter.object();
-                jsonWriter.key("days").value(license.getRemainingDays());
-                jsonWriter.key("valid.until").value(sdf.format(license.getValidUntil()));
-                jsonWriter.key("license.holder").value(license.getHolderOrganisation());
-                jsonWriter.key("cluster").value(license.isClusterEnabled());
                 jsonWriter.endObject();
             }
         };

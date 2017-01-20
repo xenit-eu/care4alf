@@ -20,18 +20,17 @@ public class Clustering {
             int numClusterMembers = (Integer) ((Attribute) attributes.get(0)).getValue();
             return numClusterMembers;
         } catch (InstanceNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (ReflectionException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         } catch (MalformedObjectNameException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+        } catch(Exception e){
+//            e.printStackTrace();
         }
         return -1;
     }
 
-    public boolean testCluster(){
-        return false;
-    }
 }
