@@ -49,7 +49,7 @@ public class MonitoringTest {
     }
 
     @Test
-    public void getHostName() {
+    public void getServerName() {
         String serverName = shipper.getServerName();
         System.out.println(serverName);
         Assert.assertTrue(serverName != null);
@@ -58,16 +58,19 @@ public class MonitoringTest {
     @Test
     public void noConflictingNameSpaces() throws Exception {
         List<String> keys = new ArrayList<>(monitoring.getAllMetrics().keySet());
-        //Assert.assertFalse(keys.contains("solr.lag") && keys.contains("solr.lag.nodes"));
+        boolean conflict = false;
         for(String key : keys){
             for(String conflictKey : keys){
                 if(key.equals(conflictKey))
                     continue;
 
-                if(conflictKey.contains(key+"."))
+                if(conflictKey.contains(key+".")) {
+                    conflict=true;
                     System.out.println(String.format("Conflicting key between '%s' and '%s'", key, conflictKey));
+                }
             }
         }
+        Assert.assertFalse(conflict);
     }
 
 }
