@@ -139,7 +139,7 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("db done");
         vars.put("solr.errors", this.solrAdmin.getSolrErrors());
         logger.debug("solr.errors done");
-        vars.put("solr.lag", this.solrAdmin.getSolrLag());
+        vars.put("solr.lag.time", this.solrAdmin.getSolrLag());
         logger.debug("solr.lag done");
         vars.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
         logger.debug("solr.lag.nodes done");
