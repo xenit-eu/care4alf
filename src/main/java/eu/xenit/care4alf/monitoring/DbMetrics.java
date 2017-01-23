@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,10 +34,25 @@ public class DbMetrics implements MonitoredSource{
         map.put("db.connectionpool.idle.min", (long) ((BasicDataSource)dataSource).getMinIdle());
         map.put("db.connectionpool.idle.max", (long) ((BasicDataSource)dataSource).getMaxIdle());
 
-        map.put("db.connectionpool.wait.max", (long) ((BasicDataSource)dataSource).getMaxWait());
+        map.put("db.connectionpool.wait.max", ((BasicDataSource)dataSource).getMaxWait());
         map.put("db.connectionpool.wait.active", (long) ((BasicDataSource)dataSource).getMaxActive());
 
+        ((BasicDataSource) dataSource).getUrl();
+        URI uri = URI.create(((BasicDataSource) dataSource).getUrl());
+        map.put("db.ping", this.ping(uri.getHost()));
+
         return map;
+    }
+
+    public long ping(String host) {
+        long start = System.currentTimeMillis();
+        try {
+            if(InetAddress.getByName(host).isReachable(2000))
+                return System.currentTimeMillis() - start;
+        } catch (IOException e) {
+            return -1;
+        }
+        return -1;
     }
 
 }
