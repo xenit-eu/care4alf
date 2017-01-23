@@ -8,6 +8,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Map;
 
 /**
@@ -21,10 +23,18 @@ public class DbMetricsTest {
     DbMetrics dbMetrics;
 
     @Test
-    public void testDBConnectionpoolCount(){
+    public void testDBConnectionpoolCount() throws IOException, SQLException {
         Map<String, Long> metrics = dbMetrics.getMonitoringMetrics();
         Assert.assertTrue(metrics.entrySet().size() >= 1);
         Assert.assertTrue(metrics.get("db.connectionpool.active") > 0L);
+        Assert.assertTrue(metrics.get("db.ping") >= 0L);
+    }
+
+    @Test
+    public void testPing() throws IOException {
+        long time = dbMetrics.ping("www.xenit.eu");
+        System.out.println(time);
+        Assert.assertTrue(time >= 0);
     }
 
 }
