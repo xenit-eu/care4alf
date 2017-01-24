@@ -33,7 +33,7 @@ public class BulkTest {
                 180,
                 "dummy",
                 null,
-                "TYPE:\"cm:content\"",
+                "PATH:\"/app:company_home/app:dictionary//*\"",
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_FTS_ALFRESCO);
         int results = processor.getSuccessfullyProcessedEntries();
