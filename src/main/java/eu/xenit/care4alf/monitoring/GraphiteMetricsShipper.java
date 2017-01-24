@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -65,10 +66,12 @@ public class GraphiteMetricsShipper implements Job {
 
         logger.debug("Fetching and sending metrics to Graphite");
         try {
-            Map<String, Long> prefixed = monitoring.getAllMetrics();
+            Map<String, Long> prefixed = new HashMap<>();
             for(Map.Entry<String, Long> metric: monitoring.getAllMetrics().entrySet()){
-                prefixed.put(this.serverName + "." + metric.getKey(), metric.getValue());
+                prefixed.put(this.getServerName() + "." + metric.getKey(), metric.getValue());
             }
+            if(logger.isDebugEnabled())
+                logger.debug("Sending {} metrics",prefixed.size());
             client.send(prefixed);
         } catch (Exception e) {
             logger.warn("Can't send metrics to Graphite");
