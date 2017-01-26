@@ -208,6 +208,9 @@ task integrationJar(type: Jar) {
     from('build/classes/main') {
         include 'eu/xenit/care4alf/integration/**/*'
     }
+    manifest {
+        attributes("Bundle-Name": baseName)
+    }
 }
 
 
