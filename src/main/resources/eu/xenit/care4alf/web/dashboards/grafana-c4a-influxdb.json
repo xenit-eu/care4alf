@@ -44,6 +44,7 @@
   "hideControls": false,
   "id": null,
   "links": [],
+  "refresh": false,
   "rows": [
     {
       "collapse": false,
@@ -55,6 +56,7 @@
           "datasource": "${DS_ALFRESCO}",
           "fill": 1,
           "id": 2,
+          "interval": "",
           "legend": {
             "avg": false,
             "current": false,
@@ -67,7 +69,7 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
@@ -78,6 +80,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "alias": "Repository workspace nodes",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -95,6 +98,8 @@
               ],
               "measurement": "talfresco5.repository.workspace.nodes",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.repository.workspace.nodes\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -114,6 +119,7 @@
               "tags": []
             },
             {
+              "alias": "Repository archive nodes",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -131,6 +137,8 @@
               ],
               "measurement": "talfresco5.repository.archive.nodes",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.repository.archive.nodes\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "B",
               "resultFormat": "time_series",
               "select": [
@@ -150,6 +158,7 @@
               "tags": []
             },
             {
+              "alias": "Repository versie nodes",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -167,6 +176,8 @@
               ],
               "measurement": "talfresco5.repository.version.nodes",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.repository.version.nodes\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "C",
               "resultFormat": "time_series",
               "select": [
@@ -543,7 +554,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 284,
       "panels": [
         {
           "aliasColors": {},
@@ -552,6 +563,7 @@
           "fill": 1,
           "id": 6,
           "legend": {
+            "alignAsTable": false,
             "avg": false,
             "current": false,
             "max": false,
@@ -563,17 +575,23 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 9,
+          "seriesOverrides": [
+            {
+              "alias": "Solr lag time",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
+              "alias": "Solr lag nodes",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -591,6 +609,8 @@
               ],
               "measurement": "talfresco5.solr.lag.nodes",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.solr.lag.nodes\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -610,6 +630,7 @@
               "tags": []
             },
             {
+              "alias": "Solr errors",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -627,6 +648,8 @@
               ],
               "measurement": "talfresco5.solr.errors",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.solr.errors\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "B",
               "resultFormat": "time_series",
               "select": [
@@ -646,6 +669,7 @@
               "tags": []
             },
             {
+              "alias": "Solr lag time",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -663,6 +687,8 @@
               ],
               "measurement": "talfresco5.solr.lag.time",
               "policy": "default",
+              "query": "SELECT mean(\"value\") FROM \"talfresco5.solr.lag.time\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "C",
               "resultFormat": "time_series",
               "select": [
@@ -701,34 +727,22 @@
           "yaxes": [
             {
               "format": "short",
-              "label": null,
+              "label": "Aantal",
               "logBase": 1,
               "max": null,
               "min": null,
               "show": true
             },
             {
-              "format": "short",
-              "label": null,
+              "format": "dtdurations",
+              "label": "Tijd",
               "logBase": 1,
               "max": null,
               "min": null,
               "show": true
             }
           ]
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "Dashboard Row",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": 250,
-      "panels": [
+        },
         {
           "aliasColors": {},
           "bars": false,
@@ -747,17 +761,18 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 9,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
+              "alias": "JVM heap used",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -794,6 +809,7 @@
               "tags": []
             },
             {
+              "alias": "JVM heap max",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -833,7 +849,7 @@
           "thresholds": [],
           "timeFrom": null,
           "timeShift": null,
-          "title": "JVM",
+          "title": "JVM heap",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -848,7 +864,7 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "format": "decbytes",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -875,7 +891,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 258,
       "panels": [
         {
           "aliasColors": {},
@@ -895,17 +911,18 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 9,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
+              "alias": "JVM threads running",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -943,6 +960,7 @@
               "tags": []
             },
             {
+              "alias": "JVM threads waiting",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -979,6 +997,7 @@
               "tags": []
             },
             {
+              "alias": "JVM threads blocked",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1049,19 +1068,7 @@
               "show": true
             }
           ]
-        }
-      ],
-      "repeat": null,
-      "repeatIteration": null,
-      "repeatRowId": null,
-      "showTitle": false,
-      "title": "Dashboard Row",
-      "titleSize": "h6"
-    },
-    {
-      "collapse": false,
-      "height": 250,
-      "panels": [
+        },
         {
           "aliasColors": {},
           "bars": false,
@@ -1080,17 +1087,18 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 9,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
+              "alias": "DB ping time",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1145,7 +1153,7 @@
           },
           "yaxes": [
             {
-              "format": "short",
+              "format": "dtdurationms",
               "label": null,
               "logBase": 1,
               "max": null,
@@ -1172,7 +1180,7 @@
     },
     {
       "collapse": false,
-      "height": 250,
+      "height": 247,
       "panels": [
         {
           "aliasColors": {},
@@ -1192,17 +1200,18 @@
           "lines": true,
           "linewidth": 1,
           "links": [],
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
           "seriesOverrides": [],
-          "span": 9,
+          "span": 6,
           "stack": false,
           "steppedLine": false,
           "targets": [
             {
+              "alias": "DB connectionpool active",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -1232,7 +1241,7 @@
                   },
                   {
                     "params": [],
-                    "type": "mean"
+                    "type": "median"
                   }
                 ]
               ],
@@ -1273,6 +1282,430 @@
               "show": true
             }
           ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_ALFRESCO}",
+          "fill": 1,
+          "id": 12,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "GC Concurrentmarksweep time",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "talfresco5.jvm.gc.ConcurrentMarkSweep.time.ms",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "JVM GC",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "Âµs",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": false,
+      "title": "Dashboard Row",
+      "titleSize": "h6"
+    },
+    {
+      "collapse": false,
+      "height": 238,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "${DS_ALFRESCO}",
+          "fill": 1,
+          "id": 13,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 4,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "GC concurrentmarksweep count",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "talfresco5.jvm.gc.ConcurrentMarkSweep.count",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "median"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "JVM GC Count",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_ALFRESCO}",
+          "format": "dtdurationms",
+          "gauge": {
+            "maxValue": 2000,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": false
+          },
+          "id": 14,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 4,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "alias": "Node index time",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "talfresco5.solr.summary.alfresco.Nodeindextime(ms).Mean",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": "1000,2000",
+          "title": "Node current index time",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": true,
+          "colors": [
+            "rgba(50, 172, 45, 0.97)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(245, 54, 54, 0.9)"
+          ],
+          "datasource": "${DS_ALFRESCO}",
+          "format": "dtdurationms",
+          "gauge": {
+            "maxValue": 100,
+            "minValue": 0,
+            "show": false,
+            "thresholdLabels": false,
+            "thresholdMarkers": true
+          },
+          "id": 15,
+          "interval": null,
+          "links": [],
+          "mappingType": 1,
+          "mappingTypes": [
+            {
+              "name": "value to text",
+              "value": 1
+            },
+            {
+              "name": "range to text",
+              "value": 2
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "rangeMaps": [
+            {
+              "from": "null",
+              "text": "N/A",
+              "to": "null"
+            }
+          ],
+          "span": 4,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": false,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "alias": "Solr alfresco time per request",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "talfresco5.solr.summary.alfresco.alfresco.avgTimePerRequest",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "thresholds": "500,1000",
+          "title": "SOLR current time per request",
+          "type": "singlestat",
+          "valueFontSize": "80%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
         }
       ],
       "repeat": null,
@@ -1290,7 +1723,7 @@
     "list": []
   },
   "time": {
-    "from": "now-7d",
+    "from": "now/d",
     "to": "now"
   },
   "timepicker": {
@@ -1320,5 +1753,5 @@
   },
   "timezone": "browser",
   "title": "Alfresco test",
-  "version": 8
+  "version": 17
 }
