@@ -1,9 +1,11 @@
 package eu.xenit.care4alf.scheduledjobs;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import org.alfresco.repo.dictionary.types.period.Cron;
 import org.alfresco.repo.domain.schema.SchemaBootstrap;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.quartz.CronTrigger;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
@@ -40,54 +42,47 @@ public class ScheduledJobs {
             "TimeZone", "Volatile"};
 
     @Uri(value="job")
-    public void job(final WebScriptResponse response) throws IOException, JSONException, SchedulerException {
+    public void getJobsREST(final WebScriptResponse response) throws IOException, JSONException, SchedulerException {
         final JSONWriter json = new JSONWriter(response.getWriter());
         json.array();
-        Scheduler scheduler = schedulerFactory.getScheduler();
-        //loop all group
-        for (String groupName : scheduler.getJobGroupNames()) {
 
-            //loop all jobs by groupname
-            for (String jobName : scheduler.getJobNames(groupName)) {
-                json.object();
-                json.key("JobName");
-                json.value(jobName);
-                json.key("Name");
-                json.value(jobName);
-                //get job's trigger
-                Trigger[] triggers = scheduler.getTriggersOfJob(jobName,groupName);
-
-                json.key("PreviousFireTime");
-                json.value(triggers[0].getPreviousFireTime());
-                json.key("NextFireTime");
-                json.value(triggers[0].getNextFireTime());
-
-                json.endObject();
-            }
+        for(ScheduledJob job : this.getScheduledJobs()){
+            json.object();
+            json.key("JobName");
+            json.value(job.getName());
+            json.key("Name");
+            json.value(job.getName());
+            json.key("PreviousFireTime");
+            json.value(job.getPreviousFireTime());
+            json.key("NextFireTime");
+            json.value(job.getNextFireTime());
+            json.key("CronExpression");
+            json.value(job.getCronExpression());
+            json.endObject();
         }
         json.endArray();
     }
 
-    public List<String> getScheduledJobsNames() throws SchedulerException {
-        List<String> names = new ArrayList<>();
+    public List<ScheduledJob> getScheduledJobs() throws SchedulerException {
+        List<ScheduledJob> jobs = new ArrayList<>();
+
         Scheduler scheduler = schedulerFactory.getScheduler();
-        System.out.println(scheduler.getTriggerGroupNames().toString());
         //loop all group
         for (String groupName : scheduler.getJobGroupNames()) {
 
             //loop all jobs by groupname
             for (String jobName : scheduler.getJobNames(groupName)) {
-                names.add(jobName);
-                //get job's trigger
                 Trigger[] triggers = scheduler.getTriggersOfJob(jobName,groupName);
-                Date nextFireTime = triggers[0].getNextFireTime();
 
-                System.out.println("[jobName] : " + jobName + " [groupName] : "
-                        + groupName + " - " + nextFireTime);
+                String cronExpression = "";
+                if(triggers[0] instanceof CronTrigger)
+                    cronExpression = ((CronTrigger)triggers[0]).getCronExpression();
 
+                jobs.add(new ScheduledJob(jobName, cronExpression,triggers[0].getPreviousFireTime(),triggers[0].getNextFireTime()));
             }
         }
-        return names;
+
+        return jobs;
     }
 
     @Uri(value="job/{name}/execute", method = HttpMethod.POST)
@@ -115,6 +110,34 @@ public class ScheduledJobs {
     public void validateSchema(PrintWriter writer){
         this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", writer);
         writer.write("END.");
+    }
+
+    class ScheduledJob{
+        private String name, cronExpression;
+        private Date previousFireTime, nextFireTime;
+
+        public ScheduledJob(String name, String cronExpression, Date previousFireTime, Date nextFireTime) {
+            this.name = name;
+            this.cronExpression = cronExpression;
+            this.previousFireTime = previousFireTime;
+            this.nextFireTime = nextFireTime;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getCronExpression() {
+            return cronExpression;
+        }
+
+        public Date getPreviousFireTime() {
+            return previousFireTime;
+        }
+
+        public Date getNextFireTime() {
+            return nextFireTime;
+        }
     }
 
 }

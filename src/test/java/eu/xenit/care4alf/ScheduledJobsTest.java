@@ -25,7 +25,7 @@ public class ScheduledJobsTest {
 
     @Test
     public void listScheduledJobs() throws SchedulerException {
-        Assert.assertTrue(scheduledJobs.getScheduledJobsNames().size() > 0);
+        Assert.assertTrue(scheduledJobs.getScheduledJobs().size() > 0);
     }
 
     @Test
