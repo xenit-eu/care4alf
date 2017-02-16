@@ -141,7 +141,7 @@ dependencies {
     installDep('eu.xenit.apix:integration-testing:1.2.24')
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
-
+    embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
@@ -177,7 +177,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', 'javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
+        instruction 'Import-Package', 'javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,*'
     }
 }
 
