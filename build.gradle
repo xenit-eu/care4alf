@@ -51,8 +51,8 @@ publishing {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
             version project.version + '-' + buildNumber
-            //artifact file("build/amps/${project.name}-${project.version}.amp")
-            artifact ampde
+            artifact file("build/distributions/${project.name}-${project.version}.amp")
+            //artifact ampde
         }
         integrationJar(MavenPublication) {
             artifactId project.name + '-integration'
@@ -60,7 +60,6 @@ publishing {
             version project.version + '-' + buildNumber
             artifact file("build/libs/${project.name}-integration-${project.version}.jar")
         }
-
     }
     repositories {
         maven {
