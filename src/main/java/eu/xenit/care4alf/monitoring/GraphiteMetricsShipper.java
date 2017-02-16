@@ -20,7 +20,7 @@ import java.util.Map;
  * Created by willem on 12/13/16.
  */
 @Component
-@ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "* 0/5 * * * ?")
+@ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "0 0/5 * * * ?")
 public class GraphiteMetricsShipper implements Job {
     private final Logger logger = LoggerFactory.getLogger(GraphiteMetricsShipper.class);
 
