@@ -27,7 +27,7 @@ import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
 import org.alfresco.util.TraceableThreadFactory;
-import org.alfresco.util.transaction.TransactionListenerAdapter;
+import org.alfresco.repo.transaction.TransactionListenerAdapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEventPublisher;
