@@ -1,6 +1,7 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
+import eu.xenit.care4alf.monitoring.ClusteringMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RunWith(ApixIntegration.class)
 public class ClusteringTest {
     @Autowired
-    Clustering clustering;
+    private ClusteringMetric clustering;
 
     @Test
     public void testGetNumClusterMembers(){

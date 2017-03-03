@@ -242,33 +242,39 @@ public class SolrAdmin {
         }
     }
 
-    public long getModelErrors() throws EncoderException, IOException, JSONException {
-        long count = 0;
-        JSONObject json = this.getSolrAdminClient().getSolrSummaryJson();
-
-        if(json.has("Error") && (int) json.get("Error")==-2){
-            return -1;
-        }
-
-        Object alfrescoerror = null;
-        Object archiveerror = null;
+    public long getModelErrors(){
         try {
-            alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
-            //check archive null
-            archiveerror = (json.getJSONObject("archive") == null) ?
-                    null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
-        } catch (JSONException e) {
-            logger.debug("no model errors found.");
+            long count = 0;
+            JSONObject json = this.getSolrAdminClient().getSolrSummaryJson();
+
+            if (json.has("Error") && (int) json.get("Error") == -2) {
+                return -1;
+            }
+
+            Object alfrescoerror = null;
+            Object archiveerror = null;
+            try {
+                alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
+                //check archive null
+                archiveerror = (json.getJSONObject("archive") == null) ?
+                        null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
+            } catch (JSONException e) {
+                logger.debug("no model errors found.");
+            }
+            if (alfrescoerror == null && archiveerror == null) return 0;
+            if (alfrescoerror != null) {
+                count += geterrors(alfrescoerror);
+            }
+            if (archiveerror != null) {
+                count += geterrors(archiveerror);
+            }
+            logger.debug("count: " + count);
+            return count;
         }
-        if (alfrescoerror == null && archiveerror == null) return 0;
-        if (alfrescoerror != null) {
-            count += geterrors(alfrescoerror);
+        catch (Exception e){
+            logger.warn("Can't determine if there are Solr model errors");
         }
-        if (archiveerror != null) {
-            count += geterrors(archiveerror);
-        }
-        logger.debug("count: " + count);
-        return count;
+        return -1;
     }
 
     private long geterrors(Object json) throws JSONException {

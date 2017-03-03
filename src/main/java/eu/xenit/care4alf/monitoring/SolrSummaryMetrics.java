@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.apache.commons.codec.EncoderException;
-import org.apache.xpath.operations.Number;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -38,7 +37,12 @@ public class SolrSummaryMetrics implements MonitoredSource{
         try {
             JSONObject summary = this.solrAdmin.getSolrSummaryJson();
             Map<String,String> flattened = this.flatten(summary);
-            return transform(flattened);
+            Map<String, Long> r = transform(flattened);
+            r.put("solr.errors", this.solrAdmin.getSolrErrors());
+            r.put("solr.lag.time", this.solrAdmin.getSolrLag());
+            r.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
+            r.put("solr.model.errors", this.solrAdmin.getModelErrors());
+            return r;
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (EncoderException e) {
