@@ -1,7 +1,7 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
-version='1.0.4'
+version='1.0.5'
 
 buildscript {
     ext.kotlin_version = '1.0.3'

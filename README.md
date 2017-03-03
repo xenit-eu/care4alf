@@ -24,6 +24,6 @@ npm install -g less
 Monitoring configuration:
 
     c4a.monitoring.graphite.enabled=true
-    c4a.monitoring.graphite.prefix=c4a-alfresco
+    c4a.monitoring.graphite.prefix=c4a.alfresco
     c4a.monitoring.graphite.host=carbon
     c4a.monitoring.graphite.port=2003

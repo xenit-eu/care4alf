@@ -1,6 +1,10 @@
 package eu.xenit.care4alf.monitoring;
 
+import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
+import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import eu.xenit.care4alf.integration.MonitoredSource;
+import org.alfresco.repo.descriptor.DescriptorDAO;
+import org.alfresco.service.descriptor.Descriptor;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,6 +27,10 @@ public class DbMetrics implements MonitoredSource{
     @Qualifier("defaultDataSource")
     private DataSource dataSource;
 
+    @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
+    private DescriptorDAO currentRepoDescriptorDAO;
+
     @Override
     public Map<String, Long> getMonitoringMetrics() {
         Map<String, Long> map = new HashMap<>();
@@ -36,6 +44,8 @@ public class DbMetrics implements MonitoredSource{
 
         map.put("db.connectionpool.wait.max", ((BasicDataSource)dataSource).getMaxWait());
         map.put("db.connectionpool.wait.active", (long) ((BasicDataSource)dataSource).getMaxActive());
+
+        map.put("db.healthy",dbCheck());
 
         ((BasicDataSource) dataSource).getUrl();
         URI uri = URI.create(((BasicDataSource) dataSource).getUrl());
@@ -53,6 +63,19 @@ public class DbMetrics implements MonitoredSource{
             return -1;
         }
         return -1;
+    }
+
+    public long dbCheck() {
+        try {
+            this.getDescriptor();
+        } catch (Exception e) {
+            return -1;
+        }
+        return 1;
+    }
+
+    private Descriptor getDescriptor() {
+        return currentRepoDescriptorDAO.getDescriptor();
     }
 
 }
