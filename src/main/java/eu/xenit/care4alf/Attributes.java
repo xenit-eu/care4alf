@@ -1,5 +1,6 @@
 package eu.xenit.care4alf;
 
+import com.github.dynamicextensionsalfresco.annotations.Transactional;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.domain.propval.PropertyValueDAO;
 import org.alfresco.service.cmr.attributes.AttributeService;
@@ -81,15 +82,23 @@ public class Attributes {
 
     @Uri(value = "/", method = HttpMethod.POST)
     public void addAttribute(WebScriptResponse res, @RequestParam(delimiter = ";") String[] keys, @RequestParam String value) throws IOException, SQLException, JSONException {
+        this.create(keys, value);
+    }
+
+    public void create(String[] keys, String value){
         this.attributeService.createAttribute(value, keys);
     }
 
     @Uri(value = "/", method = HttpMethod.DELETE)
     public void removeAttribute(WebScriptResponse res, @RequestParam(delimiter = ";") String[] keys) throws IOException, SQLException, JSONException {
+        this.remove(keys);
+    }
+
+    public void remove(String[] keys){
         this.attributeService.removeAttribute(keys);
     }
 
-    class Attribute{
+    public class Attribute{
         private String key1, key2, key3;
         private Serializable att;
 
