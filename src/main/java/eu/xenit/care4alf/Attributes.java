@@ -1,12 +1,13 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.annotations.Transactional;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.domain.propval.PropertyValueDAO;
 import org.alfresco.service.cmr.attributes.AttributeService;
 import org.alfresco.util.Pair;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
@@ -25,9 +26,10 @@ import java.util.List;
  * Created by willem on 4/18/16.
  */
 @Component
-@WebScript(baseUri = "/xenit/care4alf/attributes", families = {"care4alf-noui"}, description = "Attributes")
+@WebScript(baseUri = "/xenit/care4alf/attributes", families = {"care4alf"}, description = "Attributes")
 @Authentication(AuthenticationType.ADMIN)
 public class Attributes {
+    private final Logger logger = LoggerFactory.getLogger(Attributes.class);
 
     @Autowired
     AttributeService attributeService;
@@ -59,19 +61,24 @@ public class Attributes {
             final Statement stmt = connection.createStatement();
             final ResultSet rs = stmt.executeQuery(query);
             while (rs.next()) {
-                Long key1 = rs.getLong(3);
-                Long key2 = rs.getLong(4);
-                Long key3 = rs.getLong(5);
-                Pair<Long,Serializable> pair1 = propertyValueDAO.getPropertyValueById(key1);
-                Pair<Long,Serializable> pair2 = propertyValueDAO.getPropertyValueById(key2);
-                Pair<Long,Serializable> pair3 = propertyValueDAO.getPropertyValueById(key3);
-                attributes.add(new Attribute(
-                                pair1.getSecond() == null?null:pair1.getSecond().toString(),
-                                pair2.getSecond() == null?null:pair2.getSecond().toString(),
-                                pair3.getSecond() == null?null:pair3.getSecond().toString(),
-                                this.attributeService.getAttribute(pair1.getSecond(), pair2.getSecond(), pair3.getSecond())
-                        )
-                );
+                    Long key1 = rs.getLong(3);
+                    Long key2 = rs.getLong(4);
+                    Long key3 = rs.getLong(5);
+                    Pair<Long,Serializable> pair1 = propertyValueDAO.getPropertyValueById(key1);
+                    Pair<Long,Serializable> pair2 = propertyValueDAO.getPropertyValueById(key2);
+                    Pair<Long,Serializable> pair3 = propertyValueDAO.getPropertyValueById(key3);
+                    Serializable value = "<notfound>";
+                    try {
+                        value = this.attributeService.getAttribute(pair1.getSecond(), pair2.getSecond(), pair3.getSecond());
+                    }catch(Exception e){
+                        logger.error("Can't fetch attribute for (%s,%s,%s)", pair1.getFirst(), pair2.getSecond(), pair3.getSecond());
+                    }
+                    attributes.add(new Attribute(
+                                    pair1.getSecond() == null?null:pair1.getSecond().toString(),
+                                    pair2.getSecond() == null?null:pair2.getSecond().toString(),
+                                    pair3.getSecond() == null?null:pair3.getSecond().toString(),
+                                    value)
+                    );
             }
             rs.close();
         } finally {

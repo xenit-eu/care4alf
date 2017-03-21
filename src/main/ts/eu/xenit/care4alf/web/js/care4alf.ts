@@ -36,3 +36,4 @@
 /// <reference path="sql.ts" />
 /// <reference path="sso.ts" />
 /// <reference path="config.ts" />
+/// <reference path="attributes.ts" />
