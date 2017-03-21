@@ -10,13 +10,13 @@
     <tr>
         <td><input ng-model="key"/></td>
         <td><input ng-model="value"/></td>
-        <td><button class="button" ng-click="save(key,value)">Add</button></td>
+        <td><button class="btn btn-primary" ng-click="save(key,value)">Add</button></td>
     </tr>
     <tr ng-repeat="(key, value) in properties">
         <td>{{key}}</td>
         <td><input ng-model="value"/></td>
-        <td><button class="button" ng-click="save(key, value)">save</button></td>
-        <td><button class="button" ng-click="remove(key)">remove</button></td>
+        <td><button class="btn btn-primary" ng-click="save(key, value)">Save</button></td>
+        <td><button class="btn btn-danger" ng-click="remove(key)">Delete</button></td>
     </tr>
     </tbody>
 </table>
