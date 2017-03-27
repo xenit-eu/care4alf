@@ -1,4 +1,4 @@
-ext.alfrescoVersion = '4.1.10'
+ext.alfrescoVersion = '4.0.2.54'
 ext.springVersion = '3.0.5.RELEASE'
 
 buildscript {
@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.3.+')
+        classpath(group: 'com.github.dynamicextensionsalfresco', name: 'gradle-plugin', version: '1.4.+')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.0.5'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
@@ -26,16 +26,18 @@ apply plugin: 'lesscss'
 apply plugin: 'maven-publish'
 
 
+def care4alf_buildNumber = project.hasProperty('buildNumber') ? buildNumber : 0
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            version project.version + '-' + buildNumber
+            version project.version + '-' + care4alf_buildNumber
         }
         amp(MavenPublication) {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
-            version '1.0.0' + '-' + buildNumber
+            version '1.0.0' + '-' + care4alf_buildNumber
             artifact file("build/amps/" + project.name +".amp")
             //artifact ampde
         }
@@ -86,16 +88,27 @@ configurations {
 }
 
 dependencies {
-    compile("org.alfresco:alfresco-core:${alfrescoVersion}") { transitive = false }
-    compile("org.alfresco:alfresco-repository:${alfrescoVersion}") { transitive = false }
-    compile("org.alfresco:alfresco-data-model:${alfrescoVersion}") { transitive = true }
+    compile("org.alfresco:alfresco-core:${project.alfrescoVersion}") { transitive = false }
+    compile("org.alfresco:alfresco-repository:${project.alfrescoVersion}")
+    compile("org.alfresco:alfresco-data-model:${project.alfrescoVersion}") { transitive = true }
 
     compile "org.springframework:spring-context:${project.springVersion}"
     compile "org.springframework:spring-jdbc:${project.springVersion}"
     compile "org.osgi:org.osgi.core:4.3.1"
     compile 'org.json:json:20090211'
-    //compile("acegisecurity:acegi-security:0.8.2") {transitive = false}
+    compile("acegisecurity:acegi-security:0.8.2") {transitive = false}
     compile "org.slf4j:slf4j-api:1.7.5"
+
+
+    compile(group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1')
+    compile(group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.6')
+    compile(group: 'log4j', name: 'log4j', version: '1.2.17')
+    compile(group: 'commons-lang', name: 'commons-lang', version: '2.6')
+    testCompile(group: 'junit', name: 'junit', version: '4.12')
+
+
+
+
     compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
     compile('javax.transaction:transaction-api:1.1') { transitive = false }
     compile('org.jibx:jibx-run:1.2.3') { transitive = false }
@@ -105,7 +118,7 @@ dependencies {
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     embedded('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
-    compile('eu.xenit.apix:integration-testing:1.2.24')
+    compile('eu.xenit.apix:integration-testing:1.2.24') { transitive = false }
 
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -150,7 +163,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', '!jet.*,!org.codehaus.jackson.map.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,*'
+        instruction 'Import-Package', '!jet.*,!org.codehaus.jackson.map.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!org.alfresco.service.cmr.i18n,*'
         instruction '-noee', 'true'
     }
 }

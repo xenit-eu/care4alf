@@ -55,7 +55,7 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
     @Override
     public Collection<NodeRef> getNextWork() {
-
+        logger.debug("getting next work.");
 
         if (this.nodeRefs == null) {
             fetchAllResults();
@@ -72,25 +72,36 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
         int to = Math.min(skipCount + this.batchSize, this.nodeRefs.size());
         skipCount += batchSize;
 
+        logger.debug("returning nodes from " + from + " to " + to + " from " + this.nodeRefs.size() + " total.");
         return this.nodeRefs.subList(from, to);
     }
 
     private void fetchAllResults() {
         this.nodeRefs = new ArrayList<NodeRef>();
         ResultSet rs = null;
+
+        int resultSize = 0;
         int start = 0;
         try {
             do {
                 sp.setSkipCount(start);
                 logger.info("Start searching at " + start);
+                logger.debug("-- searchparameters: " + sp.toString());
                 rs = this.searchService.query(sp);
-                this.nodeRefs.addAll(rs.getNodeRefs());
+
+                List<NodeRef> results = rs.getNodeRefs();
+                resultSize = results.size();
+                logger.info("Results: " + resultSize);
+                this.nodeRefs.addAll(results);
+
                 start += 1000;
                 rs.close();
-            } while (rs.getNodeRefs().size() > 0 && !cancel);
+            } while ((resultSize - 1000) >= 0 && !cancel);
         } finally {
             if (rs != null) rs.close();
         }
+
+        logger.debug("done fetching results, found total of " + this.nodeRefs.size());
     }
 
     public void cancel() {

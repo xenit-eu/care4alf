@@ -6,7 +6,6 @@ import eu.xenit.care4alf.json
 import eu.xenit.care4alf.web.RestErrorHandling
 import org.alfresco.model.ContentModel
 import org.alfresco.repo.domain.permissions.AclDAO
-import org.alfresco.repo.i18n.StaticMessageLookup
 import org.alfresco.repo.policy.BehaviourFilter
 import org.alfresco.service.cmr.dictionary.DictionaryService
 import org.alfresco.service.cmr.dictionary.PropertyDefinition
@@ -207,7 +206,7 @@ public class Browser @Autowired constructor(
                         iterable(modelAspects) { aspect ->
                             obj {
                                 entry("qname", aspect)
-                                entry("title", dictionaryService.getAspect(aspect).getTitle(StaticMessageLookup()))
+                                entry("title", dictionaryService.getAspect(aspect).getTitle())
                             }
                         }
                     }
@@ -226,7 +225,7 @@ public class Browser @Autowired constructor(
                         iterable(modelTypes) { type ->
                             obj {
                                 entry("qname", type)
-                                entry("title", dictionaryService.getType(type).getTitle(StaticMessageLookup()))
+                                entry("title", dictionaryService.getType(type).getTitle())
                             }
                         }
                     }

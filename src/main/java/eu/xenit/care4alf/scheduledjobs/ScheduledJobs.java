@@ -2,6 +2,7 @@ package eu.xenit.care4alf.scheduledjobs;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.alfresco.repo.domain.schema.SchemaBootstrap;
+import org.apache.commons.lang.NotImplementedException;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
@@ -108,9 +109,11 @@ public class ScheduledJobs {
     SchemaBootstrap schemaBootstrap;
     @Uri("validateschema/txt")
     public void showSchemaValidation(WebScriptResponse res) throws IOException {
-        Writer writer = res.getWriter();
-        this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", (PrintWriter) writer);
-        writer.write("END.");
+//        Writer writer = res.getWriter();
+//        this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", (PrintWriter) writer);
+//        writer.write("END.");
+
+        throw new NotImplementedException("");
     }
 
 }

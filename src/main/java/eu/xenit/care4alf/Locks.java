@@ -117,7 +117,7 @@ public class Locks {
                     response.getWriter().write("Unlocked " + noderef);
 
                     try {
-                        lockService.unlock(noderef, true, true);
+                        lockService.unlock(noderef, true);
 
                     } catch (Exception ex2)
                     {

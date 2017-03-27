@@ -20,7 +20,7 @@ public class Locks @Autowired constructor(val lockService: LockService) {
         AuthenticationUtil.runAsSystem {
             //LockState s = null
             lockService
-                val lockState = lockService.getLockState(noderef)
+                val lockState = lockService.getLockStatus(noderef)
 
                 /*obj {
                     entry("owner", lockState.getOwner())
@@ -29,7 +29,7 @@ public class Locks @Autowired constructor(val lockService: LockService) {
                     entry("expires", lockState.getExpires())
                     entry("additionalinfo", lockState.getAdditionalInfo())
                 }*/
-                obj { entry("hello",lockState.getExpires())}
+                obj { entry("hello",lockState)}
 
         }
     }
