@@ -3,16 +3,15 @@ package eu.xenit.care4alf.module.bulk.workers;
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
 import org.alfresco.model.ContentModel;
-import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.swing.text.AbstractDocument;
 import java.util.Set;
 
 @Component
@@ -44,15 +43,19 @@ public class DeletePersonWorker extends AbstractWorker {
         }
 
         Set<String> authorities = authorityService.getAuthoritiesForUser(username);
-
+        LOGGER.debug("checking authorities for user: " + username);
         for(String authority : authorities){
+            if (authority.equals(PermissionService.ALL_AUTHORITIES)){
+                continue;
+            }
+
             if (authorityService.isAdminAuthority(authority)){
-                LOGGER.debug(username + " is admin authority, will not delete.");
+                LOGGER.debug(String.format("-- user %s has admin authority, will not delete.", username));
                 return;
             }
 
             if (authorityService.isGuestAuthority(authority)){
-                LOGGER.debug(username + " is guest authority, will not delete.");
+                LOGGER.debug(String.format("-- user %s has guest authority, will not delete.", username));
                 return;
             }
         }
