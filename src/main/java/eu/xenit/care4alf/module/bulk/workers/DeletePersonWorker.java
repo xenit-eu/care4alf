@@ -3,7 +3,7 @@ package eu.xenit.care4alf.module.bulk.workers;
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
 import org.alfresco.model.ContentModel;
-import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PersonService;
@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.swing.text.AbstractDocument;
 import java.util.Set;
 
 @Component
@@ -30,34 +29,42 @@ public class DeletePersonWorker extends AbstractWorker {
     }
 
     @Override
-    public void process(NodeRef entry) throws Throwable {
-        AuthorityService authorityService = super.serviceRegistry.getAuthorityService();
-        PersonService personService = super.serviceRegistry.getPersonService();
+    public void process(final NodeRef entry) throws Throwable {
+        AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Boolean>() {
+            @Override
+            public Boolean doWork() throws Exception {
+                AuthorityService authorityService = serviceRegistry.getAuthorityService();
+                PersonService personService = serviceRegistry.getPersonService();
 
-        if (!nodeService.getType(entry).equals(ContentModel.TYPE_PERSON)){
-            return;
-        }
+                if (!nodeService.getType(entry).equals(ContentModel.TYPE_PERSON)){
+                    return false;
+                }
 
-        String username = (String) nodeService.getProperty(entry, ContentModel.PROP_USERNAME);
-        if (username == null || username.isEmpty()){
-            return;
-        }
+                String username = (String) nodeService.getProperty(entry, ContentModel.PROP_USERNAME);
+                if (username == null || username.isEmpty()){
+                    return false;
+                }
 
-        Set<String> authorities = authorityService.getAuthoritiesForUser(username);
+                Set<String> authorities = authorityService.getAuthoritiesForUser(username);
 
-        for(String authority : authorities){
-            if (authorityService.isAdminAuthority(authority)){
-                LOGGER.debug(username + " is admin authority, will not delete.");
-                return;
+                for(String authority : authorities){
+                    if (authorityService.isAdminAuthority(authority)){
+                        LOGGER.debug(username + " is admin authority, will not delete.");
+                        return false;
+                    }
+
+                    if (authorityService.isGuestAuthority(authority)){
+                        LOGGER.debug(username + " is guest authority, will not delete.");
+                        return false;
+                    }
+                }
+
+                personService.deletePerson(entry);
+                LOGGER.debug("deleted user " + username);
+                return true;
             }
 
-            if (authorityService.isGuestAuthority(authority)){
-                LOGGER.debug(username + " is guest authority, will not delete.");
-                return;
-            }
-        }
+        });
 
-        personService.deletePerson(entry);
-        LOGGER.debug("deleted user " + username);
     }
 }

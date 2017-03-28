@@ -91,5 +91,7 @@ gradle-app.setting
 src/main/ts/eu/xenit/care4alf/web/js/**/*.js
 src/main/ts/eu/xenit/care4alf/web/js/**/*.js.map
 
+node_modules
+
 
 
