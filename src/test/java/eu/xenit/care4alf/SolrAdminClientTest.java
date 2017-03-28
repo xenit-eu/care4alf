@@ -6,6 +6,7 @@ import eu.xenit.care4alf.search.*;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by willem on 9/27/16.
  */
+@Ignore
 @Component
 @RunWith(ApixIntegration.class)
 public class SolrAdminClientTest {
