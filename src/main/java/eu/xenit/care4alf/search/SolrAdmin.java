@@ -185,7 +185,11 @@ public class SolrAdmin {
 
     @Uri("optimize")
     public void optimize(WebScriptResponse res) throws IOException, EncoderException {
-        res.getWriter().write(solrClient.postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />"));
+        res.getWriter().write(optimize());
+    }
+
+    public String optimize() throws IOException, EncoderException {
+        return solrClient.postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />");
     }
 
     @Uri("transactions")
