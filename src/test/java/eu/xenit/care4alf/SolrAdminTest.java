@@ -2,12 +2,14 @@ package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.search.*;
+import org.apache.commons.codec.EncoderException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -40,6 +42,14 @@ public class SolrAdminTest {
     @Test
     public void testSolrErrors() throws Exception {
         Assert.assertEquals(0, this.solrAdmin.getSolrErrors());
+    }
+
+    @Test
+    public void testOptimize() throws IOException, EncoderException {
+        String result = solrAdmin.optimize();
+        Assert.assertFalse(result.contains("\"code\":400"));
+        System.out.println(result);
+        Assert.assertTrue(result.contains("responseHeader"));
     }
 
 }

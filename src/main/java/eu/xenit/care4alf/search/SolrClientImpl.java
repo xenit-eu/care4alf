@@ -99,10 +99,10 @@ public class SolrClientImpl implements SolrClient {
         logger.info("solr query: {}", uri);
 
         PostMethod post = new PostMethod(uri);
-        body = "{}";
-        if (body != null) {
-            post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"), "application/json"));
+        if(body == null){
+            body = "{}";
         }
+        post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"), body.startsWith("{")?"application/json":"text/xml"));
 
         try {
             httpClient.executeMethod(post);
