@@ -1,80 +1,69 @@
 package xenit.care4alf.module
 
-import org.springframework.stereotype.Component
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.jdbc.core.JdbcTemplate
-import javax.sql.DataSource
-
-import org.alfresco.repo.dictionary.DictionaryDAO
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Transaction
-import org.alfresco.repo.policy.BehaviourFilter
-import javax.annotation.Resource
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService
 import com.github.dynamicextensionsalfresco.annotations.ServiceType
-import org.alfresco.service.cmr.repository.NodeService
-import org.alfresco.service.cmr.dictionary.DictionaryService
-import org.alfresco.repo.admin.SysAdminParams
-import org.alfresco.repo.transaction.RetryingTransactionHelper
-import java.lang
-import java.io.Serializable
-import org.alfresco.model.ContentModel
-import org.springframework.extensions.webscripts.WebScriptResponse
-import org.alfresco.service.namespace.QName
-import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable
-import com.github.dynamicextensionsalfresco.webscripts.annotations.TransactionType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
-import org.alfresco.service.cmr.repository.NodeRef
-import eu.xenit.care4alf.web.LogHelper
-import eu.xenit.care4alf.json
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
 import eu.xenit.care4alf.JsonRoot
-import org.alfresco.util.UrlUtil
-import java.util.HashMap
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Attribute
-import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam
+import eu.xenit.care4alf.json
+import eu.xenit.care4alf.web.LogHelper
+import org.alfresco.model.ContentModel
+import org.alfresco.repo.admin.SysAdminParams
+import org.alfresco.repo.dictionary.DictionaryDAO
+import org.alfresco.repo.policy.BehaviourFilter
 import org.alfresco.repo.security.authentication.AuthenticationUtil
+import org.alfresco.repo.transaction.RetryingTransactionHelper
+import org.alfresco.service.cmr.dictionary.DictionaryService
+import org.alfresco.service.cmr.repository.NodeRef
+import org.alfresco.service.cmr.repository.NodeService
+import org.alfresco.service.namespace.QName
+import org.alfresco.util.UrlUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.extensions.webscripts.WebScriptResponse
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.stereotype.Component
+import java.io.Serializable
+import java.util.*
+import javax.annotation.Resource
+import javax.sql.DataSource
 
 /**
  * Tools for validating/cleaning document models.
  *
  * author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/documentmodels", families = arrayOf("care4alf"), description = "validate document models")
-Authentication(AuthenticationType.ADMIN)
+@Component
+@WebScript(baseUri = "/xenit/care4alf/documentmodels", families = arrayOf("care4alf"), description = "validate document models")
+@Authentication(AuthenticationType.ADMIN)
 class DocumentModels @Autowired constructor(
         dataSource: DataSource,
-        AlfrescoService(ServiceType.LOW_LEVEL) val nodeService: NodeService,
+        @AlfrescoService(ServiceType.LOW_LEVEL) val nodeService: NodeService,
         val dictionaryService: DictionaryService,
         val sysAdminParams: SysAdminParams,
         val transactionHelper: RetryingTransactionHelper,
         val dictionaryDAO: DictionaryDAO
-) : LogHelper {
+) : LogHelper() {
 
     override val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     val jdbcTemplate = JdbcTemplate(dataSource)
 
-    Autowired Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter? = null
+    @Autowired @Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter? = null
 
-    Uri(value = "/invalidtypes")
-    Transaction(readOnly = true)
+    @Uri(value = "/invalidtypes")
+    @Transaction(readOnly = true)
     fun list() = json {
-        val nodeIds = jdbcTemplate.queryForList("select id from alf_node", javaClass<lang.Long>())
+        val nodeIds = jdbcTemplate.queryForList("select id from alf_node", Long::class.java)
         iterable(nodeIds) { id ->
             val nodeRef = nodeService.getNodeRef(id as Long)
             scanNode(nodeRef)
         }
     }
 
-    Uri(value = "/node/{id}", method = HttpMethod.DELETE)
-    Transaction(TransactionType.NONE)
-    fun deleteDocument(UriVariable id: Long, response: WebScriptResponse) {
+    @Uri(value = "/node/{id}", method = HttpMethod.DELETE)
+    @Transaction(TransactionType.NONE)
+    fun deleteDocument(@UriVariable id: Long, response: WebScriptResponse) {
         val nodeRef = nodeService.getNodeRef(id)
         if (nodeRef != null) {
             try {
@@ -87,7 +76,7 @@ class DocumentModels @Autowired constructor(
                 }
             } catch (e: Exception) {
                 logger.error("failed to delete invalid node $nodeRef", e)
-                response.getWriter().append(e.getMessage())
+                response.getWriter().append(e.message)
                 response.setStatus(500)
             }
         }
@@ -107,7 +96,7 @@ class DocumentModels @Autowired constructor(
         }
     }
 
-    Uri(value = "/models", defaultFormat = "json", method = HttpMethod.GET)
+    @Uri(value = "/models", defaultFormat = "json", method = HttpMethod.GET)
     fun listModels() = json {
         // API change in 5.0 getModels() -> getModels(boolean)
         val getter = dictionaryDAO.javaClass.getMethods().filter({ it.getName() == "getModels"}).firstOrNull()
@@ -123,8 +112,8 @@ class DocumentModels @Autowired constructor(
         }
     }
 
-    Uri(value = "/model", defaultFormat = "json", method = HttpMethod.DELETE)
-    fun removeModel(RequestParam modelQName: String) {
+    @Uri(value = "/model", defaultFormat = "json", method = HttpMethod.DELETE)
+    fun removeModel(@RequestParam modelQName: String) {
         dictionaryDAO.removeModel(QName.createQName(modelQName))
     }
 }

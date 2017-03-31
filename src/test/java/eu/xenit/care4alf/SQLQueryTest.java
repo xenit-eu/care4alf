@@ -16,7 +16,7 @@ import java.util.List;
 @RunWith(ApixIntegration.class)
 public class SQLQueryTest {
     @Autowired
-    private SQL sqlQuery;
+    private Sql sqlQuery;
 
     @Test
     public void testValidateQuery() throws Exception {

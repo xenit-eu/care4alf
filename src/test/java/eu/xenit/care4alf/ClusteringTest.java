@@ -1,11 +1,12 @@
 package eu.xenit.care4alf;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
+import eu.xenit.care4alf.monitoring.ClusteringMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by willem on 7/14/16.
@@ -14,10 +15,11 @@ import org.junit.runner.RunWith;
 @RunWith(ApixIntegration.class)
 public class ClusteringTest {
     @Autowired
-    Clustering clustering;
+    private ClusteringMetric clustering;
 
     @Test
     public void testGetNumClusterMembers(){
-        Assert.assertEquals(1,this.clustering.getNumClusterMembers());
+        int nClusterMembers = this.clustering.getNumClusterMembers();
+        Assert.assertTrue(nClusterMembers <= 1 && nClusterMembers >= 0);
     }
 }

@@ -4,10 +4,11 @@ import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+
+//import org.apache.commons.logging.Log;
+//import org.apache.commons.logging.LogFactory;
 
 
 /**

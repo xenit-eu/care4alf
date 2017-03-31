@@ -12,6 +12,7 @@ tmp/
 local.properties
 .settings/
 .loadpath
+node_modules/
 
 # External tool builders
 .externalToolBuilders/
@@ -82,10 +83,14 @@ crashlytics-build.properties
 
 
 ### Gradle template
-.gradle
 build/
 
 # Ignore Gradle GUI config
 gradle-app.setting
+
+*.log
+src/main/ts/eu/xenit/care4alf/web/js/**/*.js
+src/main/ts/eu/xenit/care4alf/web/js/**/*.js.map
+
 
 

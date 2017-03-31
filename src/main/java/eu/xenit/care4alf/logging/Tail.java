@@ -29,7 +29,8 @@ public class Tail {
     public Resolution tail(@RequestParam(defaultValue = "200") int n, @RequestParam(defaultValue = "/opt/alfresco/tomcat/logs/catalina.out") String path, WebScriptResponse resp) throws IOException {
         final ArrayList<String> output = new ArrayList<String>();
 
-        try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
+        try {
+            ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path));
             for (int i = 0; i < n; i++)
                 output.add(reader.readLine());
         } catch (final Exception e) {
@@ -52,7 +53,6 @@ public class Tail {
                 }
             };
         }
-        ;
 
         return new JsonWriterResolution() {
             @Override
@@ -80,7 +80,8 @@ public class Tail {
     public void printtail(@RequestParam(defaultValue = "200") int n, @RequestParam(defaultValue = "/opt/alfresco/tomcat/logs/catalina.out") String path, WebScriptResponse resp) throws IOException {
         ArrayList<String> output = new ArrayList<String>();
         Writer writer = resp.getWriter();
-        try (ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path))) {
+        try {
+            ReversedLinesFileReader reader = new ReversedLinesFileReader(new File(path));
             for (int i = 0; i < n; i++)
                 output.add(reader.readLine() + "\n");
         } catch (Exception e) {
@@ -100,7 +101,7 @@ public class Tail {
     }
 
     public static Map<String, String> formatLines(String line) {
-        Map<String, String> response = new HashMap<>();
+        Map<String, String> response = new HashMap<String, String>();
         line = line.trim();
         Matcher m1 = Pattern.compile("\\s\\s").matcher(line);
         if (!m1.find()) {
