@@ -1,7 +1,5 @@
 package eu.xenit.care4alf.module.bulk;
 
-import org.aspectj.lang.annotation.DeclareAnnotation;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

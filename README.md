@@ -18,4 +18,12 @@ npm install -g typescript
 npm install -g less
 
 
-./gradlew installBundle -Pprotocol=http -Phost=localhost -Pport=8080 -Pusername=admin -Ppassword=adminadmin
+./gradlew installBundle -Pprotocol=http -Phost=localhost -Pport=8080 -Pusername=admin -Ppassword=admin
+
+
+Monitoring configuration:
+
+    c4a.monitoring.graphite.enabled=true
+    c4a.monitoring.graphite.prefix=c4a.alfresco
+    c4a.monitoring.graphite.host=carbon
+    c4a.monitoring.graphite.port=2003

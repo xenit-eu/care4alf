@@ -1,34 +1,29 @@
 package eu.xenit.care4alf.module
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication
-import org.springframework.stereotype.Component
-import org.alfresco.service.cmr.workflow.WorkflowService
-import org.springframework.beans.factory.annotation.Autowired
-import org.alfresco.repo.admin.SysAdminParams
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*
+import eu.xenit.care4alf.JsonRoot
 import eu.xenit.care4alf.json
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri
-import org.alfresco.service.cmr.workflow.WorkflowInstance
-import org.springframework.util.StringUtils
 import org.alfresco.model.ContentModel
+import org.alfresco.repo.admin.SysAdminParams
+import org.alfresco.repo.security.authentication.AuthenticationUtil
 import org.alfresco.service.cmr.repository.NodeService
 import org.alfresco.service.cmr.security.PermissionService
-import org.alfresco.util.UrlUtil
-import org.alfresco.repo.security.authentication.AuthenticationUtil
-import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable
-import org.alfresco.service.cmr.workflow.WorkflowTaskQuery
+import org.alfresco.service.cmr.workflow.WorkflowInstance
+import org.alfresco.service.cmr.workflow.WorkflowService
 import org.alfresco.service.cmr.workflow.WorkflowTask
-import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod
+import org.alfresco.service.cmr.workflow.WorkflowTaskQuery
+import org.alfresco.util.UrlUtil
 import org.slf4j.LoggerFactory
-import eu.xenit.care4alf.JsonRoot
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import org.springframework.util.StringUtils
 
 /**
  * @author Laurent Van der Linden
  */
-Component
-WebScript(baseUri = "/xenit/care4alf/workflow/instances", families = arrayOf("care4alf"), description = "Workflow instances")
-Authentication(AuthenticationType.ADMIN)
+@Component
+@WebScript(baseUri = "/xenit/care4alf/workflow/instances", families = arrayOf("care4alf"), description = "Workflow instances")
+@Authentication(AuthenticationType.ADMIN)
 public class WorkflowInstances @Autowired constructor(
         private val workflowService: WorkflowService,
         private val permissionService: PermissionService,
@@ -38,21 +33,21 @@ public class WorkflowInstances @Autowired constructor(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    Uri(value = "/active", defaultFormat = "json")
+    @Uri(value = "/active", defaultFormat = "json")
     fun activeInstances() = json {
         iterable(workflowService.getActiveWorkflows(), instanceToJson(false))
     }
 
-    Uri(value = "/find/task/{taskid}", defaultFormat = "json")
-    fun instanceByTask(UriVariable taskid: String) = json {
+    @Uri(value = "/find/task/{taskid}", defaultFormat = "json")
+    fun instanceByTask(@UriVariable taskid: String) = json {
         val workflowTask = AuthenticationUtil.runAsSystem {
             workflowService.getTaskById(taskid)
         }
         iterable(listOf(workflowTask.getPath().getInstance()), instanceToJson(includeTasks = true))
     }
 
-    Uri(value = "/find/instance/{instanceid}", defaultFormat = "json")
-    fun instanceById(UriVariable instanceid: String) = json {
+    @Uri(value = "/find/instance/{instanceid}", defaultFormat = "json")
+    fun instanceById(@UriVariable instanceid: String) = json {
         iterable(listOf(workflowService.getWorkflowById(instanceid)), instanceToJson(includeTasks = true))
     }
 
@@ -99,8 +94,8 @@ public class WorkflowInstances @Autowired constructor(
         }
     }
 
-    Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
-    fun tasksForInstance(UriVariable workflowid: String) = json {
+    @Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
+    fun tasksForInstance(@UriVariable workflowid: String) = json {
         val tasks = AuthenticationUtil.runAsSystem {
             getTasksForInstance(workflowService.getWorkflowById(workflowid))
         }
@@ -111,7 +106,7 @@ public class WorkflowInstances @Autowired constructor(
                 key("properties") {
                     obj {
                         for (property in task.getProperties()) {
-                            entry(property.getKey().toString(), property.getValue())
+                            entry(property.key.toString(), property.value)
                         }
                     }
                 }
@@ -127,17 +122,17 @@ public class WorkflowInstances @Autowired constructor(
         return workflowService.queryTasks(query)
     }
 
-    Uri(value = "/{id}/cancel", method = HttpMethod.DELETE)
-    fun cancelWorkflow(UriVariable("id") id: String) {
+    @Uri(value = "/{id}/cancel", method = HttpMethod.DELETE)
+    fun cancelWorkflow(@UriVariable("id") id: String) {
         workflowService.cancelWorkflow(id)
     }
 
-    Uri(value = "/{id}/delete", method = HttpMethod.DELETE)
-    fun deleteWorkflow(UriVariable("id") id: String) {
+    @Uri(value = "/{id}/delete", method = HttpMethod.DELETE)
+    fun deleteWorkflow(@UriVariable("id") id: String) {
         workflowService.deleteWorkflow(id)
     }
 
-    Uri(value = "/active", method = HttpMethod.DELETE)
+    @Uri(value = "/active", method = HttpMethod.DELETE)
     fun deleteAllActive() {
         for (wf in workflowService.getActiveWorkflows()) {
         try {
@@ -145,7 +140,7 @@ public class WorkflowInstances @Autowired constructor(
             logger.debug("Deleted workflow instance ${wf.getId()}.")
         }
         catch(ex: Exception) {
-            logger.info("Failed to delete workflow instance ${wf.getId()}: ${ex.getMessage()}.")
+            logger.info("Failed to delete workflow instance ${wf.getId()}: ${ex.message}.")
         }
     }
 }

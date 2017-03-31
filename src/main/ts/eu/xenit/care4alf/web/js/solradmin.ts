@@ -1,7 +1,8 @@
 /// <reference path="care4alf.ts" />
 
 care4alf.controller('solradmin', ($scope,$http: ng.IHttpService) => {
-    $http.get('solr/proxy/alfresco/admin/luke?numTerms=0').success((data:any) => {
+    $scope.fields=[];
+    $http.get('solr/proxy/alfresco/admin/luke?numTerms=0&wt=json').success((data:any) => {
         $scope.fields = Object.keys(data.fields);
     });
 
@@ -14,7 +15,10 @@ care4alf.controller('solradmin', ($scope,$http: ng.IHttpService) => {
             $scope.result = data;
         });
     };
-    $scope.errors=[{exception:"Read timed out",count:0}];//TODO: dynamic + numFound
+    $scope.errors=[
+            {exception:"Read timed out",count:0},
+            {exception:"",count:0}
+        ];//TODO: dynamic + numFound
     $scope.errorFix=(exception,operation)=>{
         var url = "solr/errors/nodes/fix/"+exception;
         console.log(url);

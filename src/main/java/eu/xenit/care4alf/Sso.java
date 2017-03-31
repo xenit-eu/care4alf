@@ -1,6 +1,9 @@
 package eu.xenit.care4alf;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.springframework.extensions.webscripts.WebScriptRequest;
