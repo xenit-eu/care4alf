@@ -35,6 +35,7 @@ public class Category {
     public void loadClassification(final WebScriptRequest multiPart, final WebScriptResponse response) throws IOException, ParseException {
 
         String name = "", nameSpace = "", json = "";
+        boolean forcereplace = false;
 
         FormData formData = (FormData) multiPart.parseContent();
         FormData.FormField[] fields = formData.getFields();
@@ -49,19 +50,22 @@ public class Category {
                 json = reader.toString();
             } else if(field.getName().equals("namespace")){
                 nameSpace = field.getValue();
+            } else if(field.getName().equals("forcereplace")){
+                forcereplace = Boolean.parseBoolean(field.getValue());
             }
         }
 
         logger.debug("Json: {}", json);
         logger.debug("name: {}", name);
         logger.debug("namespace: {}", nameSpace);
+        logger.debug("forcereplace: {}", forcereplace);
 
         if(name.equals("") || nameSpace.equals("") || json.equals("")){
             throw new IllegalArgumentException("One of the given fields are wrong.");
         }
 
 
-        classificationInstaller.create(name, nameSpace, json);
+        classificationInstaller.create(name, nameSpace, json, forcereplace);
     }
 
     // convert InputStream to String
