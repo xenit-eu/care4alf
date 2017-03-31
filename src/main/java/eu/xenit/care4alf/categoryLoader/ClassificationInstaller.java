@@ -36,6 +36,8 @@ public class ClassificationInstaller {
     @Autowired
     private ServiceRegistry services;
 
+
+
     public NodeRef getCategoryRootRef() {
         if (categoryRootRef == null) {
             categoryRootRef = services.getSearchService().query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_XPATH, "/cm:categoryRoot").getNodeRef(0);
@@ -43,16 +45,18 @@ public class ClassificationInstaller {
         return categoryRootRef;
     }
 
-    public void create(String classificationName, String targetNamespace, String jsonString) {
-        logger.info("Starting classification creation for {}", classificationName);
+    public void create(String classificationName, String targetNamespace, String jsonString, boolean forceReplace) {
+        logger.debug("Starting classification creation for {}", classificationName);
         try {
             final JSONObject json = new JSONObject(jsonString);
             logger.debug("JSON: {}", json);
-            addClassification(json, true, targetNamespace);
+            addClassification(json, forceReplace, targetNamespace);
+            logger.info("Classification creation done for {}", classificationName);
         } catch (Exception e) {
-            logger.error("Create exception: {}", e.getMessage());
+            logger.error("Exception creating classification: {}", e.getMessage());
+            logger.info("Classification creation failed for {}", classificationName);
         }
-        logger.info("Classification creation done for {}", classificationName);
+
     }
 
     public void addClassification(@Nonnull JSONObject jsonObject, boolean forceReplace, String targetNamespace) throws JSONException {
@@ -60,16 +64,21 @@ public class ClassificationInstaller {
         String targetLocalName = jsonObject.getJSONObject("target").getString("localname");
         logger.debug("Target name: {}", targetLocalName);
         QName categoryAspectQName = QName.createQName(targetNamespace, targetLocalName);
-        if (classificationExists(categoryAspectQName)) {
+        NodeRef categoryAspectRef = createClassificationRoot(categoryAspectQName, forceReplace);
+        addAspectCategories(categoryAspectRef, jsonObject.getJSONObject("classification"));
+    }
+
+    private NodeRef createClassificationRoot(QName categoryAspectQName, boolean forceReplace){
+        NodeRef classificationRoot = classificationExists(categoryAspectQName);
+        if (classificationRoot != null) {
             if (forceReplace) {
                 removeClassificationIfExists(categoryAspectQName);
             } else {
-                logger.info("Classification already exists: skipping creation");
-                return;
+                logger.debug("Classification root already exists, skipping creation.");
+                return classificationRoot;
             }
         }
-        NodeRef categoryAspectRef = createClassification(categoryAspectQName);
-        addAspectCategories(categoryAspectRef, jsonObject.getJSONObject("classification"));
+        return createClassification(categoryAspectQName);
     }
 
     private NodeRef createClassification(QName categoryAspectQName) {
@@ -83,11 +92,20 @@ public class ClassificationInstaller {
         final Iterator<String> it = json.keys();
         while (it.hasNext()) {
             String key = it.next();
-            NodeRef childRef = services.getCategoryService().createCategory(parentRef, createValidName(key));
+            String validname = createValidName(key);
+            NodeRef childRef = categoryExists(validname, parentRef);
+            if(childRef == null) {
+                childRef = services.getCategoryService().createCategory(parentRef, validname);
+            }
             if (!json.isNull(key)) {
                 addAspectCategories(childRef, json.getJSONObject(key));
             }
         }
+    }
+
+    private NodeRef categoryExists(String validname, NodeRef parentRef) {
+        services.getNodeService().getChildByName(parentRef, ContentModel.ASSOC_SUBCATEGORIES, validname);
+        return services.getSearchService().query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_XPATH, "/cm:categoryRoot").getNodeRef(0);
     }
 
     private String createValidName(String name) {
@@ -96,13 +114,13 @@ public class ClassificationInstaller {
         return validName.endsWith(".") ? validName.substring(0, validName.length() - 1) : validName;
     }
 
-    public boolean classificationExists(QName categoryAspectQName) {
+    public NodeRef classificationExists(QName categoryAspectQName) {
         for (ChildAssociationRef childAssociationRef : services.getNodeService().getChildAssocs(getCategoryRootRef())) {
             if (childAssociationRef.getQName().equals(categoryAspectQName)) {
-                return true;
+                return childAssociationRef.getChildRef();
             }
         }
-        return false;
+        return null;
     }
 
     public boolean removeClassificationIfExists(QName categoryAspectQName) {
