@@ -81,4 +81,38 @@ public class Monitoring implements ApplicationContextAware {
         };
     }
 
+    @Uri(value = "/xenit/care4alf/monitoring/cluster")
+    public Resolution getClusterMetrics(WebScriptResponse response) throws Exception {
+        final Map<String, Long> vars = new HashMap<String, Long>();
+
+        // find all beans implementing the MonitoredSource interface and and look for cluster metrics to add.
+        logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
+        if (allMonitoredSources != null) {
+            for (MonitoredSource source : allMonitoredSources) {
+                if (source == null)
+                    continue;
+                if (source instanceof ClusteringMetric) {
+                    try {
+                        Map<String, Long> metrics = source.getMonitoringMetrics();
+                        for (String key : metrics.keySet()) {
+                            vars.put(key, metrics.get(key));
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Can't fetch some metric");
+                    }
+                }
+            }
+        }
+
+        return new JsonWriterResolution() {
+            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                jsonWriter.object();
+                for (Map.Entry<String, Long> entry : vars.entrySet())
+                    jsonWriter.key(entry.getKey()).value(entry.getValue());
+                jsonWriter.endObject();
+            }
+        };
+    }
+
+
 }
