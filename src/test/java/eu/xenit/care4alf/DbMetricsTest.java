@@ -32,7 +32,7 @@ public class DbMetricsTest {
 
     @Test
     public void testPing() throws IOException {
-        long time = dbMetrics.ping("www.xenit.eu");
+        long time = dbMetrics.ping("www.google.com");
         System.out.println(time);
         Assert.assertTrue(time >= 0);
     }
