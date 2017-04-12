@@ -19,6 +19,14 @@ public class SwarmConnectionMetrics implements MonitoredSource {
 	@Autowired
     private ApplicationContext applicationContext;
 	
+	/*
+	 * Even if SwarmStoreAdapter bean implements MonitoredSource, it is not considered implementing the same 
+	 * interface as the interface has been loaded by another classloader (outside OSGI container). 
+	 * So we have to implement this trick to make it work like other sources.
+	 * 
+	 * (non-Javadoc)
+	 * @see eu.xenit.care4alf.integration.MonitoredSource#getMonitoringMetrics()
+	 */
 	@Override
 	public Map<String, Long> getMonitoringMetrics() {
 		try {
