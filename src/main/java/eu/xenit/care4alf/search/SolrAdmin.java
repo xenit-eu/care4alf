@@ -103,17 +103,35 @@ public class SolrAdmin {
     @Uri(value = "errors/nodes/fix/{filter}", method = HttpMethod.POST)
     public void fixSolrErrors(
             final WebScriptResponse res,
-            @UriVariable final String filter,
-            @RequestParam(defaultValue = "100") final int rows) throws IOException, JSONException, EncoderException {
+            @UriVariable() String filter,
+            @RequestParam(defaultValue = "10000") final int rows,
+            @RequestParam(defaultValue = "nocontent") final String action) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> docs = this.getSolrAdminClient().getSolrErrorDocs(rows);
         int count = 0;
+        if(filter == null) filter="all";
         logger.debug("filter: '{}'", filter);
         for (SolrErrorDoc doc : docs) {
-            logger.debug("Exception: '{}'", doc.getException());
-            if (doc.getException().equals(filter)) {
-                NodeRef nodeRef = nodeService.getNodeRef(doc.getDbid());
-                nodeService.setProperty(nodeRef, ContentModel.PROP_IS_CONTENT_INDEXED, false);
-                count++;
+            logger.debug("Processing document with id={}, Exception: '{}', Action={}", doc.getDbid(), doc.getException(), action);
+            if ((filter.equals("all") || doc.getException().equals(filter))) {
+                if(action.equals("nocontentindexing")){
+                    logger.debug("Setting content-indexing to false");
+                    NodeRef nodeRef = nodeService.getNodeRef(doc.getDbid());
+                    nodeService.setProperty(nodeRef, ContentModel.PROP_IS_CONTENT_INDEXED, false);
+                    count++;
+                }
+                else if(action.equals("reindex")){
+                    logger.debug("Reindexing node");
+                    this.getSolrAdminClient().reindex(doc.getDbid());
+                    count++;
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else{
+                    logger.debug("Ignoring document");
+                }
             }
         }
         res.getWriter().write(Integer.toString(count));
@@ -160,7 +178,7 @@ public class SolrAdmin {
     @Autowired
     Solr1AdminClientImpl solr1AdminClient;
 
-    private AbstractSolrAdminClient getSolrAdminClient() {
+    public AbstractSolrAdminClient getSolrAdminClient() {
         String searchSubSystem = getSearchSubSystemName();
         if(searchSubSystem.equals("solr4"))
             return solr4AdminClient;
