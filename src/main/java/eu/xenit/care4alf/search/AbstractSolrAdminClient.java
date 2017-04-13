@@ -53,4 +53,12 @@ public abstract class AbstractSolrAdminClient {
         return this.getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
     }
 
+    public JSONObject reindex(long dbId) throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        parameters.put("action", "REINDEX");
+        parameters.put("nodeid", String.valueOf(dbId));
+        return getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null);
+    }
+
 }

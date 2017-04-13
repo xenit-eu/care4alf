@@ -15,12 +15,9 @@ care4alf.controller('solradmin', ($scope,$http: ng.IHttpService) => {
             $scope.result = data;
         });
     };
-    $scope.errors=[
-            {exception:"Read timed out",count:0},
-            {exception:"",count:0}
-        ];//TODO: dynamic + numFound
+
     $scope.errorFix=(exception,operation)=>{
-        var url = "solr/errors/nodes/fix/"+exception;
+        var url = "solr/errors/nodes/fix/"+exception+"?action="+operation;
         console.log(url);
         $http.post(url,{}).success((data:any) => {
             $scope.result = data;
