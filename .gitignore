@@ -13,6 +13,8 @@ local.properties
 .settings/
 .loadpath
 node_modules/
+.classpath
+.project
 
 # External tool builders
 .externalToolBuilders/

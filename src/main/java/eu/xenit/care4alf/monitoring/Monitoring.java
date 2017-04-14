@@ -53,9 +53,11 @@ public class Monitoring implements ApplicationContextAware {
                     continue;
                 try {
                     Map<String, Long> metrics = source.getMonitoringMetrics();
-                    for (String key : metrics.keySet()) {
-                        vars.put(key, metrics.get(key));
-                        logger.debug(key + " done");
+                    if (metrics != null) {
+	                    for (String key : metrics.keySet()) {
+	                        vars.put(key, metrics.get(key));
+	                        logger.debug(key + " done");
+	                    }
                     }
                 }
                 catch(Exception e){
