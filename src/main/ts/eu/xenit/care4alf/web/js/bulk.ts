@@ -5,6 +5,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     $scope.form.threads = 2;
     $scope.form.batchnumber = 10;
     $scope.form.maxlag = 180;
+    $scope.form.disableauditablepolicies = false;
     $scope.form.action = "";
     $scope.actions = {};
     $scope.canceled = "";
@@ -98,6 +99,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     threads: $scope.form.threads,
                     batchnumber: $scope.form.batchnumber,
                     maxlag: $scope.form.maxlag,
+                    disableauditablepolicies : $scope.form.disableauditablepolicies,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
@@ -139,6 +141,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     threads: $scope.form.threads,
                     batchnumber: $scope.form.batchnumber,
                     maxlag: $scope.form.maxlag,
+                    disableauditablepolicies : $scope.form.disableauditablepolicies,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
