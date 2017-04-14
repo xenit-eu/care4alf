@@ -31,6 +31,7 @@ public class BulkTest {
                 2,
                 10,
                 180,
+                false,
                 "dummy",
                 null,
                 "PATH:\"/app:company_home/app:dictionary//*\"",

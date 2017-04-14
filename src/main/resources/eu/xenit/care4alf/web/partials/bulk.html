@@ -27,6 +27,9 @@
             <label class="control-label">Maximum solr lag (in seconds) allowed ?</label><input class="form-control" ng-model="form.maxlag"/>
         </div>
         <div class="">
+            <label class="control-label">Disable auditable policies</label><input class="form-control" ng-model="form.disableauditablepolicies" type="checkbox"/>
+        </div>
+        <div class="">
             <label class="control-label">Action</label><select class="form-control"
                                                                ng-options="a as a for a in form.getActions()"
                                                                ng-model="form.action"></select>

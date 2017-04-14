@@ -3,7 +3,9 @@ package eu.xenit.care4alf.module.bulk;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.BetterBatchProcessor;
 import eu.xenit.care4alf.search.SolrAdmin;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
+import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.extensions.webscripts.WebScriptRequest;
@@ -86,6 +89,9 @@ public class Bulk implements ApplicationContextAware {
     @Autowired
     protected PersonService personService;
 
+    @Autowired @Qualifier("policyBehaviourFilter")
+    private BehaviourFilter policyBehaviourFilter;
+
     private List<BulkJob> processors = new ArrayList<BulkJob>();
 
     @Uri(value = "/xenit/care4alf/bulk/action/{action}", method = HttpMethod.POST)
@@ -97,11 +103,12 @@ public class Bulk implements ApplicationContextAware {
         int nbThreads = json.getInt("threads");
         int nbBatches = json.getInt("batchnumber");
         int maxLag = json.getInt("maxlag");
+        boolean disableAuditablePolicies = json.getBoolean("disableauditablepolicies");
         JSONObject parameters = json.getJSONObject("parameters");
 
         logger.info(String.format("Starting bulk action '%s'", action));
 
-        BetterBatchProcessor<NodeRef> processor = createSearchBatchProcessor(batchSize, nbThreads, nbBatches, maxLag, action, parameters, query, storeRef, queryLanguage);
+        BetterBatchProcessor<NodeRef> processor = createSearchBatchProcessor(batchSize, nbThreads, nbBatches, maxLag, disableAuditablePolicies, action, parameters, query, storeRef, queryLanguage);
         if (processor == null) {
             response.getWriter().write(String.format("No '%s' worker found", action));
             return;
@@ -239,6 +246,7 @@ public class Bulk implements ApplicationContextAware {
         Integer threads = null;
         Integer nbBatches = null;
         Integer maxLag = null;
+        boolean disableAuditablePolicies = false;
         JSONObject parameters = null;
         InputStream content = null;
 
@@ -257,6 +265,8 @@ public class Bulk implements ApplicationContextAware {
                 nbBatches = Integer.valueOf(formField.getValue());
             } else if (formField.getName().equals("maxlag")) {
                 maxLag = Integer.valueOf(formField.getValue());
+            } else if (formField.getName().equals("disableauditablepolicies")) {
+                disableAuditablePolicies = Boolean.valueOf(formField.getValue());
             } else if (formField.getName().equals("parameters")) {
                 parameters = new JSONObject(formField.getValue());
             } else if (formField.getName().equals("file")) {
@@ -265,12 +275,23 @@ public class Bulk implements ApplicationContextAware {
         }
 
         BetterBatchProcessor<NodeRef> processor = null;
-        if (type.equals("search")) {
-            processor = createSearchBatchProcessor(batchsize, threads, nbBatches, maxLag, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
-        } else if (type.equals("file")) {
-            processor = createFileBatchProcessor(batchsize, threads, action, parameters, content, maxLag, nbBatches);
-        } else {
-            // boohoo something went wrong
+        try{
+            if (disableAuditablePolicies){
+                policyBehaviourFilter.disableBehaviour(ContentModel.ASPECT_AUDITABLE);
+            }
+
+            if (type.equals("search")) {
+                processor = createSearchBatchProcessor(batchsize, threads, nbBatches, maxLag, disableAuditablePolicies, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
+            } else if (type.equals("file")) {
+                processor = createFileBatchProcessor(batchsize, threads, action, parameters, content, maxLag, nbBatches, disableAuditablePolicies);
+            } else {
+                // boohoo something went wrong
+            }
+
+        }finally {
+            if (disableAuditablePolicies){
+                policyBehaviourFilter.enableBehaviour(ContentModel.ASPECT_AUDITABLE);
+            }
         }
 
         if (processor == null) {
@@ -287,7 +308,7 @@ public class Bulk implements ApplicationContextAware {
 
     }
 
-    public BetterBatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, int nbBatches, int maxLag, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
+    public BetterBatchProcessor<NodeRef> createSearchBatchProcessor(int batchSize, int nbThreads, int nbBatches, int maxLag, boolean disableAuditablePolicies, String action, JSONObject parameters, String query, StoreRef storeRef, String queryLanguage) throws IOException {
         BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
         SearchWorkProvider workProvider = new SearchWorkProvider(searchService, nodeService, storeRef, queryLanguage, query, batchSize);
@@ -296,7 +317,7 @@ public class Bulk implements ApplicationContextAware {
                 "care4alf-bulk-" + GUID.generate(),
                 transactionService.getRetryingTransactionHelper(),
                 workProvider,
-                nbThreads, batchSize, null, null, 100, solrAdmin, maxLag, nbBatches);
+                nbThreads, batchSize, null, null, 100, solrAdmin, maxLag, nbBatches, disableAuditablePolicies, policyBehaviourFilter);
 
 
         processors.add(new BulkJob(processor, workProvider));
@@ -305,7 +326,7 @@ public class Bulk implements ApplicationContextAware {
         return processor;
     }
 
-    private BetterBatchProcessor<NodeRef> createFileBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, InputStream content, long maxLag, int nbBatches) {
+    private BetterBatchProcessor<NodeRef> createFileBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, InputStream content, long maxLag, int nbBatches, boolean disableAuditablePolicies) {
         BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
         FileWorkProvider workProvider = new FileWorkProvider(serviceRegistry, content, batchSize);
@@ -314,7 +335,7 @@ public class Bulk implements ApplicationContextAware {
                 "care4alf-bulk-" + GUID.generate(),
                 transactionService.getRetryingTransactionHelper(),
                 workProvider,
-                nbThreads, batchSize, null, null, 100, solrAdmin, maxLag, nbBatches);
+                nbThreads, batchSize, null, null, 100, solrAdmin, maxLag, nbBatches, disableAuditablePolicies, policyBehaviourFilter);
 
         processors.add(new BulkJob(processor, workProvider));
         // blocks until workers have finished

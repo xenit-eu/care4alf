@@ -1,6 +1,7 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.care4alf.search.SolrAdmin;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -23,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.node.integrity.IntegrityException;
+import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
 import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
@@ -47,6 +49,11 @@ import org.springframework.context.ApplicationEventPublisher;
 public class BetterBatchProcessor<T> implements BatchMonitor
 {
     public static final int MAX_AWAIT_TIMEOUT = 300;
+
+    private final boolean disableAuditablePolicies;
+
+    private final BehaviourFilter policyBehaviourFilter;
+
     /** The factory for all new threads */
     private TraceableThreadFactory threadFactory;
 
@@ -136,7 +143,9 @@ public class BetterBatchProcessor<T> implements BatchMonitor
             int loggingInterval,
             SolrAdmin solrAdmin,
             long maxLag,
-            int nbBatches)
+            int nbBatches,
+            boolean disableAuditablePolicies,
+            BehaviourFilter policyBehaviourFilter)
     {
         this.threadFactory = new TraceableThreadFactory();
         this.threadFactory.setNamePrefix(processName);
@@ -149,6 +158,8 @@ public class BetterBatchProcessor<T> implements BatchMonitor
         this.batchSize = batchSize;
         this.nbBatches = nbBatches;
         this.maxLag = maxLag;
+        this.disableAuditablePolicies = disableAuditablePolicies;
+        this.policyBehaviourFilter = policyBehaviourFilter;
         this.awaitTimeOut = (maxLag>MAX_AWAIT_TIMEOUT)?MAX_AWAIT_TIMEOUT:maxLag;
         this.solrAdmin = solrAdmin;
         if (logger == null)
@@ -637,6 +648,9 @@ public class BetterBatchProcessor<T> implements BatchMonitor
                 this.txnEntryId = this.worker.getIdentifier(entry);
                 try
                 {
+                    if (BetterBatchProcessor.this.disableAuditablePolicies){
+                        BetterBatchProcessor.this.policyBehaviourFilter.disableBehaviour(ContentModel.ASPECT_AUDITABLE);
+                    }
                     this.worker.process(entry);
                     this.txnSuccesses++;
                 }
@@ -657,6 +671,10 @@ public class BetterBatchProcessor<T> implements BatchMonitor
                     {
                         // Next time we retry, we will wait for other executing batches to complete
                         throw t;
+                    }
+                }finally {
+                    if (BetterBatchProcessor.this.disableAuditablePolicies){
+                        BetterBatchProcessor.this.policyBehaviourFilter.enableBehaviour(ContentModel.ASPECT_AUDITABLE);
                     }
                 }
             }
