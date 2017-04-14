@@ -2,6 +2,10 @@ package eu.xenit.care4alf.module.bulk;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.BetterBatchProcessor;
+import eu.xenit.care4alf.Config;
+import eu.xenit.care4alf.search.AbstractSolrAdminClient;
+import eu.xenit.care4alf.search.Solr1AdminClientImpl;
+import eu.xenit.care4alf.search.Solr4AdminClientImpl;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
@@ -88,6 +92,9 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     protected PersonService personService;
+
+    @Autowired
+    private Config config;
 
     @Autowired @Qualifier("policyBehaviourFilter")
     private BehaviourFilter policyBehaviourFilter;
@@ -285,7 +292,8 @@ public class Bulk implements ApplicationContextAware {
             } else if (type.equals("file")) {
                 processor = createFileBatchProcessor(batchsize, threads, action, parameters, content, maxLag, nbBatches, disableAuditablePolicies);
             } else {
-                // boohoo something went wrong
+                logger.error("The required action has not been implemented or is wrong.");
+                response.setStatus(HttpStatus.SC_BAD_REQUEST);
             }
 
         }finally {
@@ -347,5 +355,22 @@ public class Bulk implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    @Autowired
+    Solr4AdminClientImpl solr4AdminClient;
+
+    @Autowired
+    Solr1AdminClientImpl solr1AdminClient;
+
+    public AbstractSolrAdminClient getSolrAdminClient() {
+        String searchSubSystem = getSearchSubSystemName();
+        if(searchSubSystem.equals("solr4"))
+            return solr4AdminClient;
+        return solr1AdminClient;
+    }
+
+    private String getSearchSubSystemName(){
+        return config.getProperty("index.subsystem.name");
     }
 }
