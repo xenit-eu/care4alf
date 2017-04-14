@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.monitoring;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -35,7 +36,10 @@ public class SwarmConnectionMetrics implements MonitoredSource {
 			Method m = obj.getClass().getMethod("getMonitoringMetrics");
 			if (m == null) return null;
 			@SuppressWarnings("unchecked")
-			Map<String, Long> data = (Map<String, Long>) m.invoke(obj);
+			Map<String, Long> data = new HashMap<>();
+			for(Map.Entry<String, Long> entry : ((Map<String, Long>) m.invoke(obj)).entrySet()){
+				data.put(entry.getKey().replace(".","-"),entry.getValue());
+			}
 			return data;
 		} catch (Exception e) {
 			logger.error("Error in capturing data.", e);
