@@ -1,7 +1,7 @@
 package eu.xenit.care4alf.module.bulk;
 
 import eu.xenit.care4alf.BetterBatchProcessor;
-import org.alfresco.repo.batch.BatchProcessor;
+import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -26,6 +26,7 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
     protected ScriptService scriptService;
     protected ServiceRegistry serviceRegistry;
     protected PersonService personService;
+    protected SolrAdmin solrAdmin;
 
 
     public AbstractWorker(JSONObject parameters) {
@@ -68,5 +69,9 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
 
     public void setServiceRegistery(ServiceRegistry serviceRegistry) {
         this.serviceRegistry = serviceRegistry;
+    }
+
+    public void setSolrAdmin(SolrAdmin solrAdmin){
+        this.solrAdmin = solrAdmin;
     }
 }
