@@ -40,4 +40,22 @@ public class BulkTest {
         int results = processor.getSuccessfullyProcessedEntries();
         Assert.assertTrue(results > 0);
     }
+
+    @Test
+    public void testReindex() throws Exception {
+        BetterBatchProcessor<NodeRef> processor = bulk.createSearchBatchProcessor(
+                20,
+                2,
+                10,
+                180,
+                false,
+                "reindex",
+                null,
+                "PATH:\"/app:company_home/app:dictionary//*\"",
+                StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
+                SearchService.LANGUAGE_FTS_ALFRESCO);
+        int results = processor.getSuccessfullyProcessedEntries();
+        Assert.assertTrue(results > 0);
+    }
+
 }
