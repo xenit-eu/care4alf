@@ -55,7 +55,7 @@ public class BulkTest {
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_FTS_ALFRESCO);
         int results = processor.getSuccessfullyProcessedEntries();
-        Assert.assertTrue(results > 0);
+        Assert.assertTrue("Expects more then 0 successful results",results > 0);
     }
 
 }

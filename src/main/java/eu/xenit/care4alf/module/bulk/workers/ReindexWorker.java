@@ -26,9 +26,9 @@ public class ReindexWorker extends AbstractWorker{
 
     @Override
     public void process(NodeRef entry) throws Throwable {
-        String obj = (String) this.nodeService.getProperty(entry, ContentModel.PROP_NODE_DBID);
+        String obj = String.valueOf(this.nodeService.getProperty(entry, ContentModel.PROP_NODE_DBID));
         if(obj != "" && obj != null) {
-            Long dbid = Long.decode(obj);
+            Long dbid = Long.parseLong(obj);
                     solrAdmin.getSolrAdminClient().reindex(dbid);
             try {
                 Thread.sleep(2000);
