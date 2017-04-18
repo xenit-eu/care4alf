@@ -42,8 +42,7 @@ public class SwarmConnectionMetrics implements MonitoredSource {
 			}
 			return data;
 		} catch (Exception e) {
-			logger.error("Error in capturing data.", e);
-			System.out.println("error");
+			logger.warn("Error in capturing data.", e);
 		}
 		return null;
 	}
