@@ -51,7 +51,7 @@ public class BulkTest {
                 false,
                 "reindex",
                 null,
-                "PATH:\"/app:company_home/app:dictionary//*\"",
+                "PATH:\"/app:company_home/cm:ScriptTests//*\"",
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_FTS_ALFRESCO);
         int results = processor.getSuccessfullyProcessedEntries();
