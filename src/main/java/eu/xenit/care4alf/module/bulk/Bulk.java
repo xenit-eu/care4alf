@@ -186,6 +186,7 @@ public class Bulk implements ApplicationContextAware {
                 ret.setScriptService(scriptService);
                 ret.setPersonService(personService);
                 ret.setServiceRegistery(serviceRegistry);
+                ret.setSolrAdmin(solrAdmin);
                 return ret;
 
             } catch (InstantiationException e) {
