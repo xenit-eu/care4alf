@@ -1,9 +1,7 @@
 package eu.xenit.care4alf.monitoring;
 
-import org.antlr.misc.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -58,4 +56,11 @@ public class GraphiteClient {
         return Math.round(System.currentTimeMillis() / 1000.0d);
     }
 
+    @Override
+    public String toString() {
+        return "GraphiteClient{" +
+                "graphiteHost='" + graphiteHost + '\'' +
+                ", graphitePort=" + graphitePort +
+                '}';
+    }
 }
