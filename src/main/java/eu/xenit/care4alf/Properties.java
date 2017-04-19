@@ -85,8 +85,8 @@ public class Properties {
         json.endArray();
     }
 
-    public List<PropertyInfo> list() throws SQLException {
-        List<PropertyInfo> list = new ArrayList<PropertyInfo>();
+    public List<QNameInfo> list() throws SQLException {
+        List<QNameInfo> list = new ArrayList<QNameInfo>();
         final Connection connection = dataSource.getConnection();
         try {
             final Statement stmt = connection.createStatement();
@@ -95,7 +95,7 @@ public class Properties {
                 "from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  " +
                 "where q.id in (select distinct(qname_id) from alf_node_properties)");
             while (rs.next()) {
-                list.add(new PropertyInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
+                list.add(new QNameInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
             }
             rs.close();
         } finally {
@@ -104,18 +104,43 @@ public class Properties {
         return list;
     }
 
-    class PropertyInfo{
+    public List<QNameInfo> getQNames() throws SQLException {
+        List<QNameInfo> list = new ArrayList<>();
+        final Connection connection = dataSource.getConnection();
+        try {
+            final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery(
+                    "select q.id, n.uri, q.local_name from alf_qname as q join alf_namespace as n on q.ns_id=n.id");
+            while (rs.next()) {
+                list.add(new QNameInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
+            }
+            rs.close();
+        } finally {
+            connection.close();
+        }
+        return list;
+    }
+
+    public class QNameInfo {
         private Long id;
         private QName qname;
 
-        public PropertyInfo(Long id, QName qname) {
+        public Long getId() {
+            return id;
+        }
+
+        public QName getQname() {
+            return qname;
+        }
+
+        public QNameInfo(Long id, QName qname) {
             this.id = id;
             this.qname = qname;
         }
 
         @Override
         public String toString() {
-            return "PropertyInfo{" +
+            return "QNameInfo{" +
                     "id=" + id +
                     ", qname=" + qname +
                     '}';

@@ -64,14 +64,26 @@ public class GraphiteMetricsShipper implements Job {
         if(!enabled)
             return;
 
-        logger.debug("Fetching and sending metrics to Graphite");
         try {
-            Map<String, Long> prefixed = new HashMap<>();
-            for(Map.Entry<String, Long> metric: monitoring.getAllMetrics().entrySet()){
-                prefixed.put(this.getServerName() + "." + metric.getKey(), metric.getValue());
-            }
+            logger.debug("Fetching and sending metrics to Graphite");
+            this.send(monitoring.getAllMetrics());
+        } catch (Exception e) {
+            logger.warn("Can't send metrics to Graphite: " + this.client.toString());
             if(logger.isDebugEnabled())
-                logger.debug("Sending {} metrics",prefixed.size());
+                e.printStackTrace();
+        }
+    }
+
+    public void send(Map<String, Long> metrics){
+        Map<String, Long> prefixed = new HashMap<>();
+        for(Map.Entry<String, Long> metric: metrics.entrySet()){
+            prefixed.put(this.getServerName() + "." + metric.getKey(), metric.getValue());
+        }
+
+        if(logger.isDebugEnabled())
+            logger.debug("Sending {} metrics",prefixed.size());
+
+        try {
             client.send(prefixed);
         } catch (Exception e) {
             logger.warn("Can't send metrics to Graphite");
@@ -79,4 +91,5 @@ public class GraphiteMetricsShipper implements Job {
                 e.printStackTrace();
         }
     }
+
 }

@@ -22,10 +22,11 @@ public class GraphiteClientIntegrationTest {
     public void testSendMultipleMetric() {
         GraphiteClient client = new GraphiteClient();
         Map<String, Long> metrics = new HashMap<>();
-        metrics.put("junit.test.multile.metric1", 1234L);
-        metrics.put("junit.test.multile.metric2", 345L);
-        metrics.put("junit.test.multile.metric3", 1435L);
-        metrics.put("junit.test.multile.metric4", 4564L);
+        metrics.put("junit.test.multiple.metric1", 1234L);
+        metrics.put("junit.test.multiple.metric2", 345L);
+        metrics.put("junit.test.multiple.metric3", 1435L);
+        metrics.put("junit.test.multiple.metric4", 4564L);
         client.send(metrics);
     }
+
 }

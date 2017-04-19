@@ -18,11 +18,11 @@ public class GCMonitoring implements MonitoredSource {
     public Map<String, Long> getMonitoringMetrics() {
         Map<String, Long> metrics = new HashMap<>();
 
-
         List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
         for(GarbageCollectorMXBean bean : gcBeans){
             metrics.put("jvm.gc."+bean.getName().replace(" ","")+".count",bean.getCollectionCount());
-            metrics.put("jvm.gc."+bean.getName().replace(" ","")+".time.ms",bean.getCollectionTime());//TODO: convert to baseunit seconds
+            metrics.put("jvm.gc."+bean.getName().replace(" ","")+".time.ms",bean.getCollectionTime());
+            metrics.put("jvm.gc."+bean.getName().replace(" ","")+".time.s",bean.getCollectionTime()/1000);
         }
 
         return metrics;
