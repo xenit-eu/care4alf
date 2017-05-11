@@ -1,6 +1,6 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.scaling.Scaling;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.Map;
  * Created by willem on 12/19/16.
  */
 @Component
-public class RepositoryMetrics implements MonitoredSource{
+public class RepositoryMetric extends AbstractMonitoredSource {
     @Autowired
     private Scaling scaling;
 

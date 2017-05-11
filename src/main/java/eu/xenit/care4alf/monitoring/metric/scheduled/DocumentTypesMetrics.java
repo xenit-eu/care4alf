@@ -1,4 +1,4 @@
-package eu.xenit.care4alf.monitoring.scheduled;
+package eu.xenit.care4alf.monitoring.metric.scheduled;
 
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Properties;

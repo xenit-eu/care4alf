@@ -1,7 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.ActiveSessionsMetrics;
+import eu.xenit.care4alf.monitoring.metric.ActiveSessionsMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +17,7 @@ import java.util.Map;
 @RunWith(ApixIntegration.class)
 public class ActiveSessionsMetricsTest {
     @Autowired
-    private ActiveSessionsMetrics activeSessionsMetrics;
+    private ActiveSessionsMetric activeSessionsMetrics;
 
     @Test
     public void testMetrics(){

@@ -1,7 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.LicenseMetrics;
+import eu.xenit.care4alf.monitoring.metric.LicenseMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class LicenseMetricsTest {
 
     @Autowired
-    LicenseMetrics licenseMetrics;
+    LicenseMetric licenseMetrics;
 
     @Test
     public void testLicenseValid() {

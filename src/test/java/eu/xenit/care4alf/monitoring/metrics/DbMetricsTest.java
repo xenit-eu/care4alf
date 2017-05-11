@@ -1,7 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.DbMetrics;
+import eu.xenit.care4alf.monitoring.metric.DbMetrics;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;

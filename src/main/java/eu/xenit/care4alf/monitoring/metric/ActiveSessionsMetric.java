@@ -1,6 +1,6 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.alfresco.repo.security.authentication.TicketComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ import java.util.Map;
  * Created by willem on 5/3/17.
  */
 @Component
-public class ActiveSessionsMetrics implements MonitoredSource {
+public class ActiveSessionsMetric extends AbstractMonitoredSource {
 
     @Autowired
     private TicketComponent ticketComponent;

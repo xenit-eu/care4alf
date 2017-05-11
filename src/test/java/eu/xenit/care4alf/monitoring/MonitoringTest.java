@@ -1,20 +1,19 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.GraphiteMetricsShipper;
-import eu.xenit.care4alf.monitoring.Monitoring;
+import eu.xenit.care4alf.Config;
+import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.metric.SolrSummaryMetrics;
+import eu.xenit.care4alf.monitoring.metric.TestMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.management.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-
-import static junit.framework.TestCase.assertTrue;
 
 /**
  * Created by Thomas.Straetmans on 01/12/2016.
@@ -28,15 +27,6 @@ public class MonitoringTest {
 
     @Autowired
     GraphiteMetricsShipper shipper;
-
-    @Test
-    public void testBeansExist(){
-        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
-        List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
-    }
 
     @Test
     public void metricCantContainSpaces() throws Exception {
@@ -71,6 +61,43 @@ public class MonitoringTest {
             }
         }
         Assert.assertFalse(conflict);
+    }
+
+    @Autowired
+    private SolrSummaryMetrics solrSummaryMetrics;
+
+    @Test
+    public void testName(){
+        Assert.assertEquals("solrsummary",this.solrSummaryMetrics.getName());
+    }
+
+    @Test
+    public void testConflictingMetricNames(){
+        List<String> names = new ArrayList<>();
+        for(MonitoredSource monitor : monitoring.getAllMonitoredSources()){
+            Assert.assertTrue(monitor instanceof AbstractMonitoredSource);
+            AbstractMonitoredSource aMonitor = (AbstractMonitoredSource) monitor;
+            names.add(aMonitor.getName());
+        }
+        Assert.assertEquals(names.size(),new HashSet(names).size());
+    }
+
+    @Autowired
+    private TestMetric testMetric;
+
+    @Autowired
+    private Config config;
+
+    @Test
+    public void testMetricEnabled(){
+        config.removeProperty("c4a.monitoring.metric.test.enabled");
+        Assert.assertTrue(monitoring.isEnabled(testMetric));
+    }
+
+    @Test
+    public void testMetricDisabled(){
+        config.addProperty("c4a.monitoring.metric.test.enabled","false");
+        Assert.assertFalse(monitoring.isEnabled(testMetric));
     }
 
 }

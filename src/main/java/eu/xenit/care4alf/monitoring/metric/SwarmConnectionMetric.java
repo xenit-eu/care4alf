@@ -1,21 +1,20 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import eu.xenit.care4alf.integration.MonitoredSource;
-
 @Component
-public class SwarmConnectionMetrics implements MonitoredSource {
+public class SwarmConnectionMetric extends AbstractMonitoredSource {
 
-	private final Logger logger = LoggerFactory.getLogger(SwarmConnectionMetrics.class);
+	private final Logger logger = LoggerFactory.getLogger(SwarmConnectionMetric.class);
 	
 	@Autowired
     private ApplicationContext applicationContext;
