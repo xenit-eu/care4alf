@@ -7,12 +7,14 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.metric.ClusteringMetric;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.extensions.webscripts.WebScriptResponse;
@@ -42,6 +44,10 @@ public class Monitoring implements ApplicationContextAware {
     @Autowired(required = false)
     List<MonitoredSource> allMonitoredSources;
 
+    public List<MonitoredSource> getAllMonitoredSources(){
+        return this.allMonitoredSources;
+    }
+
     public Map<String, Long> getAllMetrics() throws Exception {
         final Map<String, Long> vars = new HashMap<String, Long>();
 
@@ -49,16 +55,29 @@ public class Monitoring implements ApplicationContextAware {
         logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
         if (allMonitoredSources != null) {
             for (MonitoredSource source : allMonitoredSources) {
-                if(source == null)
+                if(source == null) {
                     continue;
+                }
+
+                if(!isEnabled((source))){
+                    logger.debug("Source %s is not enabled", source.getClass().getSimpleName());
+                    if(source instanceof AbstractMonitoredSource)
+                        logger.debug("Enable by setting property c4a.monitoring.metric.{}.enabled=true",((AbstractMonitoredSource) source).getName());
+                    continue;
+                }
+
                 try {
+                    Long start = System.currentTimeMillis();
+                    AbstractMonitoredSource aSource = (AbstractMonitoredSource) source;
                     Map<String, Long> metrics = source.getMonitoringMetrics();
                     if (metrics != null) {
 	                    for (String key : metrics.keySet()) {
 	                        vars.put(key, metrics.get(key));
-	                        logger.debug(key + " done");
 	                    }
                     }
+                    Long diff = System.currentTimeMillis() - start;
+                    logger.debug("Metric '{}' took {} ms", aSource.getName(), diff);
+                    vars.put("metrics." + aSource.getName() + ".timing", diff);
                 }
                 catch(Exception e){
                     logger.warn("Can't fetch some metric");
@@ -67,6 +86,15 @@ public class Monitoring implements ApplicationContextAware {
         }
 
         return vars;
+    }
+
+    @Autowired
+    @Qualifier("global-properties")
+    private java.util.Properties properties;
+
+    public boolean isEnabled(MonitoredSource monitoredSource){
+        AbstractMonitoredSource abstractMonitoredSource = (AbstractMonitoredSource) monitoredSource;
+        return Boolean.parseBoolean(properties.getProperty("c4a.monitoring.metric." + abstractMonitoredSource.getName() + ".enabled", "true"));
     }
 
     @Uri(value = "/xenit/care4alf/monitoring/vars")
@@ -83,12 +111,10 @@ public class Monitoring implements ApplicationContextAware {
         };
     }
 
-    @Uri(value = "/xenit/care4alf/monitoring/cluster")
+    @Uri(value = "/xenit/care4alf/monitoring/cluster")//TODO: make dynamic
     public Resolution getClusterMetrics(WebScriptResponse response) throws Exception {
         final Map<String, Long> vars = new HashMap<String, Long>();
 
-        // find all beans implementing the MonitoredSource interface and and look for cluster metrics to add.
-        logger.debug("Scanning parent spring context for beans implementing MonitoredSource interface...");
         if (allMonitoredSources != null) {
             for (MonitoredSource source : allMonitoredSources) {
                 if (source == null)

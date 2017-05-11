@@ -1,11 +1,11 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.apache.commons.codec.EncoderException;
 import org.json.JSONException;
@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * Created by willem on 12/19/16.
  */
 @Component
-public class SolrSummaryMetrics implements MonitoredSource{
+public class SolrSummaryMetrics extends AbstractMonitoredSource {
     private static Logger logger = LoggerFactory.getLogger(SolrSummaryMetrics.class);
 
     @Autowired

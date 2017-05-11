@@ -1,8 +1,9 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import eu.xenit.care4alf.Properties;
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -11,7 +12,8 @@ import java.util.Map;
 /**
  * Created by willem on 3/3/17.
  */
-public class ResidualPropertiesMetric implements MonitoredSource {
+@Component
+public class ResidualPropertiesMetric extends AbstractMonitoredSource {
 
     @Autowired
     private Properties properties;

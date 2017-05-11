@@ -39,6 +39,10 @@ Enable writing monitoring metrics to Graphite endpoint:
     c4a.monitoring.graphite.host=carbon.example.co
     c4a.monitoring.graphite.port=2003
     
-Optionally you can enable:
+Optionally you can enable/disable specific metrics using:
 
+    c4a.monitoring.metric.<metric>.enabled=true
     c4a.monitoring.metric.documenttypes.enabled=true
+    c4a.monitoring.metric.repository.enabled=false
+    c4a.monitoring.metric.residualproperties.enabled=false
+    

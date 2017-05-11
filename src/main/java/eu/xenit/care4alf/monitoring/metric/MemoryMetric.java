@@ -1,6 +1,7 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.springframework.stereotype.Component;
 
 import java.lang.management.ManagementFactory;
@@ -15,7 +16,7 @@ import java.util.Map;
  * Created by willem on 1/16/17.
  */
 @Component
-public class MemoryMetrics implements MonitoredSource{
+public class MemoryMetric extends AbstractMonitoredSource {
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {

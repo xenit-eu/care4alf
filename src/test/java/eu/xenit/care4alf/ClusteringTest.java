@@ -1,7 +1,7 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.ClusteringMetric;
+import eu.xenit.care4alf.monitoring.metric.ClusteringMetric;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
