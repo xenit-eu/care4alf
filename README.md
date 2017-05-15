@@ -26,7 +26,9 @@ Provide html (named <classname>.html) in the resources/eu/xenit/care4alf/web/par
 ## Monitoring
 
 There are 2 ways to integrate monitoring:
+
 1) Collect metrics using json endpoint alfresco/s/xenit/care4alf/monitoring/vars
+
 2) Configure c4a to write to a graphite endpoint, see Graphite integration
 
 
@@ -35,8 +37,8 @@ There are 2 ways to integrate monitoring:
 Enable writing monitoring metrics to Graphite endpoint:
 
     c4a.monitoring.graphite.enabled=true
-    c4a.monitoring.graphite.prefix=c4a.alfresco
-    c4a.monitoring.graphite.host=carbon.example.co
+    c4a.monitoring.graphite.prefix=c4a.<HOSTNAME>
+    c4a.monitoring.graphite.host=<CARBON HOST|IP>
     c4a.monitoring.graphite.port=2003
     
 Optionally you can enable/disable specific metrics using:
