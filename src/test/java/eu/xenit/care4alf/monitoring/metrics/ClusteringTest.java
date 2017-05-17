@@ -1,4 +1,4 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.monitoring.metric.ClusteringMetric;
