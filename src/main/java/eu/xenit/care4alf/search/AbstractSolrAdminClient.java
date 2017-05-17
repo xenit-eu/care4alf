@@ -61,4 +61,8 @@ public abstract class AbstractSolrAdminClient {
         return getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null);
     }
 
+    public String optimize() throws IOException, EncoderException {
+        return this.getSolrClient().postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />");
+    }
+
 }

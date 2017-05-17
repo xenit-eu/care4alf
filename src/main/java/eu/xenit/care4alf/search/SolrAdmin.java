@@ -77,9 +77,6 @@ public class SolrAdmin {
         }
     }
 
-    @Autowired
-    SolrClient solrClient;
-    
     @Uri("proxy/{uri}")
     public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri) throws JSONException, EncoderException, IOException {
         String[] names = request.getParameterNames();
@@ -87,13 +84,10 @@ public class SolrAdmin {
         for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
-        String result = solrClient.get("/" + getSolrTypeUrl() + "/" + uri, parameters);
+        String result = this.getSolrAdminClient().getSolrClient().get("/" + this.getSolrAdminClient().getSolrTypeUrl() + "/" + uri, parameters);
         response.setContentType("application/json");
         response.getWriter().write(result);
     }
-
-    @Autowired
-    private SolrClientImpl solrClientImpl;
 
     @Uri("errors/nodes")
     public void getRESTSolrErrorNodes(final WebScriptResponse response, @RequestParam(defaultValue = "100") int rows) throws IOException, JSONException, EncoderException {
@@ -170,18 +164,21 @@ public class SolrAdmin {
         return o == null ? "" : o.toString();
     }
 
-
+    @Autowired
+    Solr1AdminClientImpl solr1AdminClient;
 
     @Autowired
     Solr4AdminClientImpl solr4AdminClient;
 
     @Autowired
-    Solr1AdminClientImpl solr1AdminClient;
+    Solr6AdminClientImpl solr6AdminClient;
 
     public AbstractSolrAdminClient getSolrAdminClient() {
-        String searchSubSystem = getSearchSubSystemName();
+        String searchSubSystem = getSearchSubSystemName().toLowerCase();
         if(searchSubSystem.equals("solr4"))
             return solr4AdminClient;
+        if(searchSubSystem.equals("solr6"))
+            return solr6AdminClient;
         return solr1AdminClient;
     }
 
@@ -203,11 +200,11 @@ public class SolrAdmin {
 
     @Uri("optimize")
     public void optimize(WebScriptResponse res) throws IOException, EncoderException {
-        res.getWriter().write(optimize());
+        res.getWriter().write(this.optimize());
     }
 
     public String optimize() throws IOException, EncoderException {
-        return solrClient.postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />");
+        return this.getSolrAdminClient().optimize();
     }
 
     @Uri("transactions")
@@ -314,9 +311,5 @@ public class SolrAdmin {
             }
         }
         return count;
-    }
-
-    private String getSolrTypeUrl() {
-        return this.getSearchSubSystemName();
     }
 }
