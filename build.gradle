@@ -1,7 +1,7 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
-version='1.0.5'
+version='1.1.0'
 
 buildscript {
     ext.kotlin_version = '1.0.3'
@@ -137,20 +137,14 @@ dependencies {
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
-    ampdeLib('eu.xenit.apix:integration-testing:1.2.24')
-    installDep('eu.xenit.apix:integration-testing:1.2.24')
+    ampdeLib('eu.xenit.apix:integration-testing:1.2.27')
+    installDep('eu.xenit.apix:integration-testing:1.2.27')
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
     embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
-    //embedded "org.jetbrains.kotlin:kotlin-jdbc:$kotlin_version"
-
-//    compile('eu.xenit.apix:integration-testing:1.1.4'){
-//        exclude group: 'com.github.dynamicextensionsalfresco'
-//        exclude group: 'commons-codec'
-//    }
 }
 
 lesscss {
@@ -161,13 +155,8 @@ lesscss {
     compress = false
 }
 
-//sourceSets {
-// main { java { srcDirs = ['src/main/java'] } }
-//}
-
 sourceSets {
     main { java { srcDirs = ['src/main/java','src/test/java'] } }
-//    test { java { srcDirs = ["src/test/java"] } }
 }
 
 jar {

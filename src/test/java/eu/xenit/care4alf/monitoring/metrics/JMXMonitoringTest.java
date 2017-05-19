@@ -1,7 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.MemoryMetrics;
+import eu.xenit.care4alf.monitoring.metric.MemoryMetric;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import static junit.framework.TestCase.assertTrue;
 public class JMXMonitoringTest {
 
     @Autowired
-    private MemoryMetrics memoryMetrics;
+    private MemoryMetric memoryMetrics;
 
     @Test
     public void dataRealistic(){

@@ -1,4 +1,4 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.care4alf.monitoring.GraphiteClient;
 import org.junit.Ignore;

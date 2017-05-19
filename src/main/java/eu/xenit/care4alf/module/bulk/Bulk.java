@@ -357,21 +357,4 @@ public class Bulk implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
-
-    @Autowired
-    Solr4AdminClientImpl solr4AdminClient;
-
-    @Autowired
-    Solr1AdminClientImpl solr1AdminClient;
-
-    public AbstractSolrAdminClient getSolrAdminClient() {
-        String searchSubSystem = getSearchSubSystemName();
-        if(searchSubSystem.equals("solr4"))
-            return solr4AdminClient;
-        return solr1AdminClient;
-    }
-
-    private String getSearchSubSystemName(){
-        return config.getProperty("index.subsystem.name");
-    }
 }

@@ -1,10 +1,10 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
 import org.json.JSONException;
@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Component
 @WebScript
-public class LicenseMetrics implements MonitoredSource{
+public class LicenseMetric extends AbstractMonitoredSource {
 
     @Autowired
     public LicenseService licenseService;

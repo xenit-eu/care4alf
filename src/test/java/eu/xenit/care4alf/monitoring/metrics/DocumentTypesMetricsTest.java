@@ -1,7 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.scheduled.DocumentTypesMetrics;
+import eu.xenit.care4alf.monitoring.metric.scheduled.DocumentTypesMetrics;
 import org.alfresco.service.namespace.QName;
 import org.junit.Assert;
 import org.junit.Test;
