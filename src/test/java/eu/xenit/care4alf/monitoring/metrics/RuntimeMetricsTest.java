@@ -1,13 +1,15 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.monitoring.metrics;
 
 import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
-import eu.xenit.care4alf.monitoring.SystemMetrics;
+import eu.xenit.care4alf.monitoring.metric.SystemMetrics;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.management.*;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,6 +30,15 @@ public class RuntimeMetricsTest {
         Assert.assertTrue(metrics.containsKey("jvm.memory.runtime.max"));
         Assert.assertTrue(metrics.containsKey("jvm.memory.runtime.total"));
         Assert.assertTrue(metrics.containsKey("jvm.threads.count"));
+    }
+
+    @Test
+    public void testBeansExist(){
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+        List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
     }
 
 }

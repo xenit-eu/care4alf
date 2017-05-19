@@ -1,8 +1,8 @@
-package eu.xenit.care4alf.monitoring;
+package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
-import eu.xenit.care4alf.integration.MonitoredSource;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import org.alfresco.repo.descriptor.DescriptorDAO;
 import org.alfresco.service.descriptor.Descriptor;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -21,7 +21,7 @@ import java.util.Map;
  * Created by willem on 1/17/17.
  */
 @Component
-public class DbMetrics implements MonitoredSource{
+public class DbMetrics extends AbstractMonitoredSource {
 
     @Autowired
     @Qualifier("defaultDataSource")
