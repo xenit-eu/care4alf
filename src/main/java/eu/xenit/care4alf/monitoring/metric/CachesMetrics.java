@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -27,6 +28,7 @@ import java.util.Properties;
 /**
  * Created by yregaieg on 19.05.17.
  */
+@Component
 public class CachesMetrics extends AbstractMonitoredSource implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(CachesMetrics.class);
     private ApplicationContext ctx;
@@ -38,7 +40,7 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        ctx = applicationContext;
+        ctx = applicationContext.getParent().getParent();
     }
 
     @Override
@@ -133,6 +135,7 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
     }
 
     protected void initMonitoredCaches(){
+        monitoredCaches = new HashMap<>();
         String[] allCacheBeanNames = ctx.getBeanNamesForType(SimpleCache.class, false, false);
         for (int i=0; i < allCacheBeanNames.length; i++){
             SimpleCache cache = ctx.getBean(allCacheBeanNames[i], SimpleCache.class);
