@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Created by Thomas.Straetmans on 11/05/2017.
  */
@@ -21,13 +23,19 @@ import org.springframework.stereotype.Component;
 public class ContentStoreTest {
 
     @Autowired
-    ContentStoreJava contentStoreJava;
+    ContentStore contentStore;
 
     private Logger logger = LoggerFactory.getLogger(ContentStoreTest.class);
 
     @Test
     public void getListReturnsNotNull(){
-        Resolution res = contentStoreJava.list(null);
+        Resolution res = contentStore.list(null);
         Assert.assertNotEquals(null, res);
+    }
+
+    @Test
+    public void getIntegrityResults(){
+        List<MissingContent> missingContent = this.contentStore.getIntegrityCheckResults();
+        Assert.assertTrue(missingContent.size() == 0);
     }
 }
