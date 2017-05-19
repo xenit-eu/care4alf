@@ -227,6 +227,12 @@ String nodeExecutable() {
     return new VariantBuilder(nodeExt).build().nodeExec
 }
 
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
 compileTypeScript {
     sourcemap = false
     source = 'src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
