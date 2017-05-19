@@ -30,11 +30,4 @@ public class ContentStoreTest {
         Resolution res = contentStoreJava.list(null);
         Assert.assertNotEquals(null, res);
     }
-
-    @Test
-    public void adminSizeIsOverNull() throws JSONException {
-        JSONArray array = new JSONArray(contentStoreJava.list(null).toString());
-        JSONObject object = array.getJSONObject(0);
-        Assert.assertTrue(object.getLong("workspace") > 0L || object.getLong("archive") > 0L);
-    }
 }
