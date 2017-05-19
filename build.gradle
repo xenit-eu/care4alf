@@ -120,6 +120,7 @@ configurations {
 dependencies {
     compile("org.alfresco:alfresco-core:${alfrescoVersion}") { transitive = false }
     compile("org.alfresco:alfresco-repository:${alfrescoVersion}") { transitive = false }
+    compile("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") { transitive = false }
     compile("org.alfresco:alfresco-data-model:${alfrescoVersion}") { transitive = true }
 
     compile "org.springframework:spring-context:${project.springVersion}"
