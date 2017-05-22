@@ -62,15 +62,19 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
     }
 
     private String buildKey(String cacheName, String key){
+        return buildKey(cacheName, key, true);
+    }
+
+    private String buildKey(String cacheName, String key, boolean sanitizeCacheName){
         StringBuilder metricKey = new StringBuilder("cache.");
-        return metricKey.append(cacheName).append(".").append(key).toString();
+        return metricKey.append(sanitizeCacheName?cacheName.replace('.', '-'):cacheName).append(".").append(key).toString();
     }
 
     public Map<String, Long> getCacheProperties(String cacheName){
         Map<String, Long> cacheProps = new HashMap<>();
-        String maxItems = properties.getProperty(buildKey(cacheName, "maxItems"));
-        String txMaxItems = properties.getProperty(buildKey(cacheName, "tx.maxItems"));
-        String statsEnabled = properties.getProperty(buildKey(cacheName, "tx.statsEnabled"));
+        String maxItems = properties.getProperty(buildKey(cacheName, "maxItems", false));
+        String txMaxItems = properties.getProperty(buildKey(cacheName, "tx.maxItems", false));
+        String statsEnabled = properties.getProperty(buildKey(cacheName, "tx.statsEnabled", false));
         cacheProps.put(buildKey(cacheName, "maxItems"), Long.valueOf(maxItems == null?"-1":maxItems));
         cacheProps.put(buildKey(cacheName, "tx.maxItems"), Long.valueOf(txMaxItems == null?"-1":txMaxItems));
         cacheProps.put(buildKey(cacheName, "statsEnabled"), Long.valueOf("true".equals(statsEnabled)?1:0));
@@ -84,18 +88,23 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         metrics.put(buildKey(cacheName, "size"), Long.valueOf(cache.getKeys().size()));
         if ("org.alfresco.repo.cache.DefaultSimpleCache".equals(cacheType)){
             metrics.putAll(getDefaultSimpleCacheStats(cacheName, (DefaultSimpleCache) cache));
+            metrics.put(buildKey(cacheName, "type"), 1L);
         }else if("org.alfresco.enterprise.repo.cluster.cache.InvalidatingCache".equals(cacheType)){
-            metrics.putAll(getInvalidatingCacheStats(cacheName, (InvalidatingCache) cache));
+            metrics.putAll(getInvalidatingCacheStats(cacheName, cache));
+            metrics.put(buildKey(cacheName, "type"), 2L);
         }else if("org.alfresco.enterprise.repo.cluster.cache.HazelcastSimpleCache".equals(cacheType)){
             // These metrics can be a bit less reliable than former cache stats
-            metrics.putAll(getHazelcastSimpleCacheStats(cacheName, (HazelcastSimpleCache) cache));
+            metrics.putAll(getHazelcastSimpleCacheStats(cacheName, cache));
+            metrics.put(buildKey(cacheName, "type"), 3L);
         }else{
             logger.debug("Ignoring cache " + cacheName + " of type " + cacheType);
+            metrics.put(buildKey(cacheName, "type"), -1L);
         }
         return metrics;
     }
 
-    private Map<String, Long> getHazelcastSimpleCacheStats(String cacheName, HazelcastSimpleCache cache) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private Map<String, Long> getHazelcastSimpleCacheStats(String cacheName, SimpleCache simpleCache) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        final HazelcastSimpleCache cache = (HazelcastSimpleCache) simpleCache;
         final Field mapField = cache.getClass().getDeclaredField("map");
         mapField.setAccessible(true);
         final Object map = mapField.get(cache);
@@ -112,7 +121,8 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         return metrics;
     }
 
-    private Map<String, Long> getInvalidatingCacheStats(String cacheName, InvalidatingCache cache) throws NoSuchFieldException, IllegalAccessException {
+    private Map<String, Long> getInvalidatingCacheStats(String cacheName, SimpleCache simpleCache) throws NoSuchFieldException, IllegalAccessException {
+        final InvalidatingCache cache = (InvalidatingCache) simpleCache;
         final Field cacheField = cache.getClass().getDeclaredField("cache");
         cacheField.setAccessible(true);
         DefaultSimpleCache realCache = (DefaultSimpleCache) cacheField.get(cache);
@@ -125,7 +135,11 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
 
         final Field cacheField = cache.getClass().getDeclaredField("cache");
         cacheField.setAccessible(true);
-        Cache realCache = (Cache) cacheField.get(cache);
+        final Object realCacheObject = cacheField.get(cache);
+        if ("com.google.common.cache.LocalCache$LocalManualCache".equals(realCacheObject.getClass().getName())){
+            return metrics;
+        }
+        final Cache realCache = (Cache) realCacheObject;
         final CacheStats stats = realCache.stats();
 
         metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
