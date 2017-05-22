@@ -136,17 +136,18 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         final Field cacheField = cache.getClass().getDeclaredField("cache");
         cacheField.setAccessible(true);
         final Object realCacheObject = cacheField.get(cache);
-        if ("com.google.common.cache.LocalCache$LocalManualCache".equals(realCacheObject.getClass().getName())){
-            return metrics;
-        }
-        final Cache realCache = (Cache) realCacheObject;
-        final CacheStats stats = realCache.stats();
+        try {
+            final Cache realCache = (Cache) realCacheObject;
+            final CacheStats stats = realCache.stats();
 
-        metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
-        metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.loadCount()));
-        metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.hitCount()));
-        metrics.put(buildKey(cacheName, "nbMiss"), Long.valueOf(stats.missCount()));
-        metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.evictionCount()));
+            metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
+            metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.loadCount()));
+            metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.hitCount()));
+            metrics.put(buildKey(cacheName, "nbMiss"), Long.valueOf(stats.missCount()));
+            metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.evictionCount()));
+        }catch(ClassCastException cce){
+            logger.warn("Exception while trying to cast cache , issue might be related to guava version :", cce);
+        }
 
         return metrics;
     }
