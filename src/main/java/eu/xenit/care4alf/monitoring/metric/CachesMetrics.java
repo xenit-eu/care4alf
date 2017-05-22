@@ -68,9 +68,12 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
 
     public Map<String, Long> getCacheProperties(String cacheName){
         Map<String, Long> cacheProps = new HashMap<>();
-        cacheProps.put(buildKey(cacheName, "maxItems"), Long.valueOf(properties.getProperty(buildKey(cacheName, "maxItems"))));
-        cacheProps.put(buildKey(cacheName, "tx.maxItems"), Long.valueOf(properties.getProperty(buildKey(cacheName, "tx.maxItems"))));
-        cacheProps.put(buildKey(cacheName, "statsEnabled"), Long.valueOf(properties.getProperty(buildKey(cacheName, "tx.statsEnabled")).equals("true")?1:0));
+        String maxItems = properties.getProperty(buildKey(cacheName, "maxItems"));
+        String txMaxItems = properties.getProperty(buildKey(cacheName, "tx.maxItems"));
+        String statsEnabled = properties.getProperty(buildKey(cacheName, "tx.statsEnabled"));
+        cacheProps.put(buildKey(cacheName, "maxItems"), Long.valueOf(maxItems == null?"-1":maxItems));
+        cacheProps.put(buildKey(cacheName, "tx.maxItems"), Long.valueOf(txMaxItems == null?"-1":txMaxItems));
+        cacheProps.put(buildKey(cacheName, "statsEnabled"), Long.valueOf("true".equals(statsEnabled)?1:0));
         return cacheProps;
     }
 
