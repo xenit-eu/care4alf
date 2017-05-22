@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.monitoring.metric;
 
 import com.google.common.cache.CacheStats;
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.hazelcast.monitor.LocalMapStats;
 import com.google.common.cache.Cache;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
@@ -55,7 +56,7 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
             try {
                 metrics.putAll(getMonitoringMetrics(cacheEntry.getKey(), cacheEntry.getValue()));
             } catch (Exception e) {
-                logger.error("An error has occured when trying to fetch cache metrics: ", e);
+                logger.error("An error has occured when trying to fetch cache metrics for '"+cacheEntry.getKey()+"': ", e);
             }
         }
         return metrics;
@@ -133,20 +134,25 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
     private Map<String, Long> getDefaultSimpleCacheStats(String cacheName, DefaultSimpleCache cache) throws NoSuchFieldException, IllegalAccessException {
         Map<String, Long> metrics = new HashMap<>();
 
-        final Field cacheField = cache.getClass().getDeclaredField("cache");
-        cacheField.setAccessible(true);
-        final Object realCacheObject = cacheField.get(cache);
         try {
-            final Cache realCache = (Cache) realCacheObject;
-            final CacheStats stats = realCache.stats();
+            final Field cacheField = cache.getClass().getDeclaredField("cache");
+            cacheField.setAccessible(true);
+            final Object realCacheObject = cacheField.get(cache);
+            try {
+                final Cache realCache = (Cache) realCacheObject;
+                final CacheStats stats = realCache.stats();
 
-            metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
-            metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.loadCount()));
-            metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.hitCount()));
-            metrics.put(buildKey(cacheName, "nbMiss"), Long.valueOf(stats.missCount()));
-            metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.evictionCount()));
-        }catch(ClassCastException cce){
-            logger.warn("Exception while trying to cast cache , issue might be related to guava version :", cce);
+                metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
+                metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.loadCount()));
+                metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.hitCount()));
+                metrics.put(buildKey(cacheName, "nbMiss"), Long.valueOf(stats.missCount()));
+                metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.evictionCount()));
+            } catch (ClassCastException cce) {
+                logger.warn("Exception while trying to cast cache , issue might be related to guava version :", cce);
+            }
+        }catch (NoSuchFieldException|NoClassDefFoundError e){
+            // This field got introduced in Alfresco 5.x, ignore this exception
+            logger.debug("Skipping cache statistics collection: unsopported Alfresco version");
         }
 
         return metrics;
