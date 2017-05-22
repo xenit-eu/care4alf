@@ -1,5 +1,7 @@
 package eu.xenit.care4alf;
 
+import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
+import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
@@ -9,7 +11,9 @@ import org.alfresco.query.PagingRequest;
 import org.alfresco.repo.domain.node.ContentDataWithId;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.QName;
 import org.json.JSONException;
@@ -17,7 +21,6 @@ import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -29,18 +32,23 @@ import java.util.*;
  * Created by Thomas.Straetmans on 10/05/2017.
  */
 
-@WebScript(baseUri = "/xenit/care4alf/contentstorejava", families = "care4alf", description = "Content store verification")
-@Authentication(AuthenticationType.ADMIN)
 @Component
-public class ContentStoreJava {
-
-    @Autowired
-    ApplicationContext applicationContext;
+@WebScript(baseUri = "/xenit/care4alf/contentstore", families = "care4alf", description = "Content store verification")
+@Authentication(AuthenticationType.ADMIN)
+public class ContentStore {
 
     @Autowired
     ServiceRegistry services;
 
-    final private Logger logger = LoggerFactory.getLogger(ContentStoreJava.class);
+    @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
+    private ContentService contentService;
+
+    @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
+    private NodeService nodeService;
+
+    final private Logger logger = LoggerFactory.getLogger(ContentStore.class);
 
     private JdbcTemplate jdbcTemplate;// = new JdbcTemplate(dataSource);
 
@@ -48,7 +56,7 @@ public class ContentStoreJava {
     private QName ArchiveDiskUsage = QName.createQName("ArchiveDiskUsage");
 
     @Autowired
-    public ContentStoreJava(DataSource dataSource) {
+    public ContentStore(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
@@ -137,15 +145,32 @@ public class ContentStoreJava {
 
     @Uri(value = "/checkintegrity", method = HttpMethod.GET)
     public Resolution checkintegrity() {
+        return new JsonWriterResolution() {
+            @Override
+            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                jsonWriter.array();
+                for (MissingContent content : getIntegrityCheckResults()) {
+                    jsonWriter.object();
+                    jsonWriter.key("noderef").value(content.getNodeRef());
+                    jsonWriter.key("contentUrl").value(content.getContentUrl());
+                    jsonWriter.key("cause").value(content.getCause());
+                    jsonWriter.endObject();
+                }
+                jsonWriter.endArray();
+            }
+        };
+    }
+
+    public List<MissingContent> getIntegrityCheckResults(){
         final ArrayList<MissingContent> missingContent = new ArrayList<>();
         List<Long> ids = jdbcTemplate.queryForList("select id from alf_node", Long.class);
         for (Long id : ids) {
-            NodeRef nodeRef = services.getNodeService().getNodeRef(id);
+            NodeRef nodeRef = nodeService.getNodeRef(id);
             if (nodeRef != null) {
                 ContentDataWithId content = (ContentDataWithId) services.getNodeService().getProperty(nodeRef, ContentModel.PROP_CONTENT);
                 if (content != null) {
                     try {
-                        services.getContentService().getReader(nodeRef, ContentModel.PROP_CONTENT).getContentInputStream().close();
+                        contentService.getReader(nodeRef, ContentModel.PROP_CONTENT).getContentInputStream().close();
                     } catch (Exception ex) {
                         String contentUrl = "<none>";
                         if (content != null && content.getContentUrl() != null) {
@@ -156,21 +181,7 @@ public class ContentStoreJava {
                 }
             }
         }
-
-        return new JsonWriterResolution() {
-            @Override
-            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-                jsonWriter.array();
-                for (MissingContent content : missingContent) {
-                    jsonWriter.object();
-                    jsonWriter.key("noderef").value(content.getNodeRef());
-                    jsonWriter.key("contentUrl").value(content.getContentUrl());
-                    jsonWriter.key("cause").value(content.getCause());
-                    jsonWriter.endObject();
-                }
-                jsonWriter.endArray();
-            }
-        };
+        return missingContent;
     }
 }
 
