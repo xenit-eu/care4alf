@@ -11,6 +11,9 @@
         <p>
             Namespace : <input ng-model="namespace" type="text" id="namespace">
         </p>
+        <p>
+            Force recreate <input type="checkbox" value="Force recreate" ng-model="forcereplace">
+        </p>
         <input type="button" value="Upload It" ng-click="go()"/>
     </form>
     <div ng-if="succes">

@@ -89,6 +89,7 @@ public class ClassificationInstaller {
     }
 
     private void addAspectCategories(@Nonnull NodeRef parentRef, @Nonnull JSONObject json) throws JSONException {
+        logger.debug("Start adding the child categories");
         final Iterator<String> it = json.keys();
         while (it.hasNext()) {
             String key = it.next();
@@ -104,8 +105,8 @@ public class ClassificationInstaller {
     }
 
     private NodeRef categoryExists(String validname, NodeRef parentRef) {
-        services.getNodeService().getChildByName(parentRef, ContentModel.ASSOC_SUBCATEGORIES, validname);
-        return services.getSearchService().query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_XPATH, "/cm:categoryRoot").getNodeRef(0);
+        return services.getNodeService().getChildByName(parentRef, ContentModel.ASSOC_SUBCATEGORIES, validname);
+        //return services.getSearchService().query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_XPATH, "/cm:categoryRoot").getNodeRef(0);
     }
 
     private String createValidName(String name) {
