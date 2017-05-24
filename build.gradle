@@ -1,7 +1,8 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
+ext.junitVersion = '4.12'
 
-version='1.1.0-SNAPSHOT'
+version='1.1.0'
 group='eu.xenit'
 
 buildscript {
@@ -274,6 +275,7 @@ dependencies {
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
+    testCompile "junit:junit:${project.ext.junitVersion}"
 }
 
 lesscss {
@@ -361,6 +363,7 @@ compileTypeScript {
     dependsOn "npmInstall"
 }
 build.dependsOn("integrationJar", "assembleAmp")
+uploadArchives.dependsOn("integrationJar", "ampde")
 
 import com.github.dynamicextensionsalfresco.gradle.tasks.*
 
