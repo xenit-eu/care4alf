@@ -27,10 +27,10 @@ node {
 
     try {
         stage 'Testing'
-        sh "./gradlew clean :installBundle :test --continue -i"
+        sh "./gradlew clean :installBundle :test -PbuildNumber=${buildNr} --continue -i"
 
         stage 'Building AMP'
-        sh "./gradlew :ampde --continue -i"
+        sh "./gradlew :ampde -PbuildNumber=${buildNr} --continue -i"
 
         def artifacts = [
            'build/libs/*.jar',
@@ -40,7 +40,7 @@ node {
         archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
 
         stage 'Building integrationJar'
-        sh "./gradlew :integrationJar --continue -i"
+        sh "./gradlew :integrationJar -PbuildNumber=${buildNr} --continue -i"
 
         stage 'Publishing'
         sh "./gradlew :${publishAmpTask} :${publishJarTask} :${publishIntegrationJarTask} -PbuildNumber=${buildNr}  --continue -i"
