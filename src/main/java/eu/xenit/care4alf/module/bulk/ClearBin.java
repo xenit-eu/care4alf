@@ -31,7 +31,7 @@ import java.util.List;
  *
  * Created for Alfresco 4.1 to clear the recycle bin using a db query like this:
  *  For Oracle:
- *      select concat('archive://SpacesStore/',n.uuid) from alf_node_aspects a join alf_node n on a.NODE_ID=n.ID where qname_id in (select id from alf_qname where local_name = 'archived') and rownum <= 1
+ *      select concat('archive://SpacesStore/',n.uuid) from alf_node_aspects a join alf_node n on a.NODE_ID=n.ID where qname_id in (select id from alf_qname where local_name = 'archived') and rownum &lt;= 1
  *
  *  For postgresql:
  *      select concat('archive://SpacesStore/',uuid) from alf_node where id in (select node_id from alf_node_aspects where qname_id in (select id from alf_qname where local_name = 'archived') limit 1)

@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 /**
  * Store messages as EML files.
- * <br/>This class makes no guarantees as to the order of the received messages.
+ * <br>This class makes no guarantees as to the order of the received messages.
  * The messages are stored in order but getMessages won't return messages in the same order they were received.
  */
 public class EMLMailStore implements MailStore {
