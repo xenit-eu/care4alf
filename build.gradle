@@ -1,7 +1,8 @@
 ext.alfrescoVersion = '4.2.3.1'
 ext.springVersion = '3.0.5.RELEASE'
 
-version='1.1.0'
+version='1.1.0-SNAPSHOT'
+group='eu.xenit'
 
 buildscript {
     ext.kotlin_version = '1.0.3'
@@ -27,6 +28,7 @@ buildscript {
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
         classpath "com.moowork.gradle:gradle-node-plugin:0.13"
         classpath 'eu.xenit.gradle.plugins:ampde_gradle_plugin:1.0.0'
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.8.0"
     }
 }
 
@@ -38,27 +40,153 @@ apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
 apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
+apply plugin: 'io.codearte.nexus-staging'
 
+nexusStaging {
+    username = project.hasProperty('publish_username') ? project.publish_username : ''
+    password = project.hasProperty('publish_password') ? project.publish_password : ''
+    packageGroup = "eu.xenit"
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from 'build/docs/javadoc'
+}
+
+def alfrescoAmp = file("build/distributions/${project.name}-${project.version}.amp")
+artifacts {
+    archives sourceJar, javadocJar, alfrescoAmp
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            signing {
+                required {false}
+                sign configurations.archives
+            }
+            beforeDeployment {
+                MavenDeployment deployment -> signing.signPom(deployment)
+            }
+
+            repository(url: project.hasProperty('publish_url') ? project.publish_url : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
+            }
+
+            pom.project {
+                url 'https://bitbucket.org/xenit/care4alf'
+                name "Care4Alf"
+                description "An Alfresco dynamic extension providing a variety of maintainance/admin/support utilities " +
+                        "for alfresco, along side with optional monitoring extension"
+
+                scm {
+                    connection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
+                    developerConnection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
+                    url 'https://bitbucket.org/xenit/care4alf'
+                }
+
+                licenses {
+                    license {
+                        name 'GNU Lesser General Public License v3.0 or later'
+                        url 'http://www.gnu.org/licenses/lgpl-3.0-standalone.html'
+                    }
+                }
+
+                developers {
+                    developer{
+                        id "laurentvdl"
+                        name "Laurent Van der Linden"
+                        roles{
+                            role "Founder"
+                            role "Architect"
+                        }
+                    }
+                    developer {
+                        id 'willemvde'
+                        name 'Willem Van den Eynde'
+                        email 'willem.vandeneynde@xenit.eu '
+                        roles{
+                            role "Architect"
+                            role "Developer"
+                        }
+                    }
+                    developer {
+                        id 'stanmine'
+                        name 'Stan Mine'
+                        email 'stan.mine@xenit.eu'
+                        roles{
+                            role "Developer"
+                        }
+                    }
+                    developer {
+                        id 'Pantera160'
+                        name 'Thomas Straetmans'
+                        email 'thomas.straetmans@xenit.eu'
+                        roles{
+                            role "Developer"
+                        }
+                    }
+                    developer {
+                        id 'yregaieg'
+                        name 'Younes Regaieg'
+                        email 'younes.regaieg@xenit.eu'
+                        roles{
+                            role "Developer"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(uploadArchives)) {
+        if (!project.hasProperty('keyId') || !project.hasProperty('secretKeyRingFile') || !project.hasProperty('password')){
+            throw new GradleException('You need to provide signing params in order to sign artifacts')
+        }
+
+        def id = project.hasProperty('keyId') ? project.keyId : ''
+        def file = project.hasProperty('secretKeyRingFile') ? project.secretKeyRingFile : ''
+        def password = project.hasProperty('password') ? project.password : ''
+
+        ext."signing.keyId" = id
+        ext."signing.secretKeyRingFile" = file
+        ext."signing.password" = password
+    }else if (project.hasProperty("buildNumber")) {
+        version = project.version.replace("SNAPSHOT", buildNumber)
+    }
+}
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
             groupId 'eu.xenit'
-            version project.version + '-' + buildNumber
+            version project.version.replace("SNAPSHOT", buildNumber)
         }
         amp(MavenPublication) {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
-            version project.version + '-' + buildNumber
-            artifact file("build/distributions/${project.name}-${project.version}.amp")
+            version project.version.replace("SNAPSHOT", buildNumber)
+            artifact file("build/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
             //artifact ampde
         }
         integrationJar(MavenPublication) {
             artifactId project.name + '-integration'
             groupId 'eu.xenit'
-            version project.version + '-' + buildNumber
-            artifact file("build/libs/${project.name}-integration-${project.version}.jar")
+            version project.version.replace("SNAPSHOT", buildNumber)
+            artifact file("build/libs/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
         }
     }
     repositories {
@@ -94,7 +222,7 @@ repositories {
     maven {
         url 'https://artifactory.xenit.eu/artifactory/libs-release'
         credentials {
-            username 'xenit'
+            username 'ephemeral'
             password '***REMOVED***'
         }
     }
@@ -164,6 +292,7 @@ jar {
     from(configurations.embedded) {
         into('lib')
     }
+    version = project.version.replace("SNAPSHOT", buildNumber)
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
@@ -231,9 +360,11 @@ compileTypeScript {
     compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
     dependsOn "npmInstall"
 }
+build.dependsOn("integrationJar", "assembleAmp")
 
 import com.github.dynamicextensionsalfresco.gradle.tasks.*
 
 project.tasks.create('installDependencies', InstallBundle).configure {
     configuration = project.configurations.installDep
 }
+
