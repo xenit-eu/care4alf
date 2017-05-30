@@ -539,7 +539,7 @@ public class BetterBatchProcessor<T> implements BatchMonitor
             return hasNext;
         }
 
-        public T next()
+        public synchronized T next()
         {
             if (!hasNext())
             {
