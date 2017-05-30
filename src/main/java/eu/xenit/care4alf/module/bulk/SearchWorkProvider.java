@@ -139,10 +139,10 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
                     this.estimatedResults = processedBatches * batchSize + rs.getNumberFound();
                     synchronized (this.lastDBIDLock) {
-                        this.lastDBID = (long) nodeService.getProperty(
+                        this.lastDBID = this.nodeRefs.size() > 0 ? (long) nodeService.getProperty(
                                 this.nodeRefs.get(this.nodeRefs.size() - 1),
                                 QName.createQName(NamespaceService.SYSTEM_MODEL_1_0_URI, "node-dbid")
-                        );
+                        ) : 0L;
                     }
                 }
                 rs.close();
