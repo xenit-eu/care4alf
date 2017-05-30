@@ -452,7 +452,7 @@ public class BetterBatchProcessor<T> implements BatchMonitor
          * {@link #process(Object) processed}.
          * Typically, this will involve cleanup of authentication and resetting any
          * system flags previously set.
-         * <p/>
+         * <p>
          * This call is made regardless of the outcome of the entry processing.
          */
         public void afterProcess() throws Throwable;
