@@ -38,6 +38,15 @@ public class LicenseMetric extends AbstractMonitoredSource {
 
     @Uri(value="/xenit/care4alf/monitoring/license")
     public Resolution getLicenseInfo(){
+        if(licenseService == null ||licenseService.getLicense() == null)
+            return new JsonWriterResolution() {
+                @Override
+                protected void writeJson(JSONWriter jsonWriter) throws JSONException {
+                    jsonWriter.object();
+                    jsonWriter.endObject();
+                }
+            };
+
         final LicenseDescriptor license = licenseService.getLicense();
         final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
         return new JsonWriterResolution() {
