@@ -20,39 +20,20 @@ import java.util.Map;
  * Created by willem on 12/13/16.
  */
 @Component
-@ScheduledQuartzJob(name = "Graphite Metrics shipper", cron = "0 0/5 * * * ?")
-public class GraphiteMetricsShipper implements Job {
+public class GraphiteMetricsShipper extends MetricsShipper {
+    public static final String NAME = "graphite";
     private final Logger logger = LoggerFactory.getLogger(GraphiteMetricsShipper.class);
 
     private GraphiteClient client;
 
-    @Autowired
-    Monitoring monitoring;
 
-    @Autowired()
-    @Qualifier("global-properties")
-    private java.util.Properties properties;
-
-    private boolean enabled = false;
-    private String serverName = "alfresco";
-
-    public String getServerName(){
-        return this.serverName;
+    @Override
+    public String getName(){
+        return NAME;
     }
 
     @PostConstruct
     public void initGraphiteClient(){
-        this.enabled = Boolean.parseBoolean(properties.getProperty("c4a.monitoring.graphite.enabled", "false"));
-
-        if(!enabled)
-            return;
-
-        try {
-            this.serverName = properties.getProperty("c4a.monitoring.graphite.prefix", InetAddress.getLocalHost().getHostName());
-        } catch (UnknownHostException e) {
-            logger.warn("Couldn't fetch hostname");
-        }
-
         this.client = new GraphiteClient(
             properties.getProperty("c4a.monitoring.graphite.host", "carbon"),
             Integer.parseInt(properties.getProperty("c4a.monitoring.graphite.port", "2003"))
@@ -60,28 +41,14 @@ public class GraphiteMetricsShipper implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        if(!enabled)
-            return;
-
-        try {
-            logger.debug("Fetching and sending metrics to Graphite");
-            this.send(monitoring.getAllMetrics());
-        } catch (Exception e) {
-            logger.warn("Can't send metrics to Graphite: " + this.client.toString());
-            if(logger.isDebugEnabled())
-                e.printStackTrace();
-        }
-    }
-
-    public void send(Map<String, Long> metrics){
+    public void send(Map<String, Long> metrics, String serverName){
         Map<String, Long> prefixed = new HashMap<>();
         for(Map.Entry<String, Long> metric: metrics.entrySet()){
-            prefixed.put(this.getServerName() + "." + metric.getKey(), metric.getValue());
+            prefixed.put(serverName + "." + metric.getKey(), metric.getValue());
         }
 
         if(logger.isDebugEnabled())
-            logger.debug("Sending {} metrics",prefixed.size());
+            logger.debug("Sending {} metrics with prefix : {}",prefixed.size(), serverName);
 
         try {
             client.send(prefixed);
@@ -92,4 +59,7 @@ public class GraphiteMetricsShipper implements Job {
         }
     }
 
+    public String toString(){
+        return this.getName() + " : " + this.client.toString();
+    }
 }
