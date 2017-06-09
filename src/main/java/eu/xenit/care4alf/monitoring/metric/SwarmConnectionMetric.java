@@ -4,7 +4,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
+@ScheduledQuartzJob(name = "SwarmConnectionMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?"
+		, cronProp = "c4a.monitoring.swarmconnection.cron")
 public class SwarmConnectionMetric extends AbstractMonitoredSource {
 
 	private final Logger logger = LoggerFactory.getLogger(SwarmConnectionMetric.class);

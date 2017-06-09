@@ -1,10 +1,12 @@
 package eu.xenit.care4alf.monitoring.metric;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import com.google.common.cache.CacheStats;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.hazelcast.monitor.LocalMapStats;
 import com.google.common.cache.Cache;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.enterprise.repo.cluster.cache.HazelcastSimpleCache;
 import org.alfresco.enterprise.repo.cluster.cache.InvalidatingCache;
 import org.alfresco.repo.cache.DefaultSimpleCache;
@@ -30,6 +32,7 @@ import java.util.Properties;
  * Created by yregaieg on 19.05.17.
  */
 @Component
+@ScheduledQuartzJob(name = "CachesMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/10 * * * ?", cronProp = "c4a.monitoring.caches.cron")
 public class CachesMetrics extends AbstractMonitoredSource implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(CachesMetrics.class);
     private ApplicationContext ctx;
