@@ -33,6 +33,7 @@ import java.util.Map;
 @Authentication(AuthenticationType.NONE)
 public class Monitoring implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(Monitoring.class);
+    public static final String SCHEDULE_GROUP = "Monitoring";
 
     private ApplicationContext applicationContext;
 
@@ -141,6 +142,4 @@ public class Monitoring implements ApplicationContextAware {
             }
         };
     }
-
-
 }
