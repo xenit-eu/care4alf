@@ -515,7 +515,7 @@ public class BetterBatchProcessor<T> implements BatchMonitor
                 // go and get more results
                 if (!hasNext)
                 {
-                    Collection<T> nextWork = workProvider.getNextWork();
+                    Collection<T> nextWork = new ArrayList<>(workProvider.getNextWork());
                     if (nextWork == null)
                     {
                         throw new RuntimeException("BatchProcessWorkProvider returned 'null' work: " + workProvider);
@@ -539,7 +539,7 @@ public class BetterBatchProcessor<T> implements BatchMonitor
             return hasNext;
         }
 
-        public synchronized T next()
+        public T next()
         {
             if (!hasNext())
             {
