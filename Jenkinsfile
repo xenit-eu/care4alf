@@ -1,17 +1,14 @@
 
 node {
 
-    // installBundle for dyn ext  for test
-    env.ORG_GRADLE_PROJECT_host="jenkins-c4a.dev.xenit.eu"
-    env.ORG_GRADLE_PROJECT_protocol="https"
-    env.ORG_GRADLE_PROJECT_port="443"
-    env.ORG_GRADLE_PROJECT_username="admin"
-    env.ORG_GRADLE_PROJECT_password="admin"
+
+
+
 
     stage 'Checkout'
     checkout scm
 
-    def gitBranch = env.BRANCH_NAME 
+    def gitBranch = env.BRANCH_NAME
     def buildNr = "SNAPSHOT"
 
     def publishAmpTask = "publishAmpPublicationToSnapshotRepository"
@@ -22,12 +19,24 @@ node {
         publishAmpTask = "publishAmpPublicationToReleaseRepository"
         publishJarTask = "publishMavenJavaPublicationToReleaseRepository"
         publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
-    }    
+    }
 
 
     try {
         stage 'Testing'
-        sh "./gradlew clean :installBundle :test -PbuildNumber=${buildNr} --continue -i"
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                    credentialsId: 'jenkins-c4a.dev.xenit.eu/alfresco',
+                                    usernameVariable: 'ALFRESCO_USERNAME',
+                                    passwordVariable: 'ALFRESCO_PASSWORD']]) {
+
+            // installBundle for dyn ext for test
+            env.ORG_GRADLE_PROJECT_host="jenkins-c4a.dev.xenit.eu"
+            env.ORG_GRADLE_PROJECT_protocol="https"
+            env.ORG_GRADLE_PROJECT_port="443"
+
+            sh "./gradlew clean :installBundle :test -PbuildNumber=${buildNr} -Pusername=${ALFRESCO_USERNAME} -Ppassword=${ALFRESCO_PASSWORD} --continue -i"
+        }
+
 
         stage 'Building AMP'
         sh "./gradlew :ampde -PbuildNumber=${buildNr} --continue -i"
