@@ -224,8 +224,8 @@ repositories {
     maven {
         url 'https://artifactory.xenit.eu/artifactory/libs-release'
         credentials {
-            username 'ephemeral'
-            password '***REMOVED***'
+            username property('eu.xenit.artifactory.username')
+            password property('eu.xenit.artifactory.password')
         }
     }
 }
