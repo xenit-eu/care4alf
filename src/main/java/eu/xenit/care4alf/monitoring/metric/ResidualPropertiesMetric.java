@@ -1,7 +1,9 @@
 package eu.xenit.care4alf.monitoring.metric;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Properties;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,8 @@ import java.util.Map;
  * Created by willem on 3/3/17.
  */
 @Component
+@ScheduledQuartzJob(name = "ResidualPropertiesMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?"
+        , cronProp = "c4a.monitoring.risidualproperties.cron")
 public class ResidualPropertiesMetric extends AbstractMonitoredSource {
 
     @Autowired

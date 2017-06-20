@@ -1,6 +1,8 @@
 package eu.xenit.care4alf.monitoring.metric;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import eu.xenit.care4alf.scaling.Scaling;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import java.util.Map;
  * Created by willem on 12/19/16.
  */
 @Component
+@ScheduledQuartzJob(name = "RepositoryMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?", cronProp = "c4a.monitoring.repository.cron")
 public class RepositoryMetric extends AbstractMonitoredSource {
     @Autowired
     private Scaling scaling;

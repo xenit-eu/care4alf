@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.apache.commons.codec.EncoderException;
 import org.json.JSONException;
@@ -26,6 +28,7 @@ import java.util.regex.Pattern;
  * Created by willem on 12/19/16.
  */
 @Component
+@ScheduledQuartzJob(name = "SolrSummaryMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.solrsummary.cron")
 public class SolrSummaryMetrics extends AbstractMonitoredSource {
     private static Logger logger = LoggerFactory.getLogger(SolrSummaryMetrics.class);
 

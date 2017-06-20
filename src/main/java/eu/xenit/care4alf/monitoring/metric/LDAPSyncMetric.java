@@ -1,6 +1,8 @@
 package eu.xenit.care4alf.monitoring.metric;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.repo.security.sync.SyncStatus;
 import org.alfresco.service.cmr.attributes.AttributeService;
 import org.slf4j.Logger;
@@ -15,6 +17,8 @@ import java.util.Map;
  * Created by yregaieg on 23.05.17.
  */
 @Component
+@ScheduledQuartzJob(name = "LDAPSyncMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 0/2 * * ?"
+        , cronProp = "c4a.monitoring.ldapsync.cron")
 public class LDAPSyncMetric extends AbstractMonitoredSource {
     private final Logger logger = LoggerFactory.getLogger(LDAPSyncMetric.class);
 

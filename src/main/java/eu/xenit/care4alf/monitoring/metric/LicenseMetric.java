@@ -1,10 +1,12 @@
 package eu.xenit.care4alf.monitoring.metric;
 
+import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
 import org.json.JSONException;
@@ -21,6 +23,7 @@ import java.util.Map;
  */
 @Component
 @WebScript
+@ScheduledQuartzJob(name = "LicenseMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 2 * * ?", cronProp = "c4a.monitoring.license.cron")
 public class LicenseMetric extends AbstractMonitoredSource {
 
     @Autowired

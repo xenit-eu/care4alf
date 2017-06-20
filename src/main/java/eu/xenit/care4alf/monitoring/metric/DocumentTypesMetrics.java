@@ -1,8 +1,10 @@
-package eu.xenit.care4alf.monitoring.metric.scheduled;
+package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Properties;
+import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.GraphiteMetricsShipper;
+import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
 import org.alfresco.service.namespace.QName;
 import org.quartz.Job;
@@ -27,31 +29,19 @@ import java.util.Map;
  * Created by willem on 4/19/17.
  */
 @Component
-@ScheduledQuartzJob(name = "Monitoring metric: documenttypes", cron = "0 0 0/1 * * ?")//every hour
-public class DocumentTypesMetrics implements Job {
+@ScheduledQuartzJob(name = "DocumentTypesMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 0/1 * * ?",
+        cronProp = "c4a.monitoring.documenttypes.cron")//every hour
+public class DocumentTypesMetrics extends AbstractMonitoredSource {
     private final Logger logger = LoggerFactory.getLogger(DocumentTypesMetrics.class);
 
     @Autowired
     private DataSource dataSource;
 
     @Autowired
-    GraphiteMetricsShipper graphiteMetricsShipper;
-
-    @Autowired
     Properties properties;
 
-    private boolean enabled=false;
-
-    @Autowired()
-    @Qualifier("global-properties")
-    private java.util.Properties globalProperties;
-
-    @PostConstruct
-    public void init(){
-        logger.info("Initializing DocumentTypesMetrics schedule");
-        this.enabled = Boolean.parseBoolean(globalProperties.getProperty("c4a.monitoring.metric.documenttypes.enabled", "false"));
-        logger.info("enabled="+enabled);
-    }
+    @Autowired
+    private NamespacePrefixResolver namespacePrefixResolver;
 
     private Map<Long, Long> getTypesCountRaw() throws SQLException {
         Map<Long, Long> r = new HashMap<>();
@@ -90,9 +80,6 @@ public class DocumentTypesMetrics implements Job {
         return qnames;
     }
 
-    @Autowired
-    private NamespacePrefixResolver namespacePrefixResolver;
-
     public Map<String, Long> getMonitoringMetrics() {
         Map<String, Long> metrics = new HashMap<>();
 
@@ -107,13 +94,4 @@ public class DocumentTypesMetrics implements Job {
 
         return metrics;
     }
-
-    @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        if(!enabled)
-            return;
-
-        graphiteMetricsShipper.send(this.getMonitoringMetrics());
-    }
-
 }
