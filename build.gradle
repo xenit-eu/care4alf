@@ -24,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'eu.xenit.de', name: 'gradle-plugin', version: '1.6.+')
+        classpath(group: 'eu.xenit.de', name: 'gradle-plugin', version: '1.6.0')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.8.0'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
@@ -221,6 +221,7 @@ compileJava {
 }
 
 repositories {
+    mavenCentral()
     maven {
         url 'https://artifactory.xenit.eu/artifactory/libs-release'
         credentials {
