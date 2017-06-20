@@ -224,8 +224,8 @@ repositories {
     maven {
         url 'https://artifactory.xenit.eu/artifactory/libs-release'
         credentials {
-            username 'ephemeral'
-            password '***REMOVED***'
+            username property('eu.xenit.artifactory.username')
+            password property('eu.xenit.artifactory.password')
         }
     }
 }
@@ -268,8 +268,8 @@ dependencies {
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
-    ampdeLib('eu.xenit.apix:integration-testing:1.2.27')
-    installDep('eu.xenit.apix:integration-testing:1.2.27')
+    ampdeLib(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
+    installDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
 
     embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
     embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
@@ -353,7 +353,20 @@ test {
     testLogging {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
+
+    if (project.hasProperty('username')) {
+        systemProperty 'username', project.getProperty('username')
+    }
+
+    if (project.hasProperty('password')) {
+        systemProperty 'password', project.getProperty('password')
+    }
+
+    if (project.hasProperty('alfresco.url')) {
+        systemProperty 'alfresco.url', project.getProperty('alfresco.url')
+    }
 }
+
 
 compileTypeScript {
     sourcemap = false
