@@ -131,6 +131,7 @@ public class BetterBatchProcessor<T> implements BatchMonitor
      * @param loggingInterval
      *            the number of entries to process before reporting progress
      * @param solrAdmin
+<<<<<<< HEAD
      *            The solrAdmin component used to query solr lag
      * @param maxLag
      *            Maximum lag allowed for Solr
@@ -141,6 +142,17 @@ public class BetterBatchProcessor<T> implements BatchMonitor
      * @param policyBehaviourFilter
      *            Service used for disabling policies
      *
+=======
+     *             ...
+     * @param maxLag
+     *             ...
+     * @param nbBatches
+     *             ...
+     * @param disableAuditablePolicies
+     *             ...
+     * @param policyBehaviourFilter
+     *             ...
+>>>>>>> d05ed9d... export
      * @since 3.4
      */
     public BetterBatchProcessor(

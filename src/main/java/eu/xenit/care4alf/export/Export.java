@@ -3,11 +3,13 @@ package eu.xenit.care4alf.export;
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import eu.xenit.care4alf.helpers.NodeHelper;
+import org.alfresco.model.ContentModel;
+import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.repository.ContentService;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.StoreRef;
+import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
@@ -15,24 +17,26 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by KevinB on 16/07/2015.
  */
 @Component
-@Authentication(AuthenticationType.USER)
+@Authentication(AuthenticationType.ADMIN)
 @WebScript(baseUri = "/xenit/care4alf/export", families = {"care4alf"}, description = "Export Alfresco")
 public class Export {
     private final Logger logger = LoggerFactory.getLogger(Export.class);
@@ -46,19 +50,28 @@ public class Export {
     @Autowired
     private PermissionService permissionService;
     @Autowired
+    private NodeHelper nodeHelper;
+    @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private ContentService contentService;
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private DictionaryService dictionaryService;
+    @Autowired
+    private FileFolderService fileFolderService;
+    @Autowired
+    private RetryingTransactionHelper retryingTransactionHelper;
 
     @Uri(value="/query", method = HttpMethod.GET)
+    @Transaction(readOnly = false)
     public void exportQuery(@RequestParam(required = false) String query,
                             @RequestParam(required = false) String separator,
                             @RequestParam(required = false) String nullValue,
                             @RequestParam(required = false) String documentName,
                             @RequestParam(required = false) String columns,
                             @RequestParam(required = false) String amountDoc,
+                            @RequestParam(required = false) String path,
+                            @RequestParam(required = false, defaultValue = "false") boolean localSave,
                             final WebScriptResponse response) throws IOException{
         if(query == null)
             query = "PATH:\"/app:company_home/cm:Projects_x0020_Home//*\" AND TYPE:\"cm:content\"";
@@ -82,6 +95,7 @@ public class Export {
         hardcodedNames.put("type",true);
         hardcodedNames.put("noderef",true);
 
+        List<String> pathElements = Arrays.asList(StringUtils.split(path, '/'));
         SearchParameters sp = new SearchParameters();
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
 
@@ -102,70 +116,113 @@ public class Export {
                 start += 1000;
                 rs.close();
                 logger.info("#noderefs: " + nodeRefs.size());
-            }while(rs.getNodeRefs().size() > 0 && nodeRefs.size() < nbDocuments);//TODO: nodeRefs.size <= nbDocuments
+            }while(rs.getNodeRefs().size() > 0 && (nodeRefs.size() < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
         } finally {
             if (rs != null) rs.close();
         }
 
-        response.setContentType("application/CSV");
-        response.setContentEncoding(null);
-        response.addHeader("Content-Disposition", "inline;filename=" + documentName);
-        OutputStream stream = response.getOutputStream();
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stream));
+
+
+
+
+        Writer outputStreamWriter;
+
+        if(localSave){
+            NodeRef parentFolder;
+            try {
+                parentFolder = fileFolderService.resolveNamePath(nodeHelper.getCompanyHome(), pathElements).getNodeRef();
+            } catch(Exception e){
+                parentFolder = retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+                    @Override
+                    public NodeRef execute() throws Throwable {
+                        return nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(),"CSVExports");
+                    }
+                }, false, true);
+            }
+            final NodeRef finalParentFolder = parentFolder;
+            final String finalDocumentName = documentName;
+            NodeRef ref = retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+                @Override
+                public NodeRef execute() throws Throwable {
+                    return nodeHelper.createDocument(finalParentFolder, finalDocumentName);
+                }
+            }, false, true);
+            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, false);
+            contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
+            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream(),"UTF-8");
+        } else{
+            response.setContentType("application/CSV");
+            response.setContentEncoding(null);
+            response.addHeader("Content-Disposition", "inline;filename=" + documentName);
+            outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
+        }
 
         for(int i = 0; i < column.length; i++){
             String el = column[i];
             if(hardcodedNames.containsKey(el))
-                writer.write(el);
+                outputStreamWriter.write(el);
             else
-                writer.write(dictionaryService.getProperty(QName.createQName(el,namespaceService)).getTitle());
+                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el,namespaceService)).getTitle());
             if(i != column.length - 1)
-                writer.write(separator);
+                outputStreamWriter.write(separator);
         }
-        writer.newLine();
+        outputStreamWriter.write("\n");
+
+//        for(int i = 0; i < column.length; i++){
+//            String el = column[i];
+//            if(hardcodedNames.containsKey(el))
+//                writer.write(el);
+//            else
+//                writer.write(dictionaryService.getProperty(QName.createQName(el,namespaceService)).getTitle());
+//            if(i != column.length - 1)
+//                writer.write(separator);
+//        }
+//        writer.newLine();
+
 
 
         logger.info("Start writing csv");
         int n=1;
         for(NodeRef nRef : nodeRefs){
             try {
-                String result = "";
+                StringBuilder result = new StringBuilder();
                 for(int i = 0; i < column.length; i++){
                     try {
                         String element = column[i];
                         if ("path".equals(element)) {
-                            result += StringEscapeUtils.escapeCsv(this.nodeService.getPath(nRef).toDisplayPath(
-                                    this.nodeService, permissionService));
+                            result.append(StringEscapeUtils.escapeCsv(this.nodeService.getPath(nRef).toDisplayPath(
+                                    this.nodeService, permissionService)));
                         }
                         else if ("type".equals(element)) {
                             QName type = nodeService.getType(nRef);
-                            result += dictionaryService.getType(type).getTitle();
+                            result.append(dictionaryService.getType(type).getTitle());
                         }
                         else if ("noderef".equals(element)) {
-                            result += nRef;
+                            result.append(nRef);
                         }
                         else {
-                            result += StringEscapeUtils.escapeCsv(nodeService.getProperty(nRef,QName.createQName(element, namespaceService)).toString());
+                            result.append(StringEscapeUtils.escapeCsv(nodeService.getProperty(nRef,QName.createQName(element, namespaceService)).toString()));
                         }
                     }
                     catch(RuntimeException e){
-                        result += nullValue;
+                        result.append(nullValue);
                     }
                     if (i < column.length - 1)
-                        result += separator;
+                        result.append(separator);
                 }
-                String str = result;
-                writer.write(str);
-                writer.newLine();
+                String str = result.toString();
+                outputStreamWriter.write(str);
+                outputStreamWriter.write("\n");
                 n++;
                 if(n%1000==0)
                     logger.info("#noderefs written to csv: " + n);
             }
             catch (IOException e){
-
+                logger.debug("Exception caught: {}", e.getLocalizedMessage());
             }
         }
-        writer.close();
+        outputStreamWriter.flush();
+        outputStreamWriter.close();
         long endTime   = System.currentTimeMillis();
         long duration = endTime - startTime;
         logger.info("Duration in seconds: " + duration/1000d);

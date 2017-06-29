@@ -6,6 +6,8 @@ care4alf.controller('export', ($scope,$http: ng.IHttpService) => {
     $scope.form.nullValue = "null";
     $scope.form.documentName = "export.csv";
     $scope.form.amountDoc = 100;
+    $scope.form.saveLocal = false;
+    $scope.form.documentPath = "";
     $scope.loading = false;
 
     var url = window.location.href;
@@ -21,6 +23,8 @@ care4alf.controller('export', ($scope,$http: ng.IHttpService) => {
         extra += "&nullValue=" + encodeURIComponent($scope.form.nullValue);
         extra += "&amountDoc=" + encodeURIComponent($scope.form.amountDoc);
         extra += "&documentName=" + encodeURIComponent($scope.form.documentName);
+        extra += "&path=" + encodeURIComponent($scope.form.documentPath);
+        extra += "&localSave=" + encodeURIComponent($scope.form.saveLocal);
         $scope.result = website + extra;
         window.open(website + extra);
         $scope.loading = false;

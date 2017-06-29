@@ -19,6 +19,12 @@
     <div class="">
         <label class="control-label">Document Name</label><input class="form-control" ng-model="form.documentName" />
     </div>
+    <div class="">
+        <label class="control-label">Document Path</label><input class="form-control" ng-model="form.documentPath" />
+    </div>
+    <div class="">
+        <label class="control-label">Save Local</label><input type="checkbox" class="form-control" ng-model="form.saveLocal" />
+    </div>
     <button type="submit" class="btn btn-default" ng-click="execute()">Execute {{loading?"(loading)":""}}</button>
 </form>
 
