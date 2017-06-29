@@ -25,8 +25,6 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -121,35 +119,15 @@ public class Export {
             if (rs != null) rs.close();
         }
 
-
-
-
-
         Writer outputStreamWriter;
 
         if(localSave){
-            NodeRef parentFolder;
-            try {
-                parentFolder = fileFolderService.resolveNamePath(nodeHelper.getCompanyHome(), pathElements).getNodeRef();
-            } catch(Exception e){
-                parentFolder = retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
-                    @Override
-                    public NodeRef execute() throws Throwable {
-                        return nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(),"CSVExports");
-                    }
-                }, false, true);
-            }
-            final NodeRef finalParentFolder = parentFolder;
+            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(),"CSVExports");
             final String finalDocumentName = documentName;
-            NodeRef ref = retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
-                @Override
-                public NodeRef execute() throws Throwable {
-                    return nodeHelper.createDocument(finalParentFolder, finalDocumentName);
-                }
-            }, false, true);
-            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, false);
+            NodeRef ref = nodeHelper.createDocument(finalParentFolder, finalDocumentName);
+            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, true);
             contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
-            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream(),"UTF-8");
+            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream());
         } else{
             response.setContentType("application/CSV");
             response.setContentEncoding(null);
