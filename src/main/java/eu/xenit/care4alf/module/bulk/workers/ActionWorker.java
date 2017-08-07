@@ -2,9 +2,13 @@ package eu.xenit.care4alf.module.bulk.workers;
 
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ActionService;
+import org.alfresco.service.cmr.action.ParameterDefinition;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter;
+import org.alfresco.service.namespace.QName;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,9 +16,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
+ * FIXME sounds dirty/hacky - Definitely need to revisit & clean
+ *
  * Created by Thomas S on 02/08/2017.
  */
 @Component
@@ -31,18 +38,38 @@ public class ActionWorker extends AbstractWorker {
 
     @Override
     public void process(NodeRef entry) throws Throwable {
-        ActionService service = serviceRegistry.getActionService();
-        Action action = service.createAction(parameters.getString("Action-name"), getparams());
-        service.evaluateAction(action, entry);
+        ActionService actionService = serviceRegistry.getActionService();
+
+        Map<String, Serializable> params = getparams();
+
+        String actionName = parameters.getString("Action-name");
+        List<ParameterDefinition> paramDefs = actionService.getActionDefinition(actionName).getParameterDefinitions();
+        for (String key : params.keySet()){
+            QName paramType = null;
+            for (ParameterDefinition paramDef : paramDefs){
+                if (paramDef.getName().equals(key)){
+                    paramType = paramDef.getType();
+                    break;
+                }
+            }
+            if (paramType == null){
+                throw new AlfrescoRuntimeException("Trying to assign a value to a non existing parameter");
+            }
+            params.put(key, (Serializable) DefaultTypeConverter.INSTANCE.convert(serviceRegistry.getDictionaryService().getDataType(paramType), params.get(key)));
+        }
+        Action action = actionService.createAction(actionName, params);
+        actionService.executeAction(action, entry);
 
     }
 
     private Map<String, Serializable> getparams() throws JSONException {
         Map<String, Serializable> params = new HashMap<>();
-        JSONArray array = parameters.getJSONArray("Params");
+        String arraystring = parameters.getString("Params");
+        JSONArray array = new JSONArray(arraystring);
         for(int i = 0; i<array.length();i++){
             JSONObject obj = array.getJSONObject(i);
-            params.put(obj.getString("name"), (Serializable) obj.get("value"));
+            String key = obj.keys().next().toString();
+            params.put(key, (Serializable) obj.get(key));
         }
         return params;
     }
