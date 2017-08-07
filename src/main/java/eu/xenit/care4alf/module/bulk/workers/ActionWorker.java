@@ -65,6 +65,9 @@ public class ActionWorker extends AbstractWorker {
     private Map<String, Serializable> getparams() throws JSONException {
         Map<String, Serializable> params = new HashMap<>();
         String arraystring = parameters.getString("Params");
+        if (arraystring == null || arraystring.isEmpty()){
+            arraystring = "[]";
+        }
         JSONArray array = new JSONArray(arraystring);
         for(int i = 0; i<array.length();i++){
             JSONObject obj = array.getJSONObject(i);
