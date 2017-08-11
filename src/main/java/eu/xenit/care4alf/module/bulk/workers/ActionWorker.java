@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * FIXME sounds dirty/hacky - Definitely need to revisit & clean
+ * FIXME sounds dirty/hacky - Definitely need to revisit &amp; clean
  *
  * Created by Thomas S on 02/08/2017.
  */
