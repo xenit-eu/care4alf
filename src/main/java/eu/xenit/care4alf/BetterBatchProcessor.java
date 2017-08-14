@@ -130,6 +130,16 @@ public class BetterBatchProcessor<T> implements BatchMonitor
      *            the logger to use (may be <tt>null</tt>)
      * @param loggingInterval
      *            the number of entries to process before reporting progress
+     * @param solrAdmin
+     *            The solrAdmin component used to query solr lag
+     * @param maxLag
+     *            Maximum lag allowed for Solr
+     * @param nbBatches
+     *            Number of executed batches before checking the solr lag
+     * @param disableAuditablePolicies
+     *            Indicates if Policies on auditable type need to be disabled (preserving time stamps ..)
+     * @param policyBehaviourFilter
+     *            Service used for disabling policies
      *
      * @since 3.4
      */
@@ -434,6 +444,9 @@ public class BetterBatchProcessor<T> implements BatchMonitor
          * {@link #process(Object) processed}.  Typically, this will include authenticating
          * as a valid user and disbling or enabling any system flags that might affect the
          * entry processing.
+         *
+         * @throws Throwable
+         *             on any error
          */
         public void beforeProcess() throws Throwable;
 
@@ -454,6 +467,9 @@ public class BetterBatchProcessor<T> implements BatchMonitor
          * system flags previously set.
          * <p>
          * This call is made regardless of the outcome of the entry processing.
+         *
+         * @throws Throwable
+         *             on any error
          */
         public void afterProcess() throws Throwable;
     }
