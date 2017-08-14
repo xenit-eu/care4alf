@@ -155,7 +155,7 @@ public class SmtpServer implements Runnable {
      * Toggles if the SMTP server is single or multi-threaded for response to
      * SMTP sessions.
      *
-     * @param threaded
+     * @param threaded the boolean flag
      */
     public void setThreaded(boolean threaded) {
         this.threaded = threaded;
