@@ -300,7 +300,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,*'
+        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,*'
     }
 }
 
@@ -385,4 +385,5 @@ import com.github.dynamicextensionsalfresco.gradle.tasks.*
 project.tasks.create('installDependencies', InstallBundle).configure {
     configuration = project.configurations.installDep
 }
+installBundle.dependsOn('installDependencies');
 
