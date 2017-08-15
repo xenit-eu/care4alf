@@ -13,22 +13,23 @@ import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by KevinB on 16/07/2015.
@@ -37,6 +38,7 @@ import java.util.List;
 @Authentication(AuthenticationType.ADMIN)
 @WebScript(baseUri = "/xenit/care4alf/export", families = {"care4alf"}, description = "Export Alfresco")
 public class Export {
+    public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
 
     @Autowired
@@ -56,9 +58,24 @@ public class Export {
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private DictionaryService dictionaryService;
     @Autowired
-    private FileFolderService fileFolderService;
-    @Autowired
-    private RetryingTransactionHelper retryingTransactionHelper;
+    @Qualifier("global-properties")
+    private Properties globalProps;
+
+    private String aclStart = "(";
+    private String aclEnd = ")";
+    private String aclAuthorityPermissionSeparator = ",";
+    private String aclSeparator = ",";
+    private Boolean includeAccessStatus;
+
+    @PostConstruct
+    private void init(){
+        aclStart = globalProps.getProperty(PROPS_PREFIX +"aclStart", aclStart);
+        aclEnd = globalProps.getProperty(PROPS_PREFIX +"aclEnd", aclEnd);
+        aclAuthorityPermissionSeparator = globalProps.getProperty(PROPS_PREFIX +"aclAuthorityPermissionSeparator",
+                aclAuthorityPermissionSeparator);
+        aclSeparator = globalProps.getProperty(PROPS_PREFIX +"aclSeparator", aclSeparator);
+        includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX +"includeAccessStatus", "false"));
+    }
 
     @Uri(value="/query", method = HttpMethod.GET)
     @Transaction(readOnly = false)
@@ -92,6 +109,9 @@ public class Export {
         hardcodedNames.put("text",true);
         hardcodedNames.put("type",true);
         hardcodedNames.put("noderef",true);
+        hardcodedNames.put("permissions",true);
+        hardcodedNames.put("direct-permissions",true);
+        hardcodedNames.put("permissions-inheritance",true);
 
         List<String> pathElements = Arrays.asList(StringUtils.split(path, '/'));
         SearchParameters sp = new SearchParameters();
@@ -136,7 +156,7 @@ public class Export {
         }
 
         for(int i = 0; i < column.length; i++){
-            String el = column[i];
+            String el = column[i].trim();
             if(hardcodedNames.containsKey(el))
                 outputStreamWriter.write(el);
             else
@@ -166,7 +186,7 @@ public class Export {
                 StringBuilder result = new StringBuilder();
                 for(int i = 0; i < column.length; i++){
                     try {
-                        String element = column[i];
+                        String element = column[i].trim();
                         if ("path".equals(element)) {
                             result.append(StringEscapeUtils.escapeCsv(this.nodeService.getPath(nRef).toDisplayPath(
                                     this.nodeService, permissionService)));
@@ -177,6 +197,20 @@ public class Export {
                         }
                         else if ("noderef".equals(element)) {
                             result.append(nRef);
+                        }
+                        else if ("permissions".equals(element)) {
+                            // All permissions
+                            Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
+                            result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(permissions)));
+                        }
+                        else if ("direct-permissions".equals(element)) {
+                            // Direct permissions on a node (excludes inherited permissions)
+                            Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
+                            result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions))));
+                        }
+                        else if ("permissions-inheritance".equals(element)) {
+                            // Flag to determine if permission inheritance is enabled
+                            result.append(StringEscapeUtils.escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString()));
                         }
                         else {
                             result.append(StringEscapeUtils.escapeCsv(nodeService.getProperty(nRef,QName.createQName(element, namespaceService)).toString()));
@@ -205,6 +239,49 @@ public class Export {
         long duration = endTime - startTime;
         logger.info("Duration in seconds: " + duration/1000d);
         logger.info((nodeRefs.size()/(duration/1000d)) + " docs/s");
+    }
+
+    private String getFormattedPermissions(Set<AccessPermission> permissions) {
+        if (permissions == null){
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        Iterator<AccessPermission> permissionIterator = permissions.iterator();
+        if (permissionIterator.hasNext()){
+            AccessPermission accessPermission = permissionIterator.next();
+            sb.append(includeAccessStatus?accessPermission.getAccessStatus():"")
+                    .append(aclStart)
+                    .append(accessPermission.getAuthority())
+                    .append(aclAuthorityPermissionSeparator)
+                    .append(accessPermission.getPermission())
+                    .append(aclEnd);
+        }
+        while (permissionIterator.hasNext()){
+            AccessPermission accessPermission=permissionIterator.next();
+            sb.append(aclSeparator)
+                    .append(includeAccessStatus?accessPermission.getAccessStatus():"")
+                    .append(aclStart)
+                    .append(accessPermission.getAuthority())
+                    .append(aclAuthorityPermissionSeparator)
+                    .append(accessPermission.getPermission())
+                    .append(aclEnd);
+
+        }
+        return sb.toString();
+    }
+
+    @NotNull
+    private Set<AccessPermission> getDirectPermissions(Set<AccessPermission> permissions) {
+        if (permissions == null){
+            return null;
+        }
+        Set<AccessPermission> directPermissions = new HashSet<>();
+        for (AccessPermission accessPermission: permissions){
+            if (accessPermission.isSetDirectly()){
+                directPermissions.add(accessPermission);
+            }
+        }
+        return directPermissions;
     }
 
 }
