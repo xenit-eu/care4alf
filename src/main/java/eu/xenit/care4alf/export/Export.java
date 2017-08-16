@@ -129,6 +129,10 @@ public class Export {
         try {
             do {
                 sp.setSkipCount(start);
+                if (start+1000 > nbDocuments){
+                    // Do not get more results than requested.
+                    sp.setMaxItems(nbDocuments%1000);
+                }
                 rs = this.searchService.query(sp);
                 nodeRefs.addAll(rs.getNodeRefs());
                 start += 1000;
