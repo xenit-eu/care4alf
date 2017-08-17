@@ -9,4 +9,17 @@ care4alf.controller('sql', ($scope,$http: ng.IHttpService) => {
            $scope.results=results;
         });
     };
+
+    getData();
+
+    function getData(){
+        $http.get('queries').success((results) => {
+            $scope.queries = results;
+        });
+    }
+
+    $scope.update = () => {
+        $scope.sql.query = $scope.selectedQuery.query;
+    }
+
 });

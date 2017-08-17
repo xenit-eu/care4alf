@@ -1,3 +1,5 @@
+<select name="querySelect" id="querySelect" ng-options="savedquery.name for savedquery in queries track by savedquery.name" ng-model="selectedQuery"
+        ng-change="update()"></select>
 <form role="form">
     <label for="query">Query:</label>
     <textarea class="form-control" type="text" ng-model="sql.query" id="query">
