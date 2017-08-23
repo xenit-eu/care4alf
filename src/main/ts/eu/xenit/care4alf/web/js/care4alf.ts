@@ -37,3 +37,4 @@
 /// <reference path="sso.ts" />
 /// <reference path="config.ts" />
 /// <reference path="attributes.ts" />
+/// <reference path="behaviourlist.ts" />
