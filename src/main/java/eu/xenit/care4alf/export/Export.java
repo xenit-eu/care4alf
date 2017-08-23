@@ -6,9 +6,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.helpers.NodeHelper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
-import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
@@ -18,7 +16,6 @@ import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +110,6 @@ public class Export {
         hardcodedNames.put("direct-permissions",true);
         hardcodedNames.put("permissions-inheritance",true);
 
-        List<String> pathElements = Arrays.asList(StringUtils.split(path, '/'));
         SearchParameters sp = new SearchParameters();
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
 
@@ -169,19 +165,6 @@ public class Export {
                 outputStreamWriter.write(separator);
         }
         outputStreamWriter.write("\n");
-
-//        for(int i = 0; i < column.length; i++){
-//            String el = column[i];
-//            if(hardcodedNames.containsKey(el))
-//                writer.write(el);
-//            else
-//                writer.write(dictionaryService.getProperty(QName.createQName(el,namespaceService)).getTitle());
-//            if(i != column.length - 1)
-//                writer.write(separator);
-//        }
-//        writer.newLine();
-
-
 
         logger.info("Start writing csv");
         int n=1;

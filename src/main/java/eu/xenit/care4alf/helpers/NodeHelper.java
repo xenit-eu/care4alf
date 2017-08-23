@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -69,11 +66,17 @@ public class NodeHelper {
         return services.getNodeLocatorService().getNode(XPathNodeLocator.NAME, source, parameters);
     }
 
+    public NodeRef createDocumentIfNotExists(NodeRef parentRef, String name) {
+        final NodeRef doc = getChild(parentRef, name);
+        return doc == null ? createFolder(parentRef, name) : doc;
+    }
+
     public NodeRef createDocument(NodeRef parentRef, String name) {
         return createDocument(parentRef, name, new HashMap<QName, Serializable>());
     }
 
     public NodeRef createDocument(NodeRef parentRef, String name, Map<QName, Serializable> properties) {
+        name = checkNameValidUnused(name, parentRef);
         final QName qname = QName.createQName(NamespaceService.CONTENT_MODEL_1_0_URI, name);
         properties.put(ContentModel.PROP_NAME, name);
         return services.getNodeService().createNode(parentRef, ContentModel.ASSOC_CONTAINS, qname, ContentModel.TYPE_CONTENT, properties).getChildRef();
@@ -146,7 +149,7 @@ public class NodeHelper {
         List<NodeRef> childNodes = new ArrayList<NodeRef>();
 
         List<ChildAssociationRef> childAssociations = services.getNodeService().getChildAssocs(parentNode);
-        for(ChildAssociationRef childAssoc : childAssociations) {
+        for (ChildAssociationRef childAssoc : childAssociations) {
             childNodes.add(childAssoc.getChildRef());
         }
 
@@ -154,7 +157,7 @@ public class NodeHelper {
     }
 
     public NodeRef getPrimaryParent(NodeRef childRef) {
-        ChildAssociationRef childAssoc =  services.getNodeService().getPrimaryParent(childRef);
+        ChildAssociationRef childAssoc = services.getNodeService().getPrimaryParent(childRef);
         return childAssoc.getParentRef();
     }
 
@@ -215,18 +218,26 @@ public class NodeHelper {
 
     /**
      * This method checks if String contains disallowed characters: * " &lt; &gt; \ / . ? : and |.
-     *
+     * <p>
      * Can be used for checking the name property when creating content.
      *
      * @param text Phrase to check
-     *
      * @return true if contains * " &lt; &gt; \ / . ? : or |
      */
-    public boolean containsIntegrityViolationCharacters(String text){
-        if (text!=null && SPECIAL_CHARS_PATTERN.matcher(text).find()){
+    public boolean containsIntegrityViolationCharacters(String text) {
+        if (text != null && SPECIAL_CHARS_PATTERN.matcher(text).find()) {
             return true;
         }
         return false;
     }
 
+    private String checkNameValidUnused(String str, NodeRef parent) {
+        NodeRef ref = getChild(parent, str);
+        if (ref == null) {
+            return str;
+        } else {
+            Date day = new Date();
+            return day.getTime() + "-" + str;
+        }
+    }
 }
