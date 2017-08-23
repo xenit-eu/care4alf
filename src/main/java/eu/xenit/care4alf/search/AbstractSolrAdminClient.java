@@ -33,17 +33,8 @@ public abstract class AbstractSolrAdminClient {
 
     public abstract List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException;
 
-    public JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
-        Multimap<String, String> parameters = ArrayListMultimap.create();
-        parameters.put("wt", "json");
-        //parameters.put("q", "ID:ERROR-*");
-        parameters.put("q", "ERROR*");
-        parameters.put("start", Integer.toString(start));
-        parameters.put("rows", Integer.toString(rows));
-        return getSolrClient().postJSON("/" + getSolrTypeUrl() + "/alfresco/" + selectOrQuery(), parameters, null);
-    }
+    public abstract JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException;
 
-    protected abstract String selectOrQuery();
     protected abstract String getSolrTypeUrl();
 
     public JSONObject getSolrSummaryJson() throws JSONException, EncoderException, IOException {

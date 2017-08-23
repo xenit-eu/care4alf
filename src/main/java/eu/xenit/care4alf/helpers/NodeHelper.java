@@ -218,6 +218,8 @@ public class NodeHelper {
      *
      * Can be used for checking the name property when creating content.
      *
+     * @param text Phrase to check
+     *
      * @return true if contains * " &lt; &gt; \ / . ? : or |
      */
     public boolean containsIntegrityViolationCharacters(String text){

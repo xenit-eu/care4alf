@@ -20,6 +20,16 @@ import java.util.List;
 public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
 
     @Override
+    public JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
+        Multimap<String, String> parameters = ArrayListMultimap.create();
+        parameters.put("wt", "json");
+        parameters.put("q", "ID:ERROR-*");
+        parameters.put("start", Integer.toString(start));
+        parameters.put("rows", Integer.toString(rows));
+        return getSolrClient().postJSON("/" + getSolrTypeUrl() + "/alfresco/select", parameters, null);
+    }
+
+    @Override
     public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
         JSONObject json = this.getSolrErrorsJson(0, rows);
@@ -36,11 +46,6 @@ public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
             errorDocs.add(errorDoc);
         }
         return errorDocs;
-    }
-
-    @Override
-    protected String selectOrQuery() {
-        return "select";
     }
 
     @Override
