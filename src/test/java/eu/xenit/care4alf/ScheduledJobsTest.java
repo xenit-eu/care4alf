@@ -25,12 +25,12 @@ public class ScheduledJobsTest {
 
     @Test
     public void listScheduledJobs() throws SchedulerException {
-        Assert.assertTrue(scheduledJobs.getScheduledJobs().size() > 0);
+        Assert.assertTrue(scheduledJobs.getScheduledJobs("DEFAULT").size() > 0);
     }
 
     @Test
     public void executeScheduledJob() throws SchedulerException {
-        this.scheduledJobs.execute("downloadCleanerJobDetail");
+        this.scheduledJobs.execute("downloadCleanerJobDetail","DEFAULT");
     }
 
     @Test

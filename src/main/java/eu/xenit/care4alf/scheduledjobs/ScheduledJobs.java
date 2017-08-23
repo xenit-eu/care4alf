@@ -1,7 +1,6 @@
 package eu.xenit.care4alf.scheduledjobs;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
-import org.alfresco.repo.dictionary.types.period.Cron;
 import org.alfresco.repo.domain.schema.SchemaBootstrap;
 import org.json.JSONException;
 import org.json.JSONWriter;
@@ -34,19 +33,35 @@ public class ScheduledJobs {
 
     @Autowired
     @Qualifier("schedulerFactory")
-    SchedulerFactoryBean schedulerFactory;
+    private SchedulerFactoryBean schedulerFactory;
 
     public static final String[] ATTRIBUTES = new String[]{
             "CalendarName", "CronExpression", "Description", "EndTimeEndTime", "FinalFireTime", "Group", "JobGroup",
             "JobName", "MayFireAgain", "Name", "NextFireTime", "PreviousFireTime", "Priority", "StartTime", "State",
             "TimeZone", "Volatile"};
 
-    @Uri(value="job")
-    public void getJobsREST(final WebScriptResponse response) throws IOException, JSONException, SchedulerException {
+    @Uri(value = "groups")
+    public void getJobGroups(final WebScriptResponse response) throws SchedulerException, IOException, JSONException {
+        final JSONWriter json = new JSONWriter(response.getWriter());
+        json.array();
+        Scheduler scheduler = schedulerFactory.getScheduler();
+        logger.debug("# of scheduler groups: {}", scheduler.getJobGroupNames().length);
+        for (String groupName : scheduler.getJobGroupNames()) {
+            json.object();
+            json.key("name");
+            json.value(groupName);
+            json.endObject();
+        }
+        json.endArray();
+    }
+
+
+    @Uri(value = "job")
+    public void getJobsREST(@RequestParam(defaultValue = "DEFAULT") String groupname, final WebScriptResponse response) throws IOException, JSONException, SchedulerException {
         final JSONWriter json = new JSONWriter(response.getWriter());
         json.array();
 
-        for(ScheduledJob job : this.getScheduledJobs()){
+        for (ScheduledJob job : this.getScheduledJobs(groupname)) {
             json.object();
             json.key("JobName");
             json.value(job.getName());
@@ -63,35 +78,29 @@ public class ScheduledJobs {
         json.endArray();
     }
 
-    public List<ScheduledJob> getScheduledJobs() throws SchedulerException {
+    public List<ScheduledJob> getScheduledJobs(String groupName) throws SchedulerException {
         List<ScheduledJob> jobs = new ArrayList<>();
 
         Scheduler scheduler = schedulerFactory.getScheduler();
-        //loop all group
-        for (String groupName : scheduler.getJobGroupNames()) {
 
-            //loop all jobs by groupname
-            for (String jobName : scheduler.getJobNames(groupName)) {
-                Trigger[] triggers = scheduler.getTriggersOfJob(jobName,groupName);
+        //loop all jobs by groupname
+        for (String jobName : scheduler.getJobNames(groupName)) {
+            Trigger[] triggers = scheduler.getTriggersOfJob(jobName, groupName);
 
-                String cronExpression = "";
-                if(triggers[0] instanceof CronTrigger)
-                    cronExpression = ((CronTrigger)triggers[0]).getCronExpression();
+            String cronExpression = "";
+            if (triggers[0] instanceof CronTrigger)
+                cronExpression = ((CronTrigger) triggers[0]).getCronExpression();
 
-                jobs.add(new ScheduledJob(jobName, cronExpression,triggers[0].getPreviousFireTime(),triggers[0].getNextFireTime()));
-            }
+            jobs.add(new ScheduledJob(jobName, cronExpression, triggers[0].getPreviousFireTime(), triggers[0].getNextFireTime()));
         }
+
 
         return jobs;
     }
 
-    @Uri(value="job/{name}/execute", method = HttpMethod.POST)
-    public void executeGet(@UriVariable final String name) throws SchedulerException {
-        this.execute(name);
-    }
-
-    public void execute(String fullName) throws SchedulerException {
-        this.execute(fullName, "DEFAULT");
+    @Uri(value = "job/{name}/{group}/execute", method = HttpMethod.POST)
+    public void executeGet(@UriVariable final String name, @UriVariable final String group) throws SchedulerException {
+        this.execute(name, group);
     }
 
     public void execute(String fullName, String groupName) throws SchedulerException {
@@ -102,17 +111,18 @@ public class ScheduledJobs {
 
     @Autowired
     SchemaBootstrap schemaBootstrap;
+
     @Uri("validateschema/txt")
     public void showSchemaValidation(WebScriptResponse res) throws IOException {
         this.validateSchema((PrintWriter) res.getWriter());
     }
 
-    public void validateSchema(PrintWriter writer){
+    public void validateSchema(PrintWriter writer) {
         this.schemaBootstrap.validateSchema("Alfresco-{0}-Validation-{1}-", writer);
         writer.write("END.");
     }
 
-    class ScheduledJob{
+    class ScheduledJob {
         private String name, cronExpression;
         private Date previousFireTime, nextFireTime;
 

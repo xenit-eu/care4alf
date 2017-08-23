@@ -1,5 +1,6 @@
 <h3>Scheduled jobs</h3>
-
+<select name="groupSelect" id="groupSelect" ng-options="group.name for group in groups track by group.name" ng-model="selectedGroup"
+        ng-change="update()"></select>
 <table class="table">
     <thead>
     <tr>
@@ -16,7 +17,7 @@
         <td>{{job.CronExpression}}</td>
         <td>{{job.PreviousFireTime}}</td>
         <td>{{job.NextFireTime}}</td>
-        <td><button class="btn btn-info" ng-click="execute(job.Name)" ng-disabled="loading">execute</button></td>
+        <td><button class="btn btn-info" ng-click="execute(job.Name, selectedGroup)" ng-disabled="loading">execute</button></td>
     </tr>
     </tbody>
 </table>
