@@ -68,7 +68,7 @@ public class NodeHelper {
 
     public NodeRef createDocumentIfNotExists(NodeRef parentRef, String name) {
         final NodeRef doc = getChild(parentRef, name);
-        return doc == null ? createFolder(parentRef, name) : doc;
+        return doc == null ? createDocument(parentRef, name) : doc;
     }
 
     public NodeRef createDocument(NodeRef parentRef, String name) {
@@ -98,7 +98,8 @@ public class NodeHelper {
                     return services.getNodeService().createNode(parentRef, ContentModel.ASSOC_CONTAINS, qname, folderType, properties).getChildRef();
                 } catch (Exception e) {
                     logger.error("Exception found!");
-                    logger.debug(e.getMessage());
+                    logger.error(e.getMessage());
+                    e.printStackTrace();
                     throw new WorkflowException("Error found.");
                 }
             }

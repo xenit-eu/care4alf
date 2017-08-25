@@ -163,7 +163,7 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
             return new StringBuilder("(")
                     .append(query)
                     .append(") AND sys:node\\-dbid:[")
-                    .append(lastDBID+1)
+                    .append(lastDBID)
                     .append(" TO ")
                     .append(Long.MAX_VALUE)
                     .append("]")

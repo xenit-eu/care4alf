@@ -1,9 +1,6 @@
 package eu.xenit.care4alf.monitoring;
 
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.integration.MonitoredSource;
@@ -82,6 +79,7 @@ public class Monitoring implements ApplicationContextAware {
                 }
                 catch(Exception e){
                     logger.warn("Can't fetch some metric");
+                    e.printStackTrace();
                 }
             }
         }
@@ -99,6 +97,7 @@ public class Monitoring implements ApplicationContextAware {
     }
 
     @Uri(value = "/xenit/care4alf/monitoring/vars")
+    @Transaction
     public Resolution getVars(WebScriptResponse response) throws Exception {
         final Map<String, Long> vars = this.getAllMetrics();
 
