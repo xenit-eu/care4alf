@@ -19,11 +19,11 @@
     <div class="">
         <label class="control-label">Document Name</label><input class="form-control" ng-model="form.documentName" />
     </div>
+    <!--<div class="">-->
+        <!--<label class="control-label">Document Path</label><input class="form-control" ng-model="form.documentPath" />-->
+    <!--</div>-->
     <div class="">
-        <label class="control-label">Document Path</label><input class="form-control" ng-model="form.documentPath" />
-    </div>
-    <div class="">
-        <label class="control-label">Save Local</label>
+        <label class="control-label">Save Local (in /CSVExports)</label>
         <label class="checkbox" style="margin-left: 15px; margin-bottom: 15px"><input type="checkbox" ng-model="form.saveLocal" /></label>
     </div>
     <button type="submit" class="btn btn-default" ng-click="execute()">Execute {{loading?"(loading)":""}}</button>
