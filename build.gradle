@@ -3,7 +3,7 @@ ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber')?project.getProperty('buildNumber'):"SNAPSHOT";
 
-version='1.1.1-SNAPSHOT'
+version='1.2.0-SNAPSHOT'
 group='eu.xenit'
 
 buildscript {
