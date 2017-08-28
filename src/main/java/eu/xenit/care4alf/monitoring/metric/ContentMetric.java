@@ -24,7 +24,7 @@ import java.util.Map;
  * Created by Thomas S on 11/07/2017.
  */
 @Component
-@ScheduledQuartzJob(name = "OperationsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0/15 * * * * ?", cronProp = "c4a.monitoring.operations.cron")
+@ScheduledQuartzJob(name = "OperationsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "* 0/5 * * * ?", cronProp = "c4a.monitoring.operations.cron")
 public class ContentMetric extends AbstractMonitoredSource{
     @Autowired
     private NodeHelper nodeHelper;
