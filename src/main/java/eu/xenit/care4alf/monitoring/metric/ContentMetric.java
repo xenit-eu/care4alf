@@ -41,15 +41,15 @@ public class ContentMetric extends AbstractMonitoredSource{
     @Autowired
     private FileFolderService fileFolderService;
 
-    private NodeRef docRef;
+    private NodeRef readRef;
 
     private void init() {
         AuthenticationUtil.setAdminUserAsFullyAuthenticatedUser();
         NodeRef data_dictionary = nodeService.getChildByName(nodeHelper.getCompanyHome(), ContentModel.ASSOC_CONTAINS, "Data Dictionary");
         NodeRef folderRef = nodeHelper.createFolderIfNotExists(data_dictionary, "MetricChecks");
-        docRef =  nodeHelper.createDocumentIfNotExists(folderRef, "Metrics test doc");
+        readRef =  nodeHelper.createDocumentIfNotExists(folderRef, "Metrics test doc");
         try {
-            Writer writer = new OutputStreamWriter(fileFolderService.getWriter(docRef).getContentOutputStream(), "UTF-8");
+            Writer writer = new OutputStreamWriter(fileFolderService.getWriter(readRef).getContentOutputStream(), "UTF-8");
             String content = "General content read and write check";
             writer.write(content);
             writer.flush();
@@ -61,7 +61,8 @@ public class ContentMetric extends AbstractMonitoredSource{
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
-        init();
+        if(readRef == null)
+            init();
 
         Map<String, Long> map = new HashMap<>();
         map.put("operations.read", readTest());
@@ -74,7 +75,7 @@ public class ContentMetric extends AbstractMonitoredSource{
     private long writeTest(){
         Long starttime = System.currentTimeMillis();
         try {
-            ContentWriter writer = contentService.getWriter(docRef, ContentModel.PROP_CONTENT, true);
+            ContentWriter writer = contentService.getWriter(readRef, ContentModel.PROP_CONTENT, true);
             writer.putContent("An new line of content");
         } catch(Exception e){
             return Long.MAX_VALUE;
@@ -85,7 +86,7 @@ public class ContentMetric extends AbstractMonitoredSource{
     private long readTest(){
         Long starttime = System.currentTimeMillis();
         try{
-            ContentReader reader = contentService.getReader(docRef, ContentModel.PROP_CONTENT);
+            ContentReader reader = contentService.getReader(readRef, ContentModel.PROP_CONTENT);
             if(reader.getContentString() == null){
                 return Long.MAX_VALUE;
             }
