@@ -146,6 +146,14 @@ uploadArchives {
                             role "Developer"
                         }
                     }
+                    developer {
+                        id 'thijslemmens'
+                        name 'Thijs Lemmens'
+                        email 'thijs.lemmens@xenit.eu'
+                        roles{
+                            role "Developer"
+                        }
+                    }
                 }
             }
         }

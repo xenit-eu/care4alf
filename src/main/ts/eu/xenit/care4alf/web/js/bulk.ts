@@ -88,7 +88,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
         let callInfo =
             $http({
                 method: 'POST',
-                url: "bluk/form/action/" + $scope.form.action,
+                url: "bulk/form/action/" + $scope.form.action,
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },
