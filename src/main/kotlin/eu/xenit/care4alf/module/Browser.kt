@@ -15,6 +15,8 @@ import org.alfresco.service.cmr.repository.NodeRef
 import org.alfresco.service.cmr.repository.NodeService
 import org.alfresco.service.cmr.repository.StoreRef
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter
+import org.alfresco.service.cmr.search.QueryConsistency
+import org.alfresco.service.cmr.search.SearchParameters
 import org.alfresco.service.cmr.search.SearchService
 import org.alfresco.service.cmr.security.PermissionService
 import org.alfresco.service.namespace.NamespaceService
@@ -71,7 +73,18 @@ public class Browser @Autowired constructor(
         } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
             iterable(NodeRef.getNodeRefs(requestBody) ,nodesToBasicJson())
         } else {
-            iterable(searchService.query(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE, SearchService.LANGUAGE_FTS_ALFRESCO, requestBody).getNodeRefs(), nodesToBasicJson())
+            val sp = SearchParameters()
+            sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)
+            sp.language=SearchService.LANGUAGE_FTS_ALFRESCO
+            sp.query=requestBody
+            sp.queryConsistency=QueryConsistency.EVENTUAL //for counting total
+            val rs = searchService.query(sp)
+            obj {
+                key("nodes") {
+                    iterable(rs.getNodeRefs(), nodesToBasicJson())
+                }
+                entry("total", rs.numberFound)
+            }
         }
     }
 

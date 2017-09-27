@@ -4,7 +4,9 @@
     <form ng-submit="search()">
         <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control" name="query"/>
     </form>
-
+    <div class="alert alert-secondary" role="alert" ng-if="results.total">
+        Showing {{results.nodes.length | number}} of {{results.total | number}} results
+    </div>
     <table class="table">
         <thead>
         <tr>
@@ -14,7 +16,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="node in results">
+        <tr ng-repeat="node in results.nodes">
             <td>{{node.name}}</td>
             <td><a href="#/browser/{{node.noderef | hash}}">{{node.noderef}}</a></td>
             <td>{{node.type}}</td>
@@ -23,7 +25,6 @@
     </table>
 </div>
 
-<!--<div ng-file-drop="onFileSelect($files)" ng-file-drag-over-class="optional-css-class-name-or-function">drop files here</div>-->
 <div ng-if="node">
     <fieldset>
         <legend>Info</legend>
