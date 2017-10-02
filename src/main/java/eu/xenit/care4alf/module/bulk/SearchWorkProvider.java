@@ -137,7 +137,9 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
                 synchronized (this.nodeRefs) {
                     this.nodeRefs.addAll(rs.getNodeRefs());
 
-                    this.estimatedResults = processedBatches * batchSize + rs.getNumberFound();
+                    Long estimatedResultsTemp = processedBatches * batchSize + rs.getNumberFound();
+
+                    this.estimatedResults = estimatedResultsTemp>this.estimatedResults?estimatedResultsTemp:this.estimatedResults;
                     if(this.nodeRefs.size() > 0) {
                         synchronized (this.lastDBIDLock) {
                             this.lastDBID = (long) nodeService.getProperty(
@@ -151,8 +153,9 @@ public class SearchWorkProvider implements BatchProcessWorkProvider<NodeRef> {
                 synchronized (this.nodeRefs) {
                     this.nodeRefs.notifyAll();
                 }
-            } while (this.nodeRefs.size() < this.estimatedResults && !cancel);
-            logger.debug("Total number of Nodes to be processed " + this.nodeRefs.size());
+            } while (!cancel && (rs.getNumberFound() >= 1000L));
+            this.estimatedResults = this.nodeRefs.size();
+            logger.info("Total number of Nodes to be processed " + this.nodeRefs.size());
         } finally {
             if (rs != null) rs.close();
         }
