@@ -46,6 +46,13 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.2.1'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
+
+
 nexusStaging {
     username = project.hasProperty('publish_username') ? project.publish_username : ''
     password = project.hasProperty('publish_password') ? project.publish_password : ''
@@ -280,12 +287,19 @@ dependencies {
     ampdeLib(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
     installDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
 
-    embedded group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
     embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
     testCompile "junit:junit:${project.ext.junitVersion}"
+
+    //These are actually test dependencies, but they need to be bundled because of the current sourceSet config
+    embedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+    embedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+    embedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+    embedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
+    embedded 'org.codehaus.groovy:groovy-all:2.4.7'
+
 }
 
 lesscss {
@@ -308,7 +322,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,*'
+        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,*'
     }
 }
 
@@ -373,6 +387,18 @@ test {
 
     if (project.hasProperty('alfresco.url')) {
         systemProperty 'alfresco.url', project.getProperty('alfresco.url')
+    }
+
+    if (project.hasProperty('protocol')) {
+        systemProperty 'protocol', project.getProperty('protocol')
+    }
+
+    if (project.hasProperty('host')) {
+        systemProperty 'host', project.getProperty('host')
+    }
+
+    if (project.hasProperty('port')) {
+        systemProperty 'port', project.getProperty('protocol')
     }
 }
 

@@ -1,6 +1,7 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.authorityimporter;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import org.alfresco.service.cmr.repository.DuplicateChildNodeNameException;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.json.JSONArray;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by raven on 3/2/16.
@@ -58,11 +60,30 @@ public class AuthorityImporter {
                 final String authorityDisplayName = name.replaceFirst("GROUP_", "");
                 final HashSet<String> authorityZones = new HashSet<String>();
                 authorityZones.add(AuthorityService.ZONE_APP_DEFAULT);
-                try {
-                    final String authority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
-                    logger.info(" >> Created Authority "+authority);
-                } catch (Exception e) {
-                    logger.error(" >> Authority "+authorityDisplayName+" already exists!");
+                String groupAuthority = null;
+
+                Set<String> groupAuthorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, authorityDisplayName, null);
+                if(groupAuthorities.size() == 0){
+                    groupAuthority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
+                    logger.info(" >> Created Authority "+groupAuthority);
+                } else if(groupAuthorities.size() > 1){
+                    throw new IllegalArgumentException("More than one authority for group "+authorityDisplayName);
+                } else if(groupAuthorities.size() == 1){
+                    groupAuthority = groupAuthorities.iterator().next();
+                    logger.debug("Found group authority: "+groupAuthority);
+                }
+
+                for(int j = 0; j <users.length(); j++){
+                    String user = users.getString(j);
+                    Set<String> authorities = authorityService.findAuthorities(AuthorityType.USER, null, false, user, null);
+                    if(authorities.size() == 0){
+                        throw new IllegalArgumentException("No authority for user "+user);
+                    } else if(authorities.size() > 1){
+                        throw new IllegalArgumentException("More than one authority for user "+user);
+                    }
+                    String userAuthority = authorities.iterator().next();
+                    logger.debug("Adding user "+ userAuthority+ " to group "+groupAuthority);
+                    authorityService.addAuthority(groupAuthority, userAuthority);
                 }
 
             }
