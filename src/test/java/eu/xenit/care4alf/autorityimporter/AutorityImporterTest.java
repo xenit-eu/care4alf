@@ -63,7 +63,7 @@ public class AutorityImporterTest {
     }
 
     @Test
-    public void testOneGroupWithOneUser() throws JSONException {
+    public void testOneGroupWithOneUser() throws JSONException, InterruptedException {
         loadTestUsers();
 
         JSONArray config = new JSONArray();
@@ -94,7 +94,7 @@ public class AutorityImporterTest {
                 .body("find {it.name == 'GROUP_HELLO123'}.users", containsInAnyOrder("user1"));
     }
 
-    private void loadTestUsers(){
+    private void loadTestUsers() throws InterruptedException {
         Response post = given()
                 .when()
                 .multiPart(new File("src/test/resources/authorityimporter/ExampleUserUpload.csv"))
@@ -104,6 +104,9 @@ public class AutorityImporterTest {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("data.totalUsers", equalTo(10));
+
+        System.out.println("Sleeping 20 seconds to avoid not having the users in the index");
+        Thread.sleep(20000);
 
     }
 
