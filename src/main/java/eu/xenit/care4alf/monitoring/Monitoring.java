@@ -5,6 +5,7 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.monitoring.metric.ClusteringMetric;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
@@ -101,25 +102,18 @@ public class Monitoring implements ApplicationContextAware {
     public Resolution getVars(WebScriptResponse response) throws Exception {
         final Map<String, Long> vars = this.getAllMetrics();
 
-        return new JsonWriterResolution() {
-            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-                jsonWriter.object();
-                for (Map.Entry<String, Long> entry : vars.entrySet())
-                    jsonWriter.key(entry.getKey()).value(entry.getValue());
-                jsonWriter.endObject();
-            }
-        };
+        return prepareResult(vars);
     }
 
-    @Uri(value = "/xenit/care4alf/monitoring/cluster")//TODO: make dynamic
-    public Resolution getClusterMetrics(WebScriptResponse response) throws Exception {
+    @Uri(value = "/xenit/care4alf/monitoring/{metric}")
+    public Resolution getClusterMetrics(@UriVariable final String metric, WebScriptResponse response) throws Exception {
         final Map<String, Long> vars = new HashMap<String, Long>();
 
         if (allMonitoredSources != null) {
             for (MonitoredSource source : allMonitoredSources) {
                 if (source == null)
                     continue;
-                if (source instanceof ClusteringMetric) {
+                if (source instanceof AbstractMonitoredSource && ((AbstractMonitoredSource) source).getName().equals(metric)) {
                     try {
                         Map<String, Long> metrics = source.getMonitoringMetrics();
                         for (String key : metrics.keySet()) {
@@ -132,6 +126,11 @@ public class Monitoring implements ApplicationContextAware {
             }
         }
 
+        return prepareResult(vars);
+    }
+
+    @NotNull
+    private JsonWriterResolution prepareResult(final Map<String, Long> vars) throws JSONException {
         return new JsonWriterResolution() {
             protected void writeJson(JSONWriter jsonWriter) throws JSONException {
                 jsonWriter.object();
