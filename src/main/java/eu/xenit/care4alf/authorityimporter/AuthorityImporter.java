@@ -1,7 +1,15 @@
 package eu.xenit.care4alf.authorityimporter;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
-import org.alfresco.service.cmr.repository.DuplicateChildNodeNameException;
+
+import org.alfresco.model.ContentModel;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.StoreRef;
+import org.alfresco.service.cmr.search.QueryConsistency;
+import org.alfresco.service.cmr.search.ResultSet;
+import org.alfresco.service.cmr.search.SearchParameters;
+import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.json.JSONArray;
@@ -17,7 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Created by raven on 3/2/16.
@@ -31,6 +39,12 @@ public class AuthorityImporter {
 
     @Autowired
     private AuthorityService authorityService;
+
+    @Autowired
+    private SearchService searchService;
+
+    @Autowired
+    private NodeService nodeService;
 
     @Uri(value="import", method = HttpMethod.POST)
     private void authorityImport(WebScriptRequest req, WebScriptResponse res) {
@@ -62,28 +76,49 @@ public class AuthorityImporter {
                 authorityZones.add(AuthorityService.ZONE_APP_DEFAULT);
                 String groupAuthority = null;
 
-                Set<String> groupAuthorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, authorityDisplayName, null);
-                if(groupAuthorities.size() == 0){
+//                Set<String> groupAuthorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, authorityDisplayName, null);
+                SearchParameters authoritySearchParameters = new SearchParameters();
+                authoritySearchParameters.setQueryConsistency(QueryConsistency.TRANSACTIONAL);
+                authoritySearchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+                authoritySearchParameters.setMaxItems(2);
+                authoritySearchParameters.setQuery("=TYPE:\"cm:authorityContainer\" AND =cm:authorityDisplayName:\""+authorityDisplayName+"\"");
+                authoritySearchParameters.setLanguage(SearchService. LANGUAGE_FTS_ALFRESCO);
+                ResultSet groupAuthorityResultSet = searchService.query(authoritySearchParameters);
+                List<NodeRef> groupAuthorityNodeRefs = groupAuthorityResultSet.getNodeRefs();
+
+                if(groupAuthorityNodeRefs.size() == 0){
                     groupAuthority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
                     logger.info(" >> Created Authority "+groupAuthority);
-                } else if(groupAuthorities.size() > 1){
+                } else if(groupAuthorityNodeRefs.size() > 1){
                     throw new IllegalArgumentException("More than one authority for group "+authorityDisplayName);
-                } else if(groupAuthorities.size() == 1){
-                    groupAuthority = groupAuthorities.iterator().next();
+                } else if(groupAuthorityNodeRefs.size() == 1){
+                    groupAuthority = (String) nodeService.getProperty(groupAuthorityNodeRefs.get(0), ContentModel.PROP_AUTHORITY_NAME);
                     logger.debug("Found group authority: "+groupAuthority);
                 }
 
+
                 for(int j = 0; j <users.length(); j++){
                     String user = users.getString(j);
-                    Set<String> authorities = authorityService.findAuthorities(AuthorityType.USER, null, false, user, null);
-                    if(authorities.size() == 0){
+                    SearchParameters userSearchParameters = new SearchParameters();
+                    userSearchParameters.setQueryConsistency(QueryConsistency.TRANSACTIONAL);
+                    userSearchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
+                    userSearchParameters.setMaxItems(2);
+                    userSearchParameters.setQuery("=TYPE:\"cm:person\" AND =cm:userName:\""+user+"\"");
+                    userSearchParameters.setLanguage(SearchService. LANGUAGE_FTS_ALFRESCO);
+                    ResultSet userAuthorityResultSet = searchService.query(userSearchParameters);
+                    List<NodeRef> userAuthorityNodeRefs = userAuthorityResultSet.getNodeRefs();
+                    if(userAuthorityNodeRefs.size() == 0){
                         throw new IllegalArgumentException("No authority for user "+user);
-                    } else if(authorities.size() > 1){
+                    } else if(userAuthorityNodeRefs.size() > 1){
                         throw new IllegalArgumentException("More than one authority for user "+user);
                     }
-                    String userAuthority = authorities.iterator().next();
+                    String userAuthority = user;
                     logger.debug("Adding user "+ userAuthority+ " to group "+groupAuthority);
-                    authorityService.addAuthority(groupAuthority, userAuthority);
+                    if(!authorityService.getContainedAuthorities(AuthorityType.USER, groupAuthority, true).contains(user)){
+                        authorityService.addAuthority(groupAuthority, userAuthority);
+                    } else {
+                        logger.debug("The user "+user+" is already in the group "+groupAuthority);
+                    }
                 }
 
             }

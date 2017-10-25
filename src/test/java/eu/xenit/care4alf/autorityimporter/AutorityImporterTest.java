@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Random;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -21,7 +22,7 @@ import static org.hamcrest.core.IsCollectionContaining.hasItem;
 public class AutorityImporterTest {
 
     @BeforeClass
-    public static void setup() {
+    public static void setup() throws InterruptedException {
         String port = System.getProperty("port");
         if (port == null) {
             RestAssured.port = 443;
@@ -36,6 +37,7 @@ public class AutorityImporterTest {
 
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
+        RestAssured.useRelaxedHTTPSValidation();
         String host = System.getProperty("host");
         if (host == null) {
             host = "localhost";
@@ -59,22 +61,17 @@ public class AutorityImporterTest {
         }
         RestAssured.authentication = authScheme;
         RestAssured.defaultParser = Parser.JSON;
+        loadTestUsers();
+
 
     }
 
     @Test
-    public void testOneGroupWithOneUser() throws JSONException, InterruptedException {
-        loadTestUsers();
+    public void testOneGroupWithOneUser() throws JSONException {
 
         JSONArray config = new JSONArray();
-        JSONObject group = new JSONObject();
-        group.put("name", "HELLO123");
-        JSONArray empty = new JSONArray();
-        JSONArray users = new JSONArray();
-        users.put("user1");
-        group.put("groups", empty);
-        group.put("users", users);
-        config.put(group);
+        String groupName = "HELLO123";
+        config.put(getGroupConfig(groupName, "user1"));
 
         given()
                 .when()
@@ -94,7 +91,62 @@ public class AutorityImporterTest {
                 .body("find {it.name == 'GROUP_HELLO123'}.users", containsInAnyOrder("user1"));
     }
 
-    private void loadTestUsers() throws InterruptedException {
+    @Test
+    public void testMultiGroupMultiUser() throws JSONException {
+        String groupName1 = getSaltString();
+        String groupName2 = getSaltString();
+
+        JSONArray config = new JSONArray();
+
+        config.put(getGroupConfig(groupName1, "user1", "user2", "user3"));
+        config.put(getGroupConfig(groupName2, "user4", "user5", "user6"));
+
+        given()
+                .when()
+                .body(config.toString())
+                .post("/xenit/care4alf/authorityimporter/import")
+                .then()
+                .statusCode(200);
+
+
+        given()
+                .when()
+                .accept(ContentType.JSON)
+                .get("/xenit/care4alf/authorityexplorer/groups")
+                .then()
+                .statusCode(200)
+                //.contentType(ContentType.JSON)
+                .body("find {it.name == 'GROUP_"+groupName1+"'}.users", containsInAnyOrder("user1", "user2", "user3"))
+                .body("find {it.name == 'GROUP_"+groupName2+"'}.users", containsInAnyOrder("user4", "user5", "user6"));
+    }
+
+    private JSONObject getGroupConfig(String groupName, String... users) throws JSONException {
+        JSONObject group = new JSONObject();
+        group.put("name", groupName);
+        group.put("groups", new JSONArray());
+        JSONArray usersJ = new JSONArray();
+        for (String user: users
+             ) {
+            usersJ.put(user);
+        }
+        group.put("users", usersJ);
+        return group;
+    }
+
+    protected String getSaltString() {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 18) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String saltStr = salt.toString();
+        return saltStr;
+
+    }
+
+    private static void loadTestUsers() throws InterruptedException {
         Response post = given()
                 .when()
                 .multiPart(new File("src/test/resources/authorityimporter/ExampleUserUpload.csv"))
@@ -105,8 +157,8 @@ public class AutorityImporterTest {
                 .contentType(ContentType.JSON)
                 .body("data.totalUsers", equalTo(10));
 
-        System.out.println("Sleeping 20 seconds to avoid not having the users in the index");
-        Thread.sleep(20000);
+//        System.out.println("Sleeping 20 seconds to avoid not having the users in the index");
+//        Thread.sleep(20000);
 
     }
 
