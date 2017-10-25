@@ -398,7 +398,7 @@ test {
     }
 
     if (project.hasProperty('port')) {
-        systemProperty 'port', project.getProperty('protocol')
+        systemProperty 'port', project.getProperty('port')
     }
 }
 
