@@ -157,9 +157,6 @@ public class AutorityImporterTest {
                 .contentType(ContentType.JSON)
                 .body("data.totalUsers", equalTo(10));
 
-//        System.out.println("Sleeping 20 seconds to avoid not having the users in the index");
-//        Thread.sleep(20000);
-
     }
 
 

@@ -2,13 +2,10 @@ package eu.xenit.care4alf.authorityimporter;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 
+import eu.xenit.care4alf.AuthorityHelper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.StoreRef;
-import org.alfresco.service.cmr.search.QueryConsistency;
-import org.alfresco.service.cmr.search.ResultSet;
-import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
@@ -48,6 +45,9 @@ public class AuthorityImporter {
 
     @Uri(value="import", method = HttpMethod.POST)
     private void authorityImport(WebScriptRequest req, WebScriptResponse res) {
+
+        AuthorityHelper authorityHelper = new AuthorityHelper(searchService);
+
         try {
             logger.info(
                  "\n --- INCOMING REQUEST --- "
@@ -77,14 +77,7 @@ public class AuthorityImporter {
                 String groupAuthority = null;
 
 //                Set<String> groupAuthorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, authorityDisplayName, null);
-                SearchParameters authoritySearchParameters = new SearchParameters();
-                authoritySearchParameters.setQueryConsistency(QueryConsistency.TRANSACTIONAL);
-                authoritySearchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-                authoritySearchParameters.setMaxItems(2);
-                authoritySearchParameters.setQuery("=TYPE:\"cm:authorityContainer\" AND =cm:authorityDisplayName:\""+authorityDisplayName+"\"");
-                authoritySearchParameters.setLanguage(SearchService. LANGUAGE_FTS_ALFRESCO);
-                ResultSet groupAuthorityResultSet = searchService.query(authoritySearchParameters);
-                List<NodeRef> groupAuthorityNodeRefs = groupAuthorityResultSet.getNodeRefs();
+                List<NodeRef> groupAuthorityNodeRefs = authorityHelper.getNodeGroupNodeRefs(authorityDisplayName);
 
                 if(groupAuthorityNodeRefs.size() == 0){
                     groupAuthority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
@@ -99,14 +92,7 @@ public class AuthorityImporter {
 
                 for(int j = 0; j <users.length(); j++){
                     String user = users.getString(j);
-                    SearchParameters userSearchParameters = new SearchParameters();
-                    userSearchParameters.setQueryConsistency(QueryConsistency.TRANSACTIONAL);
-                    userSearchParameters.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
-                    userSearchParameters.setMaxItems(2);
-                    userSearchParameters.setQuery("=TYPE:\"cm:person\" AND =cm:userName:\""+user+"\"");
-                    userSearchParameters.setLanguage(SearchService. LANGUAGE_FTS_ALFRESCO);
-                    ResultSet userAuthorityResultSet = searchService.query(userSearchParameters);
-                    List<NodeRef> userAuthorityNodeRefs = userAuthorityResultSet.getNodeRefs();
+                    List<NodeRef> userAuthorityNodeRefs = authorityHelper.getUserNodeRefs(user);
                     if(userAuthorityNodeRefs.size() == 0){
                         throw new IllegalArgumentException("No authority for user "+user);
                     } else if(userAuthorityNodeRefs.size() > 1){
@@ -134,5 +120,8 @@ public class AuthorityImporter {
             e.printStackTrace();
         }
     }
+
+
+
 
 }
