@@ -64,7 +64,7 @@ public class XlsxPermissionReader implements PermissionReader {
                 for (Iterator<Cell> it = row.iterator(); it.hasNext(); ) {
                     Cell cell = it.next();
                     if(cell.getColumnIndex() == 2){
-                        String pathString = cell.getStringCellValue();
+                        String pathString = cell.getStringCellValue().trim();
                         // cut of slash in the beginning if needed, otherwise empty first part of path
                         if(pathString.charAt(0) == '/'){
                             next.setPath(pathString.substring(1).split("/"));
@@ -74,11 +74,11 @@ public class XlsxPermissionReader implements PermissionReader {
                         LOG.debug("Path: " + Arrays.toString(next.getPath()));
                     }
                     if(cell.getColumnIndex() == 0){
-                        next.setGroup(cell.getStringCellValue());
+                        next.setGroup(cell.getStringCellValue().trim());
                         LOG.debug("Group: " + next.getGroup());
                     }
                     if(cell.getColumnIndex() == 1){
-                        next.setPermission(cell.getStringCellValue());
+                        next.setPermission(cell.getStringCellValue().trim());
                         LOG.debug("Permission: " + next.getPermission());
                     }
                     if(cell.getColumnIndex() == 3){
