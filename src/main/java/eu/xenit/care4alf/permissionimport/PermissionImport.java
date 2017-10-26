@@ -8,6 +8,7 @@ import eu.xenit.care4alf.permissionimport.writer.PermissionWriter;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class PermissionImport {
     @Autowired
     private AuthorityService authorityService;
 
+    @Autowired
+    private SearchService searchService;
+
 
     @Uri(value="importpermissions", method = HttpMethod.POST)
     public void importPermissions(WebScriptRequest request, WebScriptResponse response) throws IOException {
@@ -52,7 +56,7 @@ public class PermissionImport {
         }
 
         PermissionReader reader = new XlsxPermissionReader(content);
-        PermissionWriter writer = new PermissionWriter(repository, fileFolderService, nodeService, permissionService, authorityService);
+        PermissionWriter writer = new PermissionWriter(repository, fileFolderService, nodeService, permissionService, authorityService, searchService);
 
         for(PermissionSetting permissionSetting: reader){
             response.getWriter().write("Setting permission:\n"+permissionSetting.toString()+"\n");

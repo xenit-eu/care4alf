@@ -34,7 +34,7 @@ node {
             env.ORG_GRADLE_PROJECT_protocol="https"
             env.ORG_GRADLE_PROJECT_port="443"
 
-            sh "./gradlew clean :installBundle :test -PbuildNumber=${buildNr} -Pusername=${ALFRESCO_USERNAME} -Ppassword=${ALFRESCO_PASSWORD} --continue -i"
+            sh "./gradlew clean :installBundle :test -PbuildNumber=${buildNr} -Phost=${ORG_GRADLE_PROJECT_host} -Pusername=${ALFRESCO_USERNAME} -Ppassword=${ALFRESCO_PASSWORD} -i"
         }
 
 

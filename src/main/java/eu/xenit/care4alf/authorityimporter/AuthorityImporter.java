@@ -1,6 +1,12 @@
-package eu.xenit.care4alf;
+package eu.xenit.care4alf.authorityimporter;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+
+import eu.xenit.care4alf.AuthorityHelper;
+import org.alfresco.model.ContentModel;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.AuthorityType;
 import org.json.JSONArray;
@@ -16,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Created by raven on 3/2/16.
@@ -30,8 +37,17 @@ public class AuthorityImporter {
     @Autowired
     private AuthorityService authorityService;
 
+    @Autowired
+    private SearchService searchService;
+
+    @Autowired
+    private NodeService nodeService;
+
     @Uri(value="import", method = HttpMethod.POST)
     private void authorityImport(WebScriptRequest req, WebScriptResponse res) {
+
+        AuthorityHelper authorityHelper = new AuthorityHelper(searchService);
+
         try {
             logger.info(
                  "\n --- INCOMING REQUEST --- "
@@ -58,11 +74,37 @@ public class AuthorityImporter {
                 final String authorityDisplayName = name.replaceFirst("GROUP_", "");
                 final HashSet<String> authorityZones = new HashSet<String>();
                 authorityZones.add(AuthorityService.ZONE_APP_DEFAULT);
-                try {
-                    final String authority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
-                    logger.info(" >> Created Authority "+authority);
-                } catch (Exception e) {
-                    logger.error(" >> Authority "+authorityDisplayName+" already exists!");
+                String groupAuthority = null;
+
+//                Set<String> groupAuthorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, authorityDisplayName, null);
+                List<NodeRef> groupAuthorityNodeRefs = authorityHelper.getNodeGroupNodeRefs(authorityDisplayName);
+
+                if(groupAuthorityNodeRefs.size() == 0){
+                    groupAuthority = authorityService.createAuthority(AuthorityType.GROUP, authorityDisplayName, authorityDisplayName, authorityZones);
+                    logger.info(" >> Created Authority "+groupAuthority);
+                } else if(groupAuthorityNodeRefs.size() > 1){
+                    throw new IllegalArgumentException("More than one authority for group "+authorityDisplayName);
+                } else if(groupAuthorityNodeRefs.size() == 1){
+                    groupAuthority = (String) nodeService.getProperty(groupAuthorityNodeRefs.get(0), ContentModel.PROP_AUTHORITY_NAME);
+                    logger.debug("Found group authority: "+groupAuthority);
+                }
+
+
+                for(int j = 0; j <users.length(); j++){
+                    String user = users.getString(j);
+                    List<NodeRef> userAuthorityNodeRefs = authorityHelper.getUserNodeRefs(user);
+                    if(userAuthorityNodeRefs.size() == 0){
+                        throw new IllegalArgumentException("No authority for user "+user);
+                    } else if(userAuthorityNodeRefs.size() > 1){
+                        throw new IllegalArgumentException("More than one authority for user "+user);
+                    }
+                    String userAuthority = user;
+                    logger.debug("Adding user "+ userAuthority+ " to group "+groupAuthority);
+                    if(!authorityService.getContainedAuthorities(AuthorityType.USER, groupAuthority, true).contains(user)){
+                        authorityService.addAuthority(groupAuthority, userAuthority);
+                    } else {
+                        logger.debug("The user "+user+" is already in the group "+groupAuthority);
+                    }
                 }
 
             }
@@ -78,5 +120,8 @@ public class AuthorityImporter {
             e.printStackTrace();
         }
     }
+
+
+
 
 }
