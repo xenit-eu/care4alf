@@ -94,7 +94,7 @@ public class Export {
         /* The WrappingWebScriptResponse messes up with the interaction with client request making it impossible
            to buffer response, we need to access the wrapped WebScriptResponse and write directly to it in order
            to avoid having timeouts on the client side. Note: doing this implicitly returns a '200 OK' response,
-           possibly resulting in inconsistent result if some error happens halfway through. (Thanks, Younes)
+           possibly resulting in inconsistent result if some error happens halfway through.
          */
         boolean isWrapped = wsResponse instanceof WrappingWebScriptResponse;
         WebScriptResponse next = isWrapped ? ((WrappingWebScriptResponse) wsResponse).getNext() : null;
