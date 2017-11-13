@@ -6,6 +6,8 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.helpers.NodeHelper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.permissions.impl.AllowPermissionServiceImpl;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
@@ -22,25 +24,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.WebScriptResponse;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
-/**
- * Created by KevinB on 16/07/2015.
- */
 @Component
 @Authentication(AuthenticationType.ADMIN)
 @WebScript(baseUri = "/xenit/care4alf/export", families = {"care4alf"}, description = "Export Alfresco")
 public class Export {
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
+    final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
+    final int QUEUE_SIZE = 5000;
+
 
     @Autowired
     private SearchService searchService;
     @Autowired
+    @AlfrescoService(ServiceType.LOW_LEVEL)
     private NodeService nodeService;
     @Autowired
     private NamespaceService namespaceService;
@@ -49,7 +55,6 @@ public class Export {
     @Autowired
     private NodeHelper nodeHelper;
     @Autowired
-    @AlfrescoService(ServiceType.LOW_LEVEL)
     private ContentService contentService;
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
@@ -76,32 +81,22 @@ public class Export {
 
     @Uri(value="/query", method = HttpMethod.GET)
     @Transaction(readOnly = false)
-    public void exportQuery(@RequestParam(required = false) String query,
-                            @RequestParam(required = false) String separator,
-                            @RequestParam(required = false) String nullValue,
-                            @RequestParam(required = false) String documentName,
-                            @RequestParam(required = false) String columns,
-                            @RequestParam(required = false) String amountDoc,
-                            @RequestParam(required = false) String path,
-                            @RequestParam(required = false, defaultValue = "false") boolean localSave,
-                            final WebScriptResponse response) throws IOException{
+    public void exportQuery(@RequestParam(required = false)                    String query,
+                            @RequestParam(defaultValue = ",")            final String separator,
+                            @RequestParam(defaultValue = "null")         final String nullValue,
+                            @RequestParam(defaultValue = "no_name.csv")  final String documentName,
+                            @RequestParam(defaultValue = "cm:name,path") final String columns,
+                            @RequestParam(defaultValue = "-1")           final String amountDoc,
+                            @RequestParam(required = false)                    String path, // unused?
+                            @RequestParam(defaultValue = "false")        final boolean localSave,
+                            final WebScriptResponse response) throws IOException, ExecutionException, InterruptedException {
         if(query == null)
             query = "PATH:\"/app:company_home/cm:Projects_x0020_Home//*\" AND TYPE:\"cm:content\"";
-        if(columns == null)
-            columns = "cm:name,path";
-        if(separator == null)
-            separator = ",";
-        if(nullValue == null)
-            nullValue = "null";
-        if(documentName == null)
-            documentName = "no_name.csv";
-        if(amountDoc == null)
-            amountDoc = "-1";
         int nbDocuments = Integer.parseInt(amountDoc);
+        int totalDocsProcessed = 0;
 
-        String[] column = columns.split(",");
 
-        HashMap<String,Boolean> hardcodedNames = new HashMap<String,Boolean>();
+        final HashMap<String,Boolean> hardcodedNames = new HashMap<String,Boolean>();
         hardcodedNames.put("path",true);
         hardcodedNames.put("text",true);
         hardcodedNames.put("type",true);
@@ -116,12 +111,128 @@ public class Export {
         sp.setQuery(query);
         sp.addStore(new StoreRef("workspace", "SpacesStore"));
 
-
-        ArrayList<NodeRef> nodeRefs = new ArrayList<NodeRef>();
-        ResultSet rs = null;
+        final ArrayBlockingQueue<NodeRef> nodeQueue = new ArrayBlockingQueue<NodeRef>(QUEUE_SIZE);
+        ResultSet resultSet = null;
         int start = 0;
         logger.info("Fetching noderefs");
-        long startTime = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
+        final SecurityContext securityContext = SecurityContextHolder.getContext(); // The thread we start needs this
+
+
+        // All of the stuff above set to final needs to be final so we can access it in the Callable
+        // Other languages have closures that capture the scope when the closure is created,
+        // so all of the variables are implicitly final. Why can't Java have this? :(
+        class OutputHandler implements Callable<Long> {
+            @Override
+            public Long call() throws Exception {
+                // This needs to be here so this thread has the correct permissions to access the services we need
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Long>(){
+                    @Override
+                    public Long doWork() throws Exception {
+                        Writer outputStreamWriter;
+                        final String[] column = columns.split(",");
+
+                        if (localSave) {
+                            logger.debug("Saving file locally. Creating parent folder CSVExports...");
+                            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(), "CSVExports");
+                            logger.debug("Folder created. Creating document {}...", documentName);
+                            NodeRef ref = nodeHelper.createDocument(finalParentFolder, documentName);
+                            logger.debug("Document created. Getting ContentWriter...");
+                            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, true);
+                            contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
+                            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream());
+                        } else {
+                            response.setContentType("application/CSV");
+                            response.setContentEncoding(null);
+                            response.addHeader("Content-Disposition", "inline;filename=" + documentName);
+                            outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
+                        }
+
+                        for (int i = 0; i < column.length; i++) {
+                            String el = column[i].trim();
+                            if (hardcodedNames.containsKey(el)) {
+                                outputStreamWriter.write(el);
+                            } else {
+                                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el, namespaceService)).getTitle());
+                            }
+                            if (i != column.length - 1) {
+                                outputStreamWriter.write(separator);
+                            }
+                        }
+                        outputStreamWriter.write("\n");
+
+                        logger.info("Start writing csv");
+                        int n = 1;
+
+                        while (true) {
+                            NodeRef nRef = nodeQueue.poll(300, TimeUnit.SECONDS);
+                            if (nRef == null) {
+                                logger.warn("Waiting on nodeQueue timed out after 300s, aborting...");
+                                break;
+                            }
+                            if (nRef == STOP_INDICATOR) {
+                                logger.info("STOP_INDICATOR found, consumed {} items", n);
+                                break;
+                            }
+                            StringBuilder result = new StringBuilder();
+                            for (int i = 0; i < column.length; i++) {
+                                try {
+                                    String element = column[i].trim();
+                                    if ("path".equals(element)) {
+                                        result.append(StringEscapeUtils.escapeCsv(nodeService.getPath(nRef).toDisplayPath(
+                                                nodeService, new AllowPermissionServiceImpl())));
+                                    } else if ("type".equals(element)) {
+                                        QName type = nodeService.getType(nRef);
+                                        result.append(dictionaryService.getType(type).getTitle());
+                                    } else if ("noderef".equals(element)) {
+                                        result.append(nRef);
+                                    } else if ("permissions".equals(element)) {
+                                        // All permissions
+                                        Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
+                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(permissions)));
+                                    } else if ("direct-permissions".equals(element)) {
+                                        // Direct permissions on a node (excludes inherited permissions)
+                                        Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
+                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions))));
+                                    } else if ("permissions-inheritance".equals(element)) {
+                                        // Flag to determine if permission inheritance is enabled
+                                        result.append(StringEscapeUtils.escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString()));
+                                    } else {
+                                        Serializable property = nodeService.getProperty(nRef, QName.createQName(element, namespaceService));
+                                        result.append(StringEscapeUtils.escapeCsv((property==null)?nullValue:property.toString()));
+                                    }
+                                } catch (RuntimeException e) {
+                                    logger.error("Runtime Exception: ", e);
+                                }
+                                if (i < column.length - 1)
+                                    result.append(separator);
+                            }
+                            String str = result.toString();
+                            outputStreamWriter.write(str);
+                            outputStreamWriter.write("\n");
+                            n++;
+                            if (n % 1000 == 0) {
+                                logger.info("#noderefs written to csv: " + n);
+                                outputStreamWriter.flush();
+                            }
+                        }
+                        outputStreamWriter.flush();
+                        outputStreamWriter.close();
+                        long endTime = System.currentTimeMillis();
+                        long duration = endTime - startTime;
+
+                        // This is here because a Callable must return something.
+                        // We use Callable instead of Runnable because we need to be able to throw IOExceptions along.
+                        return duration;
+                    }
+                });
+            }
+        };
+
+        OutputHandler outputHandler = new OutputHandler();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Long> durationFuture = executor.submit(outputHandler);
+
         try {
             do {
                 sp.setSkipCount(start);
@@ -129,103 +240,28 @@ public class Export {
                     // Do not get more results than requested.
                     sp.setMaxItems(nbDocuments%1000);
                 }
-                rs = this.searchService.query(sp);
-                nodeRefs.addAll(rs.getNodeRefs());
-                start += 1000;
-                rs.close();
-                logger.info("#noderefs: " + nodeRefs.size());
-            }while(rs.getNodeRefs().size() > 0 && (nodeRefs.size() < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
-        } finally {
-            if (rs != null) rs.close();
-        }
-
-        Writer outputStreamWriter;
-
-        if(localSave){
-            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(),"CSVExports");
-            final String finalDocumentName = documentName;
-            NodeRef ref = nodeHelper.createDocument(finalParentFolder, finalDocumentName);
-            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, true);
-            contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
-            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream());
-        } else{
-            response.setContentType("application/CSV");
-            response.setContentEncoding(null);
-            response.addHeader("Content-Disposition", "inline;filename=" + documentName);
-            outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
-        }
-
-        for(int i = 0; i < column.length; i++){
-            String el = column[i].trim();
-            if(hardcodedNames.containsKey(el))
-                outputStreamWriter.write(el);
-            else
-                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el,namespaceService)).getTitle());
-            if(i != column.length - 1)
-                outputStreamWriter.write(separator);
-        }
-        outputStreamWriter.write("\n");
-
-        logger.info("Start writing csv");
-        int n=1;
-        for(NodeRef nRef : nodeRefs){
-            try {
-                StringBuilder result = new StringBuilder();
-                for(int i = 0; i < column.length; i++){
-                    try {
-                        String element = column[i].trim();
-                        if ("path".equals(element)) {
-                            result.append(StringEscapeUtils.escapeCsv(this.nodeService.getPath(nRef).toDisplayPath(
-                                    this.nodeService, permissionService)));
-                        }
-                        else if ("type".equals(element)) {
-                            QName type = nodeService.getType(nRef);
-                            result.append(dictionaryService.getType(type).getTitle());
-                        }
-                        else if ("noderef".equals(element)) {
-                            result.append(nRef);
-                        }
-                        else if ("permissions".equals(element)) {
-                            // All permissions
-                            Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
-                            result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(permissions)));
-                        }
-                        else if ("direct-permissions".equals(element)) {
-                            // Direct permissions on a node (excludes inherited permissions)
-                            Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
-                            result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions))));
-                        }
-                        else if ("permissions-inheritance".equals(element)) {
-                            // Flag to determine if permission inheritance is enabled
-                            result.append(StringEscapeUtils.escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString()));
-                        }
-                        else {
-                            result.append(StringEscapeUtils.escapeCsv(nodeService.getProperty(nRef,QName.createQName(element, namespaceService)).toString()));
-                        }
-                    }
-                    catch(RuntimeException e){
-                        result.append(nullValue);
-                    }
-                    if (i < column.length - 1)
-                        result.append(separator);
+                resultSet = this.searchService.query(sp);
+                List<NodeRef> chunk = resultSet.getNodeRefs();
+                totalDocsProcessed += chunk.size();
+                for(NodeRef n : chunk) {
+                    nodeQueue.put(n);
                 }
-                String str = result.toString();
-                outputStreamWriter.write(str);
-                outputStreamWriter.write("\n");
-                n++;
-                if(n%1000==0)
-                    logger.info("#noderefs written to csv: " + n);
-            }
-            catch (IOException e){
-                logger.debug("Exception caught: {}", e.getLocalizedMessage());
-            }
+                logger.info("Added {}/{} noderefs to the queue", chunk.size(), nodeQueue.size());
+                start += 1000;
+                resultSet.close();
+                logger.info("#noderefs in query chunk: " + chunk.size());
+            }while(resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
+        } finally {
+            logger.debug("Placing STOP_INDICATOR, might block");
+            nodeQueue.put(STOP_INDICATOR);
+            logger.debug("Placed STOP_INDICATOR");
+            if (resultSet != null) resultSet.close();
         }
-        outputStreamWriter.flush();
-        outputStreamWriter.close();
-        long endTime   = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        logger.info("Duration in seconds: " + duration/1000d);
-        logger.info((nodeRefs.size()/(duration/1000d)) + " docs/s");
+
+
+        long duration = durationFuture.get();
+        logger.info("Duration in seconds: " + duration / 1000d);
+        logger.info((totalDocsProcessed / (duration / 1000d)) + " docs/s");
     }
 
     private String getFormattedPermissions(Set<AccessPermission> permissions) {

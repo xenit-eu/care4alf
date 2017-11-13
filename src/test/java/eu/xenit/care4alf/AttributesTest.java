@@ -30,29 +30,36 @@ public class AttributesTest {
 
     @Test
     public void testCreateAndExists() throws SQLException {
-        retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
-            @Override
-            public NodeRef execute() throws Throwable {
-                attributes.create(new String[]{"integrationtest"},"OK");
-                return null;
-            }
-        }, false, true);
-
-        retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
-            @Override
-            public NodeRef execute() throws Throwable {
-                boolean found = false;
-                for(Attributes.Attribute a : attributes.list()){
-                    if(a.getKey1().equals("integrationtest")) {
-                        found = true;
-                        Assert.assertTrue(true);
-                        return null;
-                    }
+        boolean failed = false;
+        try {
+            retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<NodeRef>() {
+                @Override
+                public NodeRef execute() throws Throwable {
+                    attributes.create(new String[]{"integrationtest"}, "OK");
+                    return null;
                 }
+            }, false, true);
+        }catch (Exception e){
+            e.printStackTrace();
+            failed = true;
+            Assert.fail(e.getMessage());
+        }finally {
+            Boolean found = retryingTransactionHelper.doInTransaction(new RetryingTransactionHelper.RetryingTransactionCallback<Boolean>() {
+                @Override
+                public Boolean execute() throws Throwable {
+                    for(Attributes.Attribute a : attributes.list()){
+                        if(a.getKey1().equals("integrationtest")) {
+                            Assert.assertTrue(true);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }, false, true);
+            if (!failed) {
                 Assert.assertTrue(found);
-                return null;
             }
-        }, false, true);
+        }
     }
 
     @Test
