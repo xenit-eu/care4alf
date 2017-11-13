@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.extensions.webscripts.WebScriptResponse;
+import org.springframework.extensions.webscripts.WrappingWebScriptResponse;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -89,11 +90,20 @@ public class Export {
                             @RequestParam(defaultValue = "-1")           final String amountDoc,
                             @RequestParam(required = false)                    String path, // unused?
                             @RequestParam(defaultValue = "false")        final boolean localSave,
-                            final WebScriptResponse response) throws IOException, ExecutionException, InterruptedException {
+                            WebScriptResponse wsResponse) throws IOException, ExecutionException, InterruptedException {
+        /* There's ~~something~~ in whatever manages webscripts that buffers all the output from the script and then
+           dumps it to the client in one go. These few lines below change the response into one that doesn't have this,
+           allowing us to stream all the data to the client directly. This should be faster and prevent the client
+           from timing out. Thanks, Younes.
+         */
+        boolean isWrapped = wsResponse instanceof WrappingWebScriptResponse;
+        WebScriptResponse next = isWrapped ? ((WrappingWebScriptResponse) wsResponse).getNext() : null;
+        boolean shouldBypassWrappingWSResponse = isWrapped && next != null;
+        final WebScriptResponse response = shouldBypassWrappingWSResponse ? next : wsResponse;
+
         if(query == null)
             query = "PATH:\"/app:company_home/cm:Projects_x0020_Home//*\" AND TYPE:\"cm:content\"";
-        int nbDocuments = Integer.parseInt(amountDoc);
-        int totalDocsProcessed = 0;
+        final int nbDocuments = Integer.parseInt(amountDoc);
 
 
         final HashMap<String,Boolean> hardcodedNames = new HashMap<String,Boolean>();
@@ -105,30 +115,28 @@ public class Export {
         hardcodedNames.put("direct-permissions",true);
         hardcodedNames.put("permissions-inheritance",true);
 
-        SearchParameters sp = new SearchParameters();
+        final SearchParameters sp = new SearchParameters();
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
 
         sp.setQuery(query);
         sp.addStore(new StoreRef("workspace", "SpacesStore"));
 
         final ArrayBlockingQueue<NodeRef> nodeQueue = new ArrayBlockingQueue<NodeRef>(QUEUE_SIZE);
-        ResultSet resultSet = null;
-        int start = 0;
         logger.info("Fetching noderefs");
         final long startTime = System.currentTimeMillis();
-        final SecurityContext securityContext = SecurityContextHolder.getContext(); // The thread we start needs this
-
 
         // All of the stuff above set to final needs to be final so we can access it in the Callable
         // Other languages have closures that capture the scope when the closure is created,
         // so all of the variables are implicitly final. Why can't Java have this? :(
-        class OutputHandler implements Callable<Long> {
+
+        // OutputHandler is the consumer thread that will read from the nodeQueue and write to CSV
+        class OutputHandler implements Callable<Void> {
             @Override
-            public Long call() throws Exception {
+            public Void call() throws Exception {
                 // This needs to be here so this thread has the correct permissions to access the services we need
-                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Long>(){
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>(){
                     @Override
-                    public Long doWork() throws Exception {
+                    public Void doWork() throws Exception {
                         Writer outputStreamWriter;
                         final String[] column = columns.split(",");
 
@@ -162,7 +170,7 @@ public class Export {
                         outputStreamWriter.write("\n");
 
                         logger.info("Start writing csv");
-                        int n = 1;
+                        int n = 0;
 
                         while (true) {
                             NodeRef nRef = nodeQueue.poll(300, TimeUnit.SECONDS);
@@ -221,47 +229,83 @@ public class Export {
                         long endTime = System.currentTimeMillis();
                         long duration = endTime - startTime;
 
+                        logger.info("Duration in seconds: " + duration / 1000d);
+                        logger.info((n / (duration / 1000d)) + " docs/s");
                         // This is here because a Callable must return something.
                         // We use Callable instead of Runnable because we need to be able to throw IOExceptions along.
-                        return duration;
+                        return null;
                     }
                 });
             }
         };
 
-        OutputHandler outputHandler = new OutputHandler();
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Long> durationFuture = executor.submit(outputHandler);
+        // QueryRunner is the producer thread that executes the query and places the results in nodeQueue
+        class QueryRunner implements Callable<Void> {
+            int totalDocsProcessed = 0;
+            ResultSet resultSet = null;
+            int start = 0;
 
-        try {
-            do {
-                sp.setSkipCount(start);
-                if (start+1000 > nbDocuments){
-                    // Do not get more results than requested.
-                    sp.setMaxItems(nbDocuments%1000);
-                }
-                resultSet = this.searchService.query(sp);
-                List<NodeRef> chunk = resultSet.getNodeRefs();
-                totalDocsProcessed += chunk.size();
-                for(NodeRef n : chunk) {
-                    nodeQueue.put(n);
-                }
-                logger.info("Added {}/{} noderefs to the queue", chunk.size(), nodeQueue.size());
-                start += 1000;
-                resultSet.close();
-                logger.info("#noderefs in query chunk: " + chunk.size());
-            }while(resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
-        } finally {
-            logger.debug("Placing STOP_INDICATOR, might block");
-            nodeQueue.put(STOP_INDICATOR);
-            logger.debug("Placed STOP_INDICATOR");
-            if (resultSet != null) resultSet.close();
+            @Override
+            public Void call() throws Exception {
+                // This needs to be here so this thread has the correct permissions to access the services we need
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>() {
+                    @Override
+                    public Void doWork() throws Exception {
+                        try {
+                            do {
+                                sp.setSkipCount(start);
+                                if (start + 1000 > nbDocuments) {
+                                    // Do not get more results than requested.
+                                    sp.setMaxItems(nbDocuments % 1000);
+                                }
+                                logger.debug("About to search...");
+                                resultSet = Export.this.searchService.query(sp);
+                                logger.debug("Search completed");
+                                List<NodeRef> chunk = resultSet.getNodeRefs();
+                                totalDocsProcessed += chunk.size();
+                                for (NodeRef n : chunk) {
+                                    nodeQueue.put(n);
+                                }
+                                logger.info("Added {}/{} noderefs to the queue", chunk.size(), nodeQueue.size());
+                                start += 1000;
+                                resultSet.close();
+                                logger.info("#noderefs in query chunk: " + chunk.size());
+                            }
+                            while (resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
+                        } catch (Exception e) {
+                            logger.error("Exception in producer thread", e);
+                        } finally {
+                            logger.debug("Placing STOP_INDICATOR, might block");
+                            nodeQueue.put(STOP_INDICATOR);
+                            logger.debug("Placed STOP_INDICATOR");
+                            if (resultSet != null) resultSet.close();
+                        }
+                        return null;
+                    }
+                });
+            }
         }
 
+        QueryRunner queryRunner = new QueryRunner();
+        OutputHandler outputHandler = new OutputHandler();
+        ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
+        Future<Void> future = consumerExecutor.submit(outputHandler);
+        producerExecutor.submit(queryRunner);
 
-        long duration = durationFuture.get();
-        logger.info("Duration in seconds: " + duration / 1000d);
-        logger.info((totalDocsProcessed / (duration / 1000d)) + " docs/s");
+        if (localSave) {
+            response.setContentType("application/json");
+            response.setContentEncoding("UTF-8");
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
+            String jsonOutput = "{\n    \"success\": true,\n    \"message\": \"The operation has been scheduled.\"\n}";
+            outputStreamWriter.write(jsonOutput);
+            outputStreamWriter.close();
+            response.getOutputStream().close();
+        } else {
+            // Wait for the operation to actually be done, since the user needs to be able to download it
+            future.get();
+        }
+
     }
 
     private String getFormattedPermissions(Set<AccessPermission> permissions) {
