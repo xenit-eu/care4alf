@@ -91,10 +91,10 @@ public class Export {
                             @RequestParam(required = false)                    String path, // unused?
                             @RequestParam(defaultValue = "false")        final boolean localSave,
                             WebScriptResponse wsResponse) throws IOException, ExecutionException, InterruptedException {
-        /* There's ~~something~~ in whatever manages webscripts that buffers all the output from the script and then
-           dumps it to the client in one go. These few lines below change the response into one that doesn't have this,
-           allowing us to stream all the data to the client directly. This should be faster and prevent the client
-           from timing out. Thanks, Younes.
+        /* The WrappingWebScriptResponse messes up with the interaction with client request making it impossible
+           to buffer response, we need to access the wrapped WebScriptResponse and write directly to it in order
+           to avoid having timeouts on the client side. Note: doing this implicitly returns a '200 OK' response,
+           possibly resulting in inconsistent result if some error happens halfway through. (Thanks, Younes)
          */
         boolean isWrapped = wsResponse instanceof WrappingWebScriptResponse;
         WebScriptResponse next = isWrapped ? ((WrappingWebScriptResponse) wsResponse).getNext() : null;
