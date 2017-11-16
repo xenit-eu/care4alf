@@ -4,6 +4,7 @@ import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.helpers.NodeHelper;
+import org.activiti.engine.impl.bpmn.behavior.CallActivityBehavior;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -39,7 +40,9 @@ public class Export {
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
+    final String WORKER_STOP_INDICATOR = "WORKER_STOP_INDICATOR";
     final int QUEUE_SIZE = 5000;
+    final int NUM_WORKERS = 4;
 
 
     @Autowired
@@ -67,6 +70,7 @@ public class Export {
     private String aclAuthorityPermissionSeparator = ",";
     private String aclSeparator = ",";
     private Boolean includeAccessStatus;
+    private ExecutorService threadPool = Executors.newFixedThreadPool(NUM_WORKERS + 2);
 
     @PostConstruct
     private void init(){
@@ -120,6 +124,7 @@ public class Export {
         sp.addStore(new StoreRef("workspace", "SpacesStore"));
 
         final ArrayBlockingQueue<NodeRef> nodeQueue = new ArrayBlockingQueue<NodeRef>(QUEUE_SIZE);
+        final ArrayBlockingQueue<String> csvQueue = new ArrayBlockingQueue<String>(QUEUE_SIZE);
         logger.info("Fetching noderefs");
         final long startTime = System.currentTimeMillis();
 
@@ -127,47 +132,13 @@ public class Export {
         // Other languages have closures that capture the scope when the closure is created,
         // so all of the variables are implicitly final. Why can't Java have this? :(
 
-        // OutputHandler is the consumer thread that will read from the nodeQueue and write to CSV
-        class OutputHandler implements Callable<Void> {
+        class TransformHandler implements Callable<Void> {
             @Override
             public Void call() throws Exception {
-                // This needs to be here so this thread has the correct permissions to access the services we need
-                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>(){
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>() {
                     @Override
                     public Void doWork() throws Exception {
-                        Writer outputStreamWriter;
                         final String[] column = columns.split(",");
-
-                        if (localSave) {
-                            logger.debug("Saving file locally. Creating parent folder CSVExports...");
-                            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(), "CSVExports");
-                            logger.debug("Folder created. Creating document {}...", documentName);
-                            NodeRef ref = nodeHelper.createDocument(finalParentFolder, documentName);
-                            logger.debug("Document created. Getting ContentWriter...");
-                            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, true);
-                            contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
-                            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream());
-                        } else {
-                            response.setContentType("application/CSV");
-                            response.setContentEncoding(null);
-                            response.addHeader("Content-Disposition", "inline;filename=" + documentName);
-                            outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
-                        }
-
-                        for (int i = 0; i < column.length; i++) {
-                            String el = column[i].trim();
-                            if (hardcodedNames.containsKey(el)) {
-                                outputStreamWriter.write(el);
-                            } else {
-                                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el, namespaceService)).getTitle());
-                            }
-                            if (i != column.length - 1) {
-                                outputStreamWriter.write(separator);
-                            }
-                        }
-                        outputStreamWriter.write("\n");
-
-                        logger.info("Start writing csv");
                         int n = 0;
 
                         while (true) {
@@ -178,6 +149,10 @@ public class Export {
                             }
                             if (nRef == STOP_INDICATOR) {
                                 logger.info("STOP_INDICATOR found, consumed {} items", n);
+                                // Put it back so other workers can find it
+                                nodeQueue.put(STOP_INDICATOR);
+                                // Add one to indicate that this worker is done
+                                csvQueue.put(WORKER_STOP_INDICATOR);
                                 break;
                             }
                             StringBuilder result = new StringBuilder();
@@ -214,7 +189,78 @@ public class Export {
                                     result.append(separator);
                             }
                             String str = result.toString();
-                            outputStreamWriter.write(str);
+                            csvQueue.put(str);
+                            n++;
+                        }
+
+                        return null;
+                    }
+                });
+            }
+        }
+
+        // OutputHandler is the consumer thread that will read from the nodeQueue and write to CSV
+        class OutputHandler implements Callable<Void> {
+            @Override
+            public Void call() throws Exception {
+                // This needs to be here so this thread has the correct permissions to access the services we need
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>(){
+                    @Override
+                    public Void doWork() throws Exception {
+                        Writer outputStreamWriter;
+                        final String[] column = columns.split(",");
+                        // This tracks how many stop_indicators from workers we've found, we stop when this matches NUM_WORKERS
+                        int stopped_workers = 0;
+
+                        if (localSave) {
+                            logger.debug("Saving file locally. Creating parent folder CSVExports...");
+                            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(), "CSVExports");
+                            logger.debug("Folder created. Creating document {}...", documentName);
+                            NodeRef ref = nodeHelper.createDocument(finalParentFolder, documentName);
+                            logger.debug("Document created. Getting ContentWriter...");
+                            ContentWriter contWriter = contentService.getWriter(ref, ContentModel.PROP_CONTENT, true);
+                            contWriter.setMimetype(MimetypeMap.MIMETYPE_TEXT_CSV);
+                            outputStreamWriter = new OutputStreamWriter(contWriter.getContentOutputStream());
+                        } else {
+                            response.setContentType("application/CSV");
+                            response.setContentEncoding(null);
+                            response.addHeader("Content-Disposition", "inline;filename=" + documentName);
+                            outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
+                        }
+
+                        for (int i = 0; i < column.length; i++) {
+                            String el = column[i].trim();
+                            if (hardcodedNames.containsKey(el)) {
+                                outputStreamWriter.write(el);
+                            } else {
+                                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el, namespaceService)).getTitle());
+                            }
+                            if (i != column.length - 1) {
+                                outputStreamWriter.write(separator);
+                            }
+                        }
+                        outputStreamWriter.write("\n");
+
+                        logger.info("Start writing csv");
+                        int n = 0;
+
+                        while (true) {
+                            String csvLine = csvQueue.poll(300, TimeUnit.SECONDS);
+                            if (csvLine == null) {
+                                logger.warn("Waiting on nodeQueue timed out after 300s, aborting...");
+                                break;
+                            }
+                            if (csvLine == WORKER_STOP_INDICATOR) {
+                                stopped_workers++;
+                                logger.debug("WORKER_STOP_INDICATOR found, {} workers are done", stopped_workers);
+                                if (stopped_workers == NUM_WORKERS) {
+                                    logger.info("All workers stopped, consumed {} items", n);
+                                    break;
+                                } else {
+                                    continue;
+                                }
+                            }
+                            outputStreamWriter.write(csvLine);
                             outputStreamWriter.write("\n");
                             n++;
                             if (n % 1000 == 0) {
@@ -286,10 +332,11 @@ public class Export {
 
         QueryRunner queryRunner = new QueryRunner();
         OutputHandler outputHandler = new OutputHandler();
-        ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
-        ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
-        Future<Void> future = consumerExecutor.submit(outputHandler);
-        producerExecutor.submit(queryRunner);
+        Future<Void> future = threadPool.submit(outputHandler);
+        for (int i=0; i<NUM_WORKERS; i++) {
+            threadPool.submit(new TransformHandler());
+        }
+        threadPool.submit(queryRunner);
 
         if (localSave) {
             response.setContentType("application/json");
