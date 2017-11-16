@@ -54,6 +54,11 @@ public class Sql {
             final ResultSet rs = stmt.executeQuery(query);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columns = rsmd.getColumnCount();
+            List<String> labelrow = new ArrayList<String>();
+            for(int i = 1; i <= columns; i++){
+                labelrow .add(rsmd.getColumnName(i));
+            }
+            results.add(labelrow);
             while (rs.next()) {//TODO: column names
                 List<String> row = new ArrayList<String>();
                 for(int i = 1; i <= columns; i++)

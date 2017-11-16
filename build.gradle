@@ -69,9 +69,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 def alfrescoAmp = file("build/distributions/${project.name}-${project.version}.amp")
-artifacts {
-    archives sourceJar, javadocJar, alfrescoAmp
-}
+
 
 uploadArchives {
     repositories {
@@ -261,6 +259,7 @@ configurations {
     installDep {
         transitive = false
     }
+    testArtifacts.extendsFrom testRuntime
 }
 
 dependencies {
@@ -294,11 +293,11 @@ dependencies {
     testCompile "junit:junit:${project.ext.junitVersion}"
 
     //These are actually test dependencies, but they need to be bundled because of the current sourceSet config
-    embedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-    embedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
-    embedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
-    embedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-    embedded 'org.codehaus.groovy:groovy-all:2.4.7'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+    testCompile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+    testCompile group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+    testCompile group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.7'
 
 }
 
@@ -311,7 +310,7 @@ lesscss {
 }
 
 sourceSets {
-    main { java { srcDirs = ['src/main/java','src/test/java'] } }
+    main { java { srcDirs = ['src/main/java'] } }
 }
 
 jar {
@@ -421,3 +420,13 @@ project.tasks.create('installDependencies', InstallBundle).configure {
 }
 installBundle.dependsOn('installDependencies');
 
+task testJar(type: Jar) {
+    classifier "test"
+    from sourceSets.test.output
+}
+artifacts {
+    archives sourceJar, javadocJar, alfrescoAmp
+    testArtifacts testJar
+}
+
+build.dependsOn("testJar", "assembleAmp")
