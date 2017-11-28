@@ -67,7 +67,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
 
     $scope.execute = () => {
         $scope.loading = true;
-        $http.post("bluk/form/action/" + $scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'}})
+        $http.post("bulk/form/action/" + $scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'}})
             .then(function (response) {
                 $scope.result = response.data;
                 $scope.loading = false;
@@ -129,7 +129,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
         let callInfo =
             $http({
                 method: 'POST',
-                url: "bluk/form/action/" + $scope.form.action,
+                url: "bulk/form/action/" + $scope.form.action,
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },

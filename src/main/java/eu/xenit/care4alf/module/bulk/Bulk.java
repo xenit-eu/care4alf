@@ -234,7 +234,7 @@ public class Bulk implements ApplicationContextAware {
         response.setStatus(HttpStatus.SC_OK);
     }
 
-    @Uri(value = "/xenit/care4alf/bluk/form/action/{action}", multipartProcessing = true, method = HttpMethod.POST)
+    @Uri(value = "/xenit/care4alf/bulk/form/action/{action}", multipartProcessing = true, method = HttpMethod.POST)
     public void bulkForm(@UriVariable final String action, WebScriptRequest request, WebScriptResponse response) throws IOException, JSONException {
         FormData formData = (FormData) request.parseContent();
 
