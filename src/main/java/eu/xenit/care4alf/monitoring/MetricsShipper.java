@@ -24,7 +24,7 @@ public abstract class MetricsShipper {
         this.serverName = getMonitoringConfigProperty("prefix", this.getName(), "alfresco");
     }
 
-    protected String getServerName(){
+    public String getServerName(){
         return serverName;
     }
 

@@ -248,26 +248,42 @@ repositories {
 
 configurations {
     embedded
+    testEmbedded
     amp
+    testInstallDep
     ampdeLib {
         transitive = false
     }
     compile {
         extendsFrom embedded
-        extendsFrom installDep
         extendsFrom ampdeLib
-        extendsFrom installDep
     }
-    installDep {
+    testInstallDep {
         transitive = false
+    }
+    testCompile {
+        extendsFrom testEmbedded
+        extendsFrom testInstallDep
+    }
+    testEmbedded {
+        extendsFrom embedded
     }
 }
 
 dependencies {
-    compile("org.alfresco:alfresco-core:${alfrescoVersion}") { transitive = false }
-    compile("org.alfresco:alfresco-repository:${alfrescoVersion}") { transitive = false }
+    compile("org.alfresco:alfresco-core:${alfrescoVersion}") {
+        transitive = false
+        exclude module: 'junit'
+    }
+    compile("org.alfresco:alfresco-repository:${alfrescoVersion}") {
+        transitive = false
+        exclude module: 'junit'
+    }
     compile("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") { transitive = false }
-    compile("org.alfresco:alfresco-data-model:${alfrescoVersion}") { transitive = true }
+    compile("org.alfresco:alfresco-data-model:${alfrescoVersion}") {
+        transitive = true
+        exclude module: 'junit'
+    }
 
     compile "org.springframework:spring-context:${project.springVersion}"
     compile "org.springframework:spring-jdbc:${project.springVersion}"
@@ -280,25 +296,28 @@ dependencies {
     compile('org.jibx:jibx-run:1.2.3') { transitive = false }
     compile('com.googlecode.json-simple:json-simple:1.1')
     compile('javax.servlet:servlet-api:2.5')
-    compile('com.google.collections:google-collections:1.0')
+    embedded('com.google.collections:google-collections:1.0')
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
 
-    ampdeLib(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
-    installDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
+    testInstallDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
 
     embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
+    embedded group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    embedded group: 'com.google.guava', name: 'guava', version: '19.0'
+
+
 
     embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
-    testCompile "junit:junit:${project.ext.junitVersion}"
+//    testCompile "junit:junit:${project.ext.junitVersion}"
 
     //These are actually test dependencies, but they need to be bundled because of the current sourceSet config
-    embedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-    embedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
-    embedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
-    embedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-    embedded 'org.codehaus.groovy:groovy-all:2.4.7'
+    testEmbedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+    testEmbedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+    testEmbedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+    testEmbedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
+    testEmbedded 'org.codehaus.groovy:groovy-all:2.4.7'
 
 }
 
@@ -310,9 +329,9 @@ lesscss {
     compress = false
 }
 
-sourceSets {
-    main { java { srcDirs = ['src/main/java','src/test/java'] } }
-}
+//sourceSets {
+//    main { java { srcDirs = ['src/main/java','src/test/java'] } }
+//}
 
 jar {
     from(configurations.embedded) {
@@ -322,7 +341,7 @@ jar {
     from(compileTypeScript.outputs)
     manifest {
         instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,*'
+        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,!eu.xenit.care4alf.*,*'
     }
 }
 
@@ -348,12 +367,20 @@ jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
 // can implement.
 task integrationJar(type: Jar) {
     baseName = 'care4alf-integration'
-    dependsOn compileJava
-    from('build/classes/main') {
-        include 'eu/xenit/care4alf/integration/**/*'
+    dependsOn testClasses
+    from(sourceSets.test.output)
+    from(configurations.testEmbedded) {
+        into('lib')
     }
-    manifest {
-        attributes("Bundle-Name": baseName)
+    manifest = osgiManifest {
+        attributes('Bundle-Name': baseName)
+        instruction 'Bundle-Classpath', ".,${configurations.testEmbedded.files.collect({ 'lib/' + it.name }).join(',')}"
+        instruction 'Alfresco-Dynamic-Extension', 'true'
+        classesDir = sourceSets.test.output.classesDir
+        classpath = configurations.testRuntime
+        symbolicName = 'eu.xenit.care4alf-integration'
+        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,*'
+//        instruction '-exportcontents', '*'
     }
 }
 
@@ -416,8 +443,21 @@ uploadArchives.dependsOn("integrationJar", "ampde")
 
 import com.github.dynamicextensionsalfresco.gradle.tasks.*
 
-project.tasks.create('installDependencies', InstallBundle).configure {
-    configuration = project.configurations.installDep
-}
-installBundle.dependsOn('installDependencies');
+//project.tasks.create('installDependencies', InstallBundle).configure {
+//    configuration = project.configurations.installDep
+//}
+//installBundle.dependsOn('installDependencies');
 
+task testInstallDependencies(type: InstallBundle) {
+    configuration = project.configurations.testInstallDep
+}
+
+task installIntegrationJar(type: InstallBundle) {
+    dependsOn testInstallDependencies
+    dependsOn integrationJar
+    configuration = integrationJar.outputs.files
+}
+
+test.dependsOn(installBundle)
+test.dependsOn(installIntegrationJar)
+test.dependsOn(testInstallDependencies)
