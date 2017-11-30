@@ -6,7 +6,10 @@ import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
 import java.util.HashMap;
 import java.util.Map;
 

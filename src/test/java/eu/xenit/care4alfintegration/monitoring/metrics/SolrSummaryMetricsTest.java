@@ -1,13 +1,13 @@
 package eu.xenit.care4alfintegration.monitoring.metrics;
 
-import java.io.IOException;
-import java.util.Map;
-
 import eu.xenit.care4alf.monitoring.metric.SolrSummaryMetrics;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by willem on 12/19/16.

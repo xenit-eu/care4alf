@@ -1,6 +1,5 @@
 package eu.xenit.care4alfintegration;
 
-import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.search.AbstractSolrAdminClient;
 import eu.xenit.care4alf.search.SolrAdmin;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
@@ -11,7 +10,6 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 

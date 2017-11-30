@@ -1,18 +1,14 @@
 package eu.xenit.care4alf.module.bulk.workers;
 
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
-import eu.xenit.care4alf.module.bulk.Bulk;
 import eu.xenit.care4alf.module.bulk.Worker;
-import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.namespace.QName;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

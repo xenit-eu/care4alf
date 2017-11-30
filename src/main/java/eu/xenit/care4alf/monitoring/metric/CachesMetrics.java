@@ -1,10 +1,9 @@
 package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
-import com.google.common.cache.CacheStats;
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import com.hazelcast.monitor.LocalMapStats;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheStats;
+import com.hazelcast.monitor.LocalMapStats;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.enterprise.repo.cluster.cache.HazelcastSimpleCache;

@@ -1,7 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
-import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.stereotype.Component;

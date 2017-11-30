@@ -1,38 +1,33 @@
 package eu.xenit.care4alf;
 
 import eu.xenit.care4alf.search.SolrAdmin;
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.batch.*;
+import org.alfresco.repo.batch.BatchMonitor;
+import org.alfresco.repo.batch.BatchMonitorEvent;
+import org.alfresco.repo.batch.BatchProcessWorkProvider;
+import org.alfresco.repo.node.integrity.IntegrityException;
+import org.alfresco.repo.policy.BehaviourFilter;
+import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
+import org.alfresco.repo.transaction.RetryingTransactionHelper;
+import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
+import org.alfresco.repo.transaction.TransactionListenerAdapter;
+import org.alfresco.util.TraceableThreadFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationEventPublisher;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
-import org.alfresco.error.AlfrescoRuntimeException;
-import org.alfresco.repo.node.integrity.IntegrityException;
-import org.alfresco.repo.policy.BehaviourFilter;
-import org.alfresco.repo.transaction.AlfrescoTransactionSupport;
-import org.alfresco.repo.transaction.RetryingTransactionHelper;
-import org.alfresco.repo.transaction.RetryingTransactionHelper.RetryingTransactionCallback;
-import org.alfresco.util.TraceableThreadFactory;
-import org.alfresco.repo.transaction.TransactionListenerAdapter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * A <code>BetterBatchProcessor</code> manages the running and monitoring of a potentially long-running transactional batch

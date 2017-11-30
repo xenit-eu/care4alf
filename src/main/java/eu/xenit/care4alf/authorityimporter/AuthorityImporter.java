@@ -1,7 +1,6 @@
 package eu.xenit.care4alf.authorityimporter;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
-
 import eu.xenit.care4alf.AuthorityHelper;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.NodeRef;

@@ -1,6 +1,5 @@
 package eu.xenit.care4alfintegration.monitoring;
 
-import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.care4alf.Config;
 import eu.xenit.care4alf.integration.MonitoredSource;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
@@ -15,7 +14,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;

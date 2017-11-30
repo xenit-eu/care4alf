@@ -1,6 +1,5 @@
 package eu.xenit.care4alfintegration;
 
-import eu.xenit.apix.integrationtesting.runner.ApixIntegration;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import org.alfresco.model.ContentModel;
@@ -10,7 +9,6 @@ import org.alfresco.repo.policy.PolicyComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by willem on 8/23/17.

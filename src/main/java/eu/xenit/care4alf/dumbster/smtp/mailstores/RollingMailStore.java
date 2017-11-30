@@ -1,9 +1,9 @@
 package eu.xenit.care4alf.dumbster.smtp.mailstores;
 
 import eu.xenit.care4alf.dumbster.smtp.MailMessage;
+import eu.xenit.care4alf.dumbster.smtp.MailStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import eu.xenit.care4alf.dumbster.smtp.MailStore;
 
 import java.util.ArrayList;
 import java.util.Collections;

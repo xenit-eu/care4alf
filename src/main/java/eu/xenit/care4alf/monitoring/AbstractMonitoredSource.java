@@ -1,7 +1,6 @@
 package eu.xenit.care4alf.monitoring;
 
 import eu.xenit.care4alf.integration.MonitoredSource;
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -12,9 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by willem on 5/10/17.

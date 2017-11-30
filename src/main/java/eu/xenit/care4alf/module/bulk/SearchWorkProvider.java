@@ -1,6 +1,5 @@
 package eu.xenit.care4alf.module.bulk;
 
-import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;

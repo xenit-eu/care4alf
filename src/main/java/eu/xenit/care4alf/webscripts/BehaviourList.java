@@ -14,7 +14,7 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
 
 /**
  * Created by Thomas S on 04/07/2017.
