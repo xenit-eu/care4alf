@@ -3,7 +3,8 @@ package eu.xenit.care4alf;
 import org.springframework.stereotype.Component;
 
 import javax.naming.NamingException;
-import javax.naming.directory.*;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.InitialDirContext;
 import java.util.ArrayList;
 import java.util.List;
 

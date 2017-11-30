@@ -1,6 +1,5 @@
 package eu.xenit.care4alf.permissionimport.reader;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;

@@ -4,7 +4,6 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.integration.MonitoredSource;
-import eu.xenit.care4alf.monitoring.metric.ClusteringMetric;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONWriter;
