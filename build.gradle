@@ -299,6 +299,7 @@ dependencies {
     embedded('com.google.collections:google-collections:1.0')
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
+    compile('org.apache.commons:commons-csv:20110211')
 
     testInstallDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
 
