@@ -3,6 +3,7 @@ package eu.xenit.care4alf.module.bulk;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.BetterBatchProcessor;
 import eu.xenit.care4alf.Config;
+import eu.xenit.care4alf.module.bulk.workers.ActionCsvWorker;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
@@ -176,16 +177,8 @@ public class Bulk implements ApplicationContextAware {
 
             try {
                 AbstractWorker ret = (AbstractWorker) ctr.newInstance(parameters);
-                ret.setNodeService(nodeService);
-                ret.setNameSpacePrefixResolver(namespacePrefixResolver);
-                ret.setNamespaceService(namespaceService);
-                ret.setPermissionService(permissionService);
-                ret.setScriptService(scriptService);
-                ret.setPersonService(personService);
-                ret.setServiceRegistery(serviceRegistry);
-                ret.setSolrAdmin(solrAdmin);
+                setAllServices(ret);
                 return ret;
-
             } catch (InstantiationException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
@@ -195,6 +188,17 @@ public class Bulk implements ApplicationContextAware {
             }
         }
         return null;
+    }
+    
+    private void setAllServices(AbstractWorker worker) {
+        worker.setNodeService(nodeService);
+        worker.setNameSpacePrefixResolver(namespacePrefixResolver);
+        worker.setNamespaceService(namespaceService);
+        worker.setPermissionService(permissionService);
+        worker.setScriptService(scriptService);
+        worker.setPersonService(personService);
+        worker.setServiceRegistery(serviceRegistry);
+        worker.setSolrAdmin(solrAdmin);
     }
 
     @Uri("/xenit/care4alf/bulk/stores")
@@ -254,6 +258,7 @@ public class Bulk implements ApplicationContextAware {
         boolean disableAuditablePolicies = false;
         JSONObject parameters = null;
         InputStream content = null;
+        boolean includeCsvParam = false;
 
         for (FormData.FormField formField : formData.getFields()) {
             if (formField.getName().equals("type")) {
@@ -276,6 +281,8 @@ public class Bulk implements ApplicationContextAware {
                 parameters = new JSONObject(formField.getValue());
             } else if (formField.getName().equals("file")) {
                 content = formField.getInputStream();
+            } else if (formField.getName().equals("includecsvparam")) {
+                includeCsvParam = Boolean.valueOf(formField.getValue());
             }
         }
 
@@ -284,11 +291,13 @@ public class Bulk implements ApplicationContextAware {
             if (disableAuditablePolicies){
                 policyBehaviourFilter.disableBehaviour(ContentModel.ASPECT_AUDITABLE);
             }
-
+            logger.info("Received type {}.", type);
             if (type.equals("search")) {
                 processor = createSearchBatchProcessor(batchsize, threads, nbBatches, maxLag, disableAuditablePolicies, action, parameters, query, new StoreRef(workspace), "fts-alfresco");
             } else if (type.equals("file")) {
                 processor = createFileBatchProcessor(batchsize, threads, action, parameters, content, maxLag, nbBatches, disableAuditablePolicies);
+            } else if (type.equals("metadata")) {
+                processor = createMetadataBatchProcessor(batchsize, threads, action, parameters, content, maxLag, nbBatches, disableAuditablePolicies, includeCsvParam);
             } else {
                 logger.error("The required action has not been implemented or is wrong.");
                 response.setStatus(HttpStatus.SC_BAD_REQUEST);
@@ -336,6 +345,29 @@ public class Bulk implements ApplicationContextAware {
         BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> worker = null;
         worker = createWorkerForAction(action, parameters);
         FileWorkProvider workProvider = new FileWorkProvider(serviceRegistry, content, batchSize);
+
+        BetterBatchProcessor<NodeRef> processor = new BetterBatchProcessor<NodeRef>(
+                "care4alf-bulk-" + GUID.generate(),
+                transactionService.getRetryingTransactionHelper(),
+                workProvider,
+                nbThreads, batchSize, null, null, 100, solrAdmin, maxLag, nbBatches, disableAuditablePolicies, policyBehaviourFilter);
+
+        processors.add(new BulkJob(processor, workProvider));
+        // blocks until workers have finished
+        processor.process(worker, true);
+        return processor;
+    }
+
+    private BetterBatchProcessor<NodeRef> createMetadataBatchProcessor(int batchSize, int nbThreads, String action, JSONObject parameters, InputStream content, int maxLag, int nbBatches, boolean disableAuditablePolicies, boolean includeCsvParam) {
+        MetadataWorkProvider workProvider = new MetadataWorkProvider(serviceRegistry, content, batchSize);
+        AbstractWorker worker = null;
+        // Specific edge case where the other columns in the CSV need to be passed to the Action
+        if (action.equals("action") && includeCsvParam) {
+            worker = new ActionCsvWorker(parameters, workProvider.getMetadataCSV());
+            setAllServices(worker);
+        } else {
+            worker = createWorkerForAction(action, parameters);
+        }
 
         BetterBatchProcessor<NodeRef> processor = new BetterBatchProcessor<NodeRef>(
                 "care4alf-bulk-" + GUID.generate(),

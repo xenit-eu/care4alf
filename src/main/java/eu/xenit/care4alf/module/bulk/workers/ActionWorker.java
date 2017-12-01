@@ -38,11 +38,19 @@ public class ActionWorker extends AbstractWorker {
 
     @Override
     public void process(NodeRef entry) throws Throwable {
-        ActionService actionService = serviceRegistry.getActionService();
-
-        Map<String, Serializable> params = getparams();
-
         String actionName = parameters.getString("Action-name");
+        Map<String, Serializable> params = getparams();
+        putValuesInParams(params, actionName);
+
+        ActionService actionService = serviceRegistry.getActionService();
+        Action action = actionService.createAction(actionName, params);
+        actionService.executeAction(action, entry);
+
+    }
+
+    protected void putValuesInParams(Map<String, Serializable> params, String actionName) {
+        // params is what comes from the care4alf webpage, paramDefs is what the Action's function signature expects
+        ActionService actionService = serviceRegistry.getActionService();
         List<ParameterDefinition> paramDefs = actionService.getActionDefinition(actionName).getParameterDefinitions();
         for (String key : params.keySet()){
             QName paramType = null;
@@ -57,12 +65,9 @@ public class ActionWorker extends AbstractWorker {
             }
             params.put(key, (Serializable) DefaultTypeConverter.INSTANCE.convert(serviceRegistry.getDictionaryService().getDataType(paramType), params.get(key)));
         }
-        Action action = actionService.createAction(actionName, params);
-        actionService.executeAction(action, entry);
-
     }
 
-    private Map<String, Serializable> getparams() throws JSONException {
+    protected Map<String, Serializable> getparams() throws JSONException {
         Map<String, Serializable> params = new HashMap<>();
         String arraystring = parameters.getString("Params");
         if (arraystring == null || arraystring.isEmpty()){
