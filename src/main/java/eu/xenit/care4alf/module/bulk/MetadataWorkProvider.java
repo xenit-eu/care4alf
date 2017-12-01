@@ -23,6 +23,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
     private int queryCount;
     private boolean cancel;
 
+    private WorkSizeTally tally;
     private MetadataCSV metadataCSV;
     private final SearchParameters sp = new SearchParameters();
     private List<NodeRef> inProgressBatch;
@@ -31,6 +32,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
         this.serviceRegistry = serviceRegistry;
         this.batchSize = batchSize;
         this.metadataCSV = new MetadataCSV(content);
+        this.tally = new WorkSizeTally();
 
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
         sp.addStore(new StoreRef("workspace", "SpacesStore"));
@@ -38,8 +40,9 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
     @Override
     public int getTotalEstimatedWorkSize() {
-        // TODO: Keep running tally of average query size, estimate by counting remaining queries * average size
-        return -1;
+        int estimate = tally.getAverage() * (metadataCSV.getPropertyValues().size() - queryCount);
+        logger.info("Estimated at {} work remaining", estimate);
+        return estimate;
     }
 
     @Override
@@ -92,6 +95,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
             rs = serviceRegistry.getSearchService().query(sp);
             inProgressBatch = rs.getNodeRefs();
             logger.info("Query complete, found {} items", rs.getNodeRefs().size());
+            tally.update(rs.getNodeRefs().size());
             queryCount++;
         } finally {
             if (rs != null) rs.close();
@@ -104,6 +108,23 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
     public void cancel(){
         this.cancel = true;
+    }
+
+    private class WorkSizeTally {
+        private int dividend = 0;
+        private int divisor = 0;
+
+        public void update(int lastSize) {
+            dividend += lastSize;
+            divisor++;
+        }
+
+        public int getAverage() {
+            if (divisor == 0) {
+                return -1;
+            }
+            return Math.round(((float) dividend) / divisor);
+        }
     }
 }
 
