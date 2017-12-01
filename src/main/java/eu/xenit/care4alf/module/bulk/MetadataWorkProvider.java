@@ -22,6 +22,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
     private int skipCount;
     private int queryCount;
     private boolean cancel;
+    private boolean done;
 
     private WorkSizeTally tally;
     private MetadataCSV metadataCSV;
@@ -63,7 +64,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
             skipCount = 0;
         }
         // if the query came up empty, run the next query.
-        while (inProgressBatch.size() == 0) {
+        while (inProgressBatch.size() == 0 && !done) {
            queryNewBatch();
         }
 
@@ -80,6 +81,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
         inProgressBatch = new ArrayList<NodeRef>();
         logger.debug("Calling getPropertyValues()");
         if (queryCount >= metadataCSV.getPropertyValues().size()) {
+            done = true;
             return;
         }
         ResultSet rs = null;
