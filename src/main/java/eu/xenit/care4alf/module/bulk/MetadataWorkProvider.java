@@ -91,7 +91,7 @@ public class MetadataWorkProvider implements BatchProcessWorkProvider<NodeRef> {
 
             // It should be fine to query this all at once since we don't expect too many results per csv entry
             // If that doesn't fit your usecase, consider using the Search option instead of the Metadata option.
-            String query = String.format("+@%s:%s", property.replace(":", "\\:"), value);
+            String query = String.format("=%s:\"%s\"", property, value);
             logger.debug("Query: {}", query);
             sp.setQuery(query);
             rs = serviceRegistry.getSearchService().query(sp);
