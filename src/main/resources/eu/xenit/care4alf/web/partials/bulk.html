@@ -14,7 +14,7 @@
     <div class="form-info-icon"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></div>
     <div class="form-info-text">
         <p>Upload a CSV file (including column headers), where the first column represents the metadata that will be searched for. We will look for noderefs that have a property named like the header of the first column, and apply our bulk action if the value of this noderef's property appears in the first column of the CSV.</p>
-        <p>Should you choose the <em>action</em> action, you will receive the option to have the other columns from the corresponding CSV record passed to the action. This option should only be used for actions that actually receive these parameters.</p>
+        <p>Should you choose the <em>action</em> action, you will receive the option to have the other columns from the corresponding CSV record passed to the action. This option should only be used for actions that actually receive these parameters. See <a href="/alfresco/s/xenit/care4alf/resources/bulkmetadata/example/example.csv">here for an example csv file</a> and <a href="/alfresco/s/xenit/care4alf/resources/bulkmetadata/example/ExampleAction.java">here for an example Action</a> to use it with.</p>
     </div>
 </div>
 
@@ -91,7 +91,7 @@
             </div>
             <!-- Special edge case that only appears when option == metadata and action == action. I don't know if this can be generalised away, since it's the only case where we need this checkbox, and the only case where one of the params is conditional on the option -->
             <div ng-if="data.selectedOption.id === 'metadata' && form.action === 'action'">
-                <div class="checkbox"><label><input type="checkbox" ng-model="form.includecsvparam">Include CSV param <span class="small">(Your chosen action will receive the corresponding record from the CSV as an additional parameters. Only choose this if your action expects parameters named like the extra column headers in your CSV.)</span></label></div>
+                <div class="checkbox"><label><input type="checkbox" ng-model="form.includecsvparam">Include CSV param <span class="small">(Your chosen action will receive the corresponding record from the CSV as additional parameters. Only choose this if your action expects parameters named like the extra column headers in your CSV.)</span></label></div>
             </div>
         </div>
         <button type="submit" class="btn btn-default" ng-click="executeFileOrMetadata(data.selectedOption.id)">Execute {{loading?"(loading)":""}}
