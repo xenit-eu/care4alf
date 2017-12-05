@@ -6,6 +6,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     $scope.form.batchnumber = 10;
     $scope.form.maxlag = 180;
     $scope.form.disableauditablepolicies = false;
+    $scope.form.includecsvparam = false;
     $scope.form.action = "";
     $scope.actions = {};
     $scope.canceled = "";
@@ -13,7 +14,8 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     $scope.data = {
         availableOptions: [
             {id: 'search', name: 'Search'},
-            {id: 'file', name: 'File'}
+            {id: 'file', name: 'File'},
+            {id: 'metadata', name: 'Metadata'}
         ],
         selectedOption: {id: 'search', name: 'Search'} //This sets the default value of the select in the ui
     };
@@ -67,7 +69,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
 
     $scope.execute = () => {
         $scope.loading = true;
-        $http.post("bluk/form/action/" + $scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'}})
+        $http.post("bulk/form/action/" + $scope.form.action, $scope.form, {headers: {'Content-Type': 'application/json'}})
             .then(function (response) {
                 $scope.result = response.data;
                 $scope.loading = false;
@@ -83,7 +85,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
     };
 
 
-    $scope.executeFile = () => {
+    $scope.executeFileOrMetadata = (executionType) => {
         $scope.loading = true;
         let callInfo =
             $http({
@@ -93,13 +95,14 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     'Content-Type': 'multipart/form-data'
                 },
                 data: {
-                    type: 'file',
+                    type: executionType, // Should be 'file' or 'metadata'
                     file: $scope.form.file,
                     batchsize: $scope.form.batchsize,
                     threads: $scope.form.threads,
                     batchnumber: $scope.form.batchnumber,
                     maxlag: $scope.form.maxlag,
                     disableauditablepolicies : $scope.form.disableauditablepolicies,
+                    includecsvparam : $scope.form.includecsvparam,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
@@ -129,7 +132,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
         let callInfo =
             $http({
                 method: 'POST',
-                url: "bluk/form/action/" + $scope.form.action,
+                url: "bulk/form/action/" + $scope.form.action,
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 },
