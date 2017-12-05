@@ -42,7 +42,7 @@ public class Export {
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
-    final int QUEUE_SIZE = 5000;
+    final int QUEUE_SIZE = 50000;
 
 
     @Autowired
