@@ -65,15 +65,18 @@ task sourceJar(type: Jar) {
 }
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    from 'build/docs/javadoc'
+    from "${buildDir}/docs/javadoc"
 }
 
-def alfrescoAmp = file("build/distributions/${project.name}-${project.version}.amp")
-artifacts {
-    archives sourceJar, javadocJar, alfrescoAmp
+def alfrescoAmp = file("${buildDir}/distributions/${project.name}-${project.version}.amp")
+task setupArtifacts {
+    artifacts {
+        archives alfrescoAmp, sourceJar, javadocJar
+    }
 }
 
 uploadArchives {
+    dependsOn setupArtifacts
     repositories {
         mavenDeployer {
             signing {
@@ -373,6 +376,7 @@ task integrationJar(type: Jar) {
     from(configurations.testEmbedded) {
         into('lib')
     }
+    destinationDir = file("${buildDir}/libs-test")
     manifest = osgiManifest {
         attributes('Bundle-Name': baseName)
         instruction 'Bundle-Classpath', ".,${configurations.testEmbedded.files.collect({ 'lib/' + it.name }).join(',')}"
