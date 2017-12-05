@@ -22,13 +22,13 @@ public class SQLQueryTest {
     @Test
     public void testValidateQuery() throws Exception {
         List<List<String>> results = sqlQuery.query("select 1");
-        Assert.assertEquals("1",results.get(0).get(0));
+        Assert.assertEquals("1",results.get(1).get(0));
     }
 
     public void testMultipleColumns() throws Exception {
         List<List<String>> results = sqlQuery.query("select 1,2");
-        Assert.assertEquals("1",results.get(0).get(0));
-        Assert.assertEquals("2",results.get(0).get(1));
+        Assert.assertEquals("1",results.get(1).get(0));
+        Assert.assertEquals("2",results.get(1).get(1));
     }
 
 }
