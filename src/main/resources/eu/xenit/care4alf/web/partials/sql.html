@@ -14,7 +14,10 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="rows in results">
+    <tr ng-repeat-start="rows in results" ng-if="$first">
+        <td class="font-bold" ng-repeat="el in rows track by $index">{{el}}</td>
+    </tr>
+    <tr ng-repeat-end="rows in results" ng-if="!$first">
         <td ng-repeat="el in rows track by $index">{{el}}</td>
     </tr>
     </tbody>
