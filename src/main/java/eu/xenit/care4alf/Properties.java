@@ -91,9 +91,9 @@ public class Properties {
         try {
             final Statement stmt = connection.createStatement();
             final ResultSet rs = stmt.executeQuery(
-                "select q.id, n.uri, q.local_name " +
-                "from alf_qname as q join alf_namespace  as n on q.ns_id=n.id  " +
-                "where q.id in (select distinct(qname_id) from alf_node_properties)");
+                "select alf_qname.id, alf_namespace.uri, alf_qname.local_name " +
+                        "from alf_qname join alf_namespace on alf_qname.ns_id= alf_namespace.id " +
+                        "where alf_qname.id in (select distinct(qname_id) from alf_node_properties)");
             while (rs.next()) {
                 list.add(new QNameInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
             }
@@ -110,7 +110,7 @@ public class Properties {
         try {
             final Statement stmt = connection.createStatement();
             final ResultSet rs = stmt.executeQuery(
-                    "select q.id, n.uri, q.local_name from alf_qname as q join alf_namespace as n on q.ns_id=n.id");
+                    "select alf_qname.id, alf_namespace.uri, alf_qname.local_name from alf_qname join alf_namespace on alf_qname.ns_id=alf_namespace.id");
             while (rs.next()) {
                 list.add(new QNameInfo(rs.getLong(1), QName.createQName(rs.getString(2), rs.getString(3))));
             }
