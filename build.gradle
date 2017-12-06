@@ -199,14 +199,14 @@ publishing {
             artifactId project.name + '-amp'
             groupId 'eu.xenit'
             version project.version.replace("SNAPSHOT", buildNumber)
-            artifact file("build/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
+            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
             //artifact ampde
         }
         integrationJar(MavenPublication) {
             artifactId project.name + '-integration'
             groupId 'eu.xenit'
             version project.version.replace("SNAPSHOT", buildNumber)
-            artifact file("build/libs/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
+            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
         }
     }
     repositories {
@@ -466,3 +466,4 @@ task installIntegrationJar(type: InstallBundle) {
 test.dependsOn(installBundle)
 test.dependsOn(installIntegrationJar)
 test.dependsOn(testInstallDependencies)
+publish.dependsOn(setupArtifacts)
