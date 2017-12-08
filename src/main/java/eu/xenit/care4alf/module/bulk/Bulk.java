@@ -228,6 +228,8 @@ public class Bulk implements ApplicationContextAware {
         BatchProcessWorkProvider provider = bulkJob.getWorkProvider();
         if (provider instanceof SearchWorkProvider) {
             ((SearchWorkProvider) provider).cancel();
+        } else if(provider instanceof MetadataWorkProvider){
+            ((MetadataWorkProvider) provider).cancel();
         }
 
         BetterBatchProcessor processor = bulkJob.getProcessor();
