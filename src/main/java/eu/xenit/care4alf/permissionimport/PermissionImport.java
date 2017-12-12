@@ -1,6 +1,5 @@
 package eu.xenit.care4alf.permissionimport;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.permissionimport.reader.PermissionReader;
 import eu.xenit.care4alf.permissionimport.reader.PermissionSetting;
@@ -16,11 +15,15 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.extensions.webscripts.servlet.FormData;
 import org.springframework.stereotype.Component;
+
+import static org.hamcrest.core.IsEqual.equalTo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +78,7 @@ public class PermissionImport {
 	}
 
 	@Uri(value="permissions", method = HttpMethod.GET)
-    public void permissions(@RequestParam(required=true) String path, WebScriptRequest request, WebScriptResponse response) throws IOException {
+    public void permissions(@RequestParam(required=true) String path, WebScriptRequest request, WebScriptResponse response) throws IOException, JSONException {
 		
         //search or create the folder
         NodeRef folderNodeRef = repository.getCompanyHome();
@@ -86,8 +89,19 @@ public class PermissionImport {
         Set<AccessPermission> perms = permissionService.getAllSetPermissions(folderNodeRef);
     	
         response.addHeader("Content-Type", "application/json");
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getWriter(), perms);
+        //ObjectMapper mapper = new ObjectMapper();
+        //mapper.writeValue(response.getWriter(), perms);
+        
+        final JSONWriter jsonRes = new JSONWriter(response.getWriter());
+        jsonRes.array();
+        for(AccessPermission perm: perms) {
+            jsonRes.object();
+            jsonRes.key("permission").value(perm.getPermission());
+            jsonRes.key("authority").value(perm.getAuthority());
+            jsonRes.key("inherited").value(perm.isInherited());
+            jsonRes.endObject();
+        }
+        jsonRes.endArray();
         
     }
 
