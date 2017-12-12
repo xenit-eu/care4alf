@@ -8,6 +8,7 @@ import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.slf4j.Logger;
@@ -38,7 +39,11 @@ public class PermissionWriter {
         this.authorityHelper = new AuthorityHelper(searchService);
     }
 
-    public void write(PermissionSetting permissionSetting){
+    public void write(PermissionSetting permissionSetting) {
+    	this.write(permissionSetting, false);
+    }
+    
+    public void write(PermissionSetting permissionSetting, boolean removeExistingFirst){
         if(permissionSetting.getPath() == null){
             LOG.error("The path is null");
             return;
@@ -46,23 +51,19 @@ public class PermissionWriter {
 
         LOG.debug("Path for permission: "+ Arrays.toString(permissionSetting.getPath()));
 
-        NodeRef parent = repository.getCompanyHome();
+        NodeRef nodeRef = folderNodeRef(permissionSetting.getPath());
 
-        //search or create the folder
-        for (String folder: permissionSetting.getPath()) {
-            NodeRef child = nodeService.getChildByName(parent, ContentModel.ASSOC_CONTAINS, folder);
-            if(child == null){
-                LOG.debug("Creating folder: "+folder);
-                child = fileFolderService.create(parent, folder, ContentModel.TYPE_FOLDER).getNodeRef();
-            }
-            parent = child;
+        if (removeExistingFirst) {
+	        permissionService.setInheritParentPermissions(nodeRef, true);
+	        for(AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
+	        	permissionService.clearPermission(nodeRef, perm.getAuthority());
+	        }
         }
-
+        
         LOG.debug("Inherit: "+permissionSetting.isInherit());
-        permissionService.setInheritParentPermissions(parent, permissionSetting.isInherit());
+        permissionService.setInheritParentPermissions(nodeRef, permissionSetting.isInherit());
 
-
-        if(permissionSetting.getGroup() != null && permissionSetting.getPermission() != null){
+        if(permissionSetting.getGroup() != null && permissionSetting.getPermission() != null) {
             String group = "GROUP_"+permissionSetting.getGroup();
 
             List<NodeRef> authorityNodeRefs = authorityHelper.getNodeGroupNodeRefs(permissionSetting.getGroup());
@@ -71,10 +72,31 @@ public class PermissionWriter {
                 LOG.error("No group found: "+permissionSetting.getGroup());
             } else {
                 LOG.debug("Setting permission: "+group+" "+permissionSetting.getPermission());
-                permissionService.setPermission(parent, group, permissionSetting.getPermission(), true);
+                permissionService.setPermission(nodeRef, group, permissionSetting.getPermission(), true);
             }
         }
 
+    }
+    
+    /**
+     * returns the folder noderef based on path. If folder does not exists it is created.
+     * 
+     * @param path of folder
+     * @return NodeRef of folder
+     */
+    private NodeRef folderNodeRef (String[] path) {
+        NodeRef parent = repository.getCompanyHome();
+
+        //search or create the folder
+        for (String folder: path) {
+            NodeRef child = nodeService.getChildByName(parent, ContentModel.ASSOC_CONTAINS, folder);
+            if(child == null){
+                LOG.debug("Creating folder: "+folder);
+                child = fileFolderService.create(parent, folder, ContentModel.TYPE_FOLDER).getNodeRef();
+            }
+            parent = child;
+        }
+        return parent;
     }
 
 }

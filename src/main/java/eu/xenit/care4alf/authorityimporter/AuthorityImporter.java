@@ -108,6 +108,7 @@ public class AuthorityImporter {
 
             }
 
+            res.addHeader("Content-Type", "application/json");
             final JSONWriter jsonRes = new JSONWriter(res.getWriter());
             jsonRes.object();
             jsonRes.key("response").value(true);

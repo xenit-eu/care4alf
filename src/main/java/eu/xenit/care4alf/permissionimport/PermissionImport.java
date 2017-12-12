@@ -1,14 +1,19 @@
 package eu.xenit.care4alf.permissionimport;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import eu.xenit.care4alf.permissionimport.reader.PermissionReader;
 import eu.xenit.care4alf.permissionimport.reader.PermissionSetting;
 import eu.xenit.care4alf.permissionimport.reader.XlsxPermissionReader;
 import eu.xenit.care4alf.permissionimport.writer.PermissionWriter;
+
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.cmr.model.FileFolderService;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
+import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,49 +24,71 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Component
 @Authentication(AuthenticationType.ADMIN)
-@WebScript(baseUri = "/xenit/care4alf/permissionimport", families = {"care4alf"}, description = "Import Permissions")
+@WebScript(baseUri = "/xenit/care4alf/permissionimport", families = { "care4alf" }, description = "Import Permissions")
 public class PermissionImport {
 
-    @Autowired
-    private Repository repository;
+	@Autowired
+	private Repository repository;
 
-    @Autowired
-    private FileFolderService fileFolderService;
+	@Autowired
+	private FileFolderService fileFolderService;
 
-    @Autowired
-    private NodeService nodeService;
+	@Autowired
+	private NodeService nodeService;
 
-    @Autowired
-    private PermissionService permissionService;
+	@Autowired
+	private PermissionService permissionService;
 
-    @Autowired
-    private AuthorityService authorityService;
+	@Autowired
+	private AuthorityService authorityService;
 
-    @Autowired
-    private SearchService searchService;
+	@Autowired
+	private SearchService searchService;
 
+	@Uri(value = "importpermissions", method = HttpMethod.POST)
+	public void importPermissions(WebScriptRequest request, WebScriptResponse response,
+			@RequestParam(required = false, defaultValue = "false") boolean removeFirst) throws IOException {
+		FormData formData = (FormData) request.parseContent();
 
-    @Uri(value="importpermissions", method = HttpMethod.POST)
-    public void importPermissions(WebScriptRequest request, WebScriptResponse response) throws IOException {
-        FormData formData = (FormData) request.parseContent();
+		InputStream content = null;
+		for (FormData.FormField formField : formData.getFields()) {
+			if (formField.getName().equals("file")) {
+				content = formField.getInputStream();
+			}
+		}
 
-        InputStream content = null;
-        for (FormData.FormField formField : formData.getFields()) {
-            if (formField.getName().equals("file")) {
-                content = formField.getInputStream();
-            }
+		PermissionReader reader = new XlsxPermissionReader(content);
+		PermissionWriter writer = new PermissionWriter(repository, fileFolderService, nodeService, permissionService,
+				authorityService, searchService);
+
+		for (PermissionSetting permissionSetting : reader) {
+			response.getWriter().write("Setting permission:\n" + permissionSetting.toString() + "\n");
+			writer.write(permissionSetting, removeFirst);
+		}
+		response.getWriter().write("done");
+	}
+
+	@Uri(value="permissions", method = HttpMethod.GET)
+    public void permissions(@RequestParam(required=true) String path, WebScriptRequest request, WebScriptResponse response) throws IOException {
+		
+        //search or create the folder
+        NodeRef folderNodeRef = repository.getCompanyHome();
+        for (String folder : path.split("\\/")) {
+            folderNodeRef = nodeService.getChildByName(folderNodeRef, ContentModel.ASSOC_CONTAINS, folder);
+            if (folderNodeRef == null) throw new IOException("Path does not exists!");
         }
-
-        PermissionReader reader = new XlsxPermissionReader(content);
-        PermissionWriter writer = new PermissionWriter(repository, fileFolderService, nodeService, permissionService, authorityService, searchService);
-
-        for(PermissionSetting permissionSetting: reader){
-            response.getWriter().write("Setting permission:\n"+permissionSetting.toString()+"\n");
-            writer.write(permissionSetting);
-        }
-        response.getWriter().write("done");
+        Set<AccessPermission> perms = permissionService.getAllSetPermissions(folderNodeRef);
+    	
+        response.addHeader("Content-Type", "application/json");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getWriter(), perms);
+        
     }
+
 }
