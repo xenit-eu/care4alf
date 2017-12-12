@@ -79,17 +79,23 @@ public class PermissionImportTest {
                 .body("[0].inherited", equalTo(false));
 
         given().when().param("path", "test/folder2/folder3").get("/xenit/care4alf/permissionimport/permissions").then()
-                .statusCode(200).body("size()", equalTo(2)).body("[0].permission", equalTo("Coordinator"))
-                .body("[0].authority", equalTo("GROUP_ALFRESCO_SEARCH_ADMINISTRATORS"))
-                .body("[0].inherited", equalTo(false)).body("[1].permission", equalTo("Contributor"))
-                .body("[1].authority", equalTo("GROUP_SITE_ADMINISTRATORS")).body("[1].inherited", equalTo(true));
+                .statusCode(200).body("size()", equalTo(2))
+                .body("[1].permission", equalTo("Coordinator"))
+                .body("[1].authority", equalTo("GROUP_ALFRESCO_SEARCH_ADMINISTRATORS"))
+                .body("[1].inherited", equalTo(false))
+                .body("[0].permission", equalTo("Contributor"))
+                .body("[0].authority", equalTo("GROUP_SITE_ADMINISTRATORS"))
+                .body("[0].inherited", equalTo(true));
 
         given().when().param("path", "test/folder4").get("/xenit/care4alf/permissionimport/permissions").then()
                 .statusCode(200)
-                .body("size()", equalTo(1))
+                .body("size()", equalTo(2))
                 .body("[0].permission", equalTo("Editor"))
-                .body("[0].authority", equalTo("GROUP_ALFRESCO_MODEL_ADMINISTRATORS"))
-                .body("[0].inherited", equalTo(false));
+                .body("[0].authority", equalTo("GROUP_ALFRESCO_SEARCH_ADMINISTRATORS"))
+                .body("[0].inherited", equalTo(false))
+                .body("[1].permission", equalTo("Editor"))
+                .body("[1].authority", equalTo("GROUP_ALFRESCO_MODEL_ADMINISTRATORS"))
+                .body("[1].inherited", equalTo(false));
 
     }
 

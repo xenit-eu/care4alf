@@ -38,26 +38,24 @@ public class PermissionWriter {
         this.authorityHelper = new AuthorityHelper(searchService);
     }
 
-    public void write(PermissionSetting permissionSetting) {
-        this.write(permissionSetting, false);
-    }
 
-    public void write(PermissionSetting permissionSetting, boolean removeExistingFirst) {
+    public void removePermissions(String[] path) {
+        LOG.debug("Remove all permissions for Path: " + Arrays.toString(path));
+        NodeRef nodeRef = folderNodeRef(path);
+        permissionService.setInheritParentPermissions(nodeRef, true);
+        for (AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
+            permissionService.clearPermission(nodeRef, perm.getAuthority());
+        }
+    }
+    
+    public void write(PermissionSetting permissionSetting) {
         if (permissionSetting.getPath() == null) {
             LOG.error("The path is null");
             return;
         }
 
         LOG.debug("Path for permission: " + Arrays.toString(permissionSetting.getPath()));
-
         NodeRef nodeRef = folderNodeRef(permissionSetting.getPath());
-
-        if (removeExistingFirst) {
-            permissionService.setInheritParentPermissions(nodeRef, true);
-            for (AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
-                permissionService.clearPermission(nodeRef, perm.getAuthority());
-            }
-        }
 
         LOG.debug("Inherit: " + permissionSetting.isInherit());
         permissionService.setInheritParentPermissions(nodeRef, permissionSetting.isInherit());

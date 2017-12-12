@@ -2,6 +2,9 @@ package eu.xenit.care4alf.permissionimport;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.alfresco.model.ContentModel;
@@ -56,6 +59,14 @@ public class PermissionImport {
     @Autowired
     private SearchService searchService;
 
+    private static <E> Collection<E> toCollection(Iterable<E> iter) {
+        Collection<E> list = new ArrayList<E>();
+        for (E item : iter) {
+            list.add(item);
+        }
+        return list;
+    }
+    
     @Uri(value = "importpermissions", method = HttpMethod.POST)
     public void importPermissions(WebScriptRequest request, WebScriptResponse response,
             @RequestParam(required = false, defaultValue = "false") boolean removeFirst) throws IOException {
@@ -73,9 +84,21 @@ public class PermissionImport {
         PermissionWriter writer = new PermissionWriter(repository, fileFolderService, nodeService, permissionService,
                 authorityService, searchService);
 
-        for (PermissionSetting permissionSetting : reader) {
+        Collection<PermissionSetting> permissions = toCollection(reader);
+        
+        if (removeFirst) {
+            Set<String[]> paths = new HashSet<>(); // collect unique paths
+            for (PermissionSetting perm : permissions) {
+                paths.add(perm.getPath());
+            }
+            for (String[] path : paths) {
+                writer.removePermissions(path);
+            }
+        }
+        
+        for (PermissionSetting permissionSetting : permissions) {
             response.getWriter().write("Setting permission:\n" + permissionSetting.toString() + "\n");
-            writer.write(permissionSetting, removeFirst);
+            writer.write(permissionSetting);
         }
         response.getWriter().write("done");
     }
