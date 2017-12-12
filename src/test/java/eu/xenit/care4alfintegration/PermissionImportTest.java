@@ -1,4 +1,4 @@
-package eu.xenit.care4aalfintegration.permissionimport;
+package eu.xenit.care4alfintegration;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -117,12 +117,12 @@ public class PermissionImportTest {
 
         System.out.println("groups added");
 
-        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).param("removeFirst", false)
+        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).queryParam("removeFirst", false)
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
         checkFoldersPermissions();
 
-        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).param("removeFirst", true) // !!
+        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).queryParam("removeFirst", true) // !!
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
         // should be the same permission sets as we removed the previous one.
