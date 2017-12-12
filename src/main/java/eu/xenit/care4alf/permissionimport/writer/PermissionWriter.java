@@ -28,9 +28,8 @@ public class PermissionWriter {
 
     private static final Logger LOG = LoggerFactory.getLogger(PermissionWriter.class);
 
-
     public PermissionWriter(Repository repository, FileFolderService fileFolderService, NodeService nodeService,
-                            PermissionService permissionService, AuthorityService authorityService, SearchService searchService){
+            PermissionService permissionService, AuthorityService authorityService, SearchService searchService) {
         this.repository = repository;
         this.fileFolderService = fileFolderService;
         this.nodeService = nodeService;
@@ -40,58 +39,62 @@ public class PermissionWriter {
     }
 
     public void write(PermissionSetting permissionSetting) {
-    	this.write(permissionSetting, false);
+        this.write(permissionSetting, false);
     }
-    
-    public void write(PermissionSetting permissionSetting, boolean removeExistingFirst){
-        if(permissionSetting.getPath() == null){
+
+    public void write(PermissionSetting permissionSetting, boolean removeExistingFirst) {
+        if (permissionSetting.getPath() == null) {
             LOG.error("The path is null");
             return;
         }
 
-        LOG.debug("Path for permission: "+ Arrays.toString(permissionSetting.getPath()));
+        LOG.debug("Path for permission: " + Arrays.toString(permissionSetting.getPath()));
 
         NodeRef nodeRef = folderNodeRef(permissionSetting.getPath());
 
         if (removeExistingFirst) {
-	        permissionService.setInheritParentPermissions(nodeRef, true);
-	        for(AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
-	        	permissionService.clearPermission(nodeRef, perm.getAuthority());
-	        }
+            permissionService.setInheritParentPermissions(nodeRef, true);
+            for (AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
+                permissionService.clearPermission(nodeRef, perm.getAuthority());
+            }
         }
-        
-        LOG.debug("Inherit: "+permissionSetting.isInherit());
+
+        LOG.debug("Inherit: " + permissionSetting.isInherit());
         permissionService.setInheritParentPermissions(nodeRef, permissionSetting.isInherit());
 
-        if(permissionSetting.getGroup() != null && permissionSetting.getPermission() != null) {
-            String group = "GROUP_"+permissionSetting.getGroup();
+        if (permissionSetting.getGroup() != null && permissionSetting.getPermission() != null) {
+            String group = "GROUP_" + permissionSetting.getGroup();
 
             List<NodeRef> authorityNodeRefs = authorityHelper.getNodeGroupNodeRefs(permissionSetting.getGroup());
-//            Set<String> authorities = authorityService.findAuthorities(AuthorityType.GROUP, null, false, permissionSetting.getGroup(), null);
-            if(authorityNodeRefs.isEmpty()){
-                LOG.error("No group found: "+permissionSetting.getGroup());
+            // Set<String> authorities =
+            // authorityService.findAuthorities(AuthorityType.GROUP, null,
+            // false, permissionSetting.getGroup(), null);
+            if (authorityNodeRefs.isEmpty()) {
+                LOG.error("No group found: " + permissionSetting.getGroup());
             } else {
-                LOG.debug("Setting permission: "+group+" "+permissionSetting.getPermission());
+                LOG.debug("Setting permission: " + group + " " + permissionSetting.getPermission());
                 permissionService.setPermission(nodeRef, group, permissionSetting.getPermission(), true);
             }
         }
 
     }
-    
+
     /**
-     * returns the folder noderef based on path. If folder does not exists it is created.
+     * returns the folder noderef based on path. If folder does not exists it is
+     * created.
      * 
-     * @param path of folder
+     * @param path
+     *            of folder
      * @return NodeRef of folder
      */
-    private NodeRef folderNodeRef (String[] path) {
+    private NodeRef folderNodeRef(String[] path) {
         NodeRef parent = repository.getCompanyHome();
 
-        //search or create the folder
-        for (String folder: path) {
+        // search or create the folder
+        for (String folder : path) {
             NodeRef child = nodeService.getChildByName(parent, ContentModel.ASSOC_CONTAINS, folder);
-            if(child == null){
-                LOG.debug("Creating folder: "+folder);
+            if (child == null) {
+                LOG.debug("Creating folder: " + folder);
                 child = fileFolderService.create(parent, folder, ContentModel.TYPE_FOLDER).getNodeRef();
             }
             parent = child;
