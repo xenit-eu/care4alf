@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.alfresco.model.ContentModel;
@@ -129,9 +132,20 @@ public class PermissionImport {
         // ObjectMapper mapper = new ObjectMapper();
         // mapper.writeValue(response.getWriter(), perms);
 
+        
+        List<AccessPermission> permissions = new ArrayList<>();
+        permissions.addAll(perms);
+        Collections.sort(permissions, new Comparator<AccessPermission>() {
+            @Override
+            public int compare(AccessPermission left, AccessPermission right) {
+                return left.getAuthority().compareTo(right.getAuthority());
+            }
+        });
+        
+        
         final JSONWriter jsonRes = new JSONWriter(response.getWriter());
         jsonRes.array();
-        for (AccessPermission perm : perms) {
+        for (AccessPermission perm : permissions) {
             jsonRes.object();
             jsonRes.key("permission").value(perm.getPermission());
             jsonRes.key("authority").value(perm.getAuthority());
