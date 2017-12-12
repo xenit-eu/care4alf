@@ -40,6 +40,9 @@ public class PermissionWriter {
 
 
     public void removePermissions(String[] path) {
+        if (path == null || path.length == 0)  {
+            return;
+        }
         LOG.debug("Remove all permissions for Path: " + Arrays.toString(path));
         NodeRef nodeRef = folderNodeRef(path);
         permissionService.setInheritParentPermissions(nodeRef, true);

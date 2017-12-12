@@ -89,7 +89,7 @@ public class PermissionImport {
         if (removeFirst) {
             Set<String[]> paths = new HashSet<>(); // collect unique paths
             for (PermissionSetting perm : permissions) {
-                paths.add(perm.getPath());
+                    paths.add(perm.getPath());
             }
             for (String[] path : paths) {
                 writer.removePermissions(path);

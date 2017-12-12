@@ -53,7 +53,7 @@ public class PermissionImportTest {
 
     }
 
-    private void checkFoldersPermissions() {
+    private void checkFoldersPermissions_testxlsx() {
 
         /*
          * To be checked (cfr src/test/resources/permissionimport/test.xlsx)
@@ -99,6 +99,47 @@ public class PermissionImportTest {
 
     }
 
+    private void checkFoldersPermissions_test2xlsx() {
+
+        /*
+         * To be checked (cfr src/test/resources/permissionimport/test2.xlsx)
+         * 
+         */
+
+        given().when().param("path", "test/folder1").get("/xenit/care4alf/permissionimport/permissions").then()
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].permission", equalTo("Editor"))
+                .body("[0].authority", equalTo("GROUP_EMAIL_CONTRIBUTORS"))
+                .body("[0].inherited", equalTo(false));
+
+        given().when().param("path", "test/folder2").get("/xenit/care4alf/permissionimport/permissions").then()
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].permission", equalTo("Editor"))
+                .body("[0].authority", equalTo("GROUP_SITE_ADMINISTRATORS"))
+                .body("[0].inherited", equalTo(false));
+
+        given().when().param("path", "test/folder2/folder3").get("/xenit/care4alf/permissionimport/permissions").then()
+                .statusCode(200).body("size()", equalTo(2))
+                .body("[0].permission", equalTo("Editor"))
+                .body("[0].authority", equalTo("GROUP_ALFRESCO_SEARCH_ADMINISTRATORS"))
+                .body("[0].inherited", equalTo(false))
+                .body("[1].permission", equalTo("Editor"))
+                .body("[1].authority", equalTo("GROUP_SITE_ADMINISTRATORS"))
+                .body("[1].inherited", equalTo(true));
+
+        given().when().param("path", "test/folder4").get("/xenit/care4alf/permissionimport/permissions").then()
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].permission", equalTo("Editor"))
+                .body("[0].authority", equalTo("GROUP_ALFRESCO_MODEL_ADMINISTRATORS"))
+                .body("[0].inherited", equalTo(false));
+
+    }
+    
+    
+    
     @Test
     public void testImportPermissions() throws JSONException {
 
@@ -117,16 +158,16 @@ public class PermissionImportTest {
 
         System.out.println("groups added");
 
-        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).queryParam("removeFirst", false)
+        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).queryParam("removeFirst", true)
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
-        checkFoldersPermissions();
+        checkFoldersPermissions_testxlsx();
 
-        given().when().multiPart(new File("src/test/resources/permissionimport/test.xlsx")).queryParam("removeFirst", true) // !!
+        given().when().multiPart(new File("src/test/resources/permissionimport/test2.xlsx")).queryParam("removeFirst", true) // !!
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
         // should be the same permission sets as we removed the previous one.
-        checkFoldersPermissions();
+        checkFoldersPermissions_test2xlsx();
 
     }
 
