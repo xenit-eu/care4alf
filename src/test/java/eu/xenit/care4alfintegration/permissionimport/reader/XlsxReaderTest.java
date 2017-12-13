@@ -30,7 +30,7 @@ public class XlsxReaderTest {
         }
 
         System.out.println("Number of permissionSettings = "+permissionSettings.size());
-        assertTrue("No permissions found in xlsx", permissionSettings.size()==4);
+        assertTrue("No permissions found in xlsx", permissionSettings.size()==5);
         assertEquals("test", permissionSettings.get(0).getPath()[0]);
         assertEquals("folder1", permissionSettings.get(0).getPath()[1]);
     }

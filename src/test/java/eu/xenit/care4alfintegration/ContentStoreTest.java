@@ -29,7 +29,8 @@ public class ContentStoreTest {
     @Test
     public void getListReturnsNotNull(){
         Resolution res = contentStore.list(null);
-        Assert.assertNotEquals(null, res);
+        //Assert.assertNotEquals(null, res);
+        Assert.assertNotNull(res);
     }
 
     @Test
