@@ -13,8 +13,7 @@ import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AccessPermission;
-import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -41,6 +40,7 @@ import java.util.concurrent.*;
 public class Export {
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
+    private final static Set<String> NON_RESOLVED_AUTHORITIES = new HashSet<String>(Arrays.asList("GROUP_EVERYONE", "GROUP_ALFRESCO_ADMINISTRATORS", "guest"));
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
 
@@ -54,6 +54,10 @@ public class Export {
     private NamespaceService namespaceService;
     @Autowired
     private PermissionService permissionService;
+    @Autowired
+    private AuthorityService authorityService;
+    @Autowired
+    private PersonService personService;
     @Autowired
     private NodeHelper nodeHelper;
     @Autowired
@@ -113,6 +117,7 @@ public class Export {
         hardcodedNames.put("type",true);
         hardcodedNames.put("noderef",true);
         hardcodedNames.put("permissions",true);
+        hardcodedNames.put("permissions-breakdown",true);
         hardcodedNames.put("direct-permissions",true);
         hardcodedNames.put("permissions-inheritance",true);
 
@@ -199,6 +204,10 @@ public class Export {
                                         // All permissions
                                         Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
                                         result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(permissions)));
+                                    } else if ("permissions-breakdown".equals(element)) {
+                                        // Breakdown of all permissions
+                                        Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
+                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissionsBreakdown(permissions)));
                                     } else if ("direct-permissions".equals(element)) {
                                         // Direct permissions on a node (excludes inherited permissions)
                                         Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
@@ -344,6 +353,31 @@ public class Export {
         return sb.toString();
     }
 
+    private String getFormattedPermissionsBreakdown(Set<AccessPermission> permissions) {
+        if (permissions == null){
+            return null;
+        }
+        Set<AccessPermission> accessPermissionsBreakdown = new HashSet<>(permissions.size());
+        Iterator<AccessPermission> permissionIterator = permissions.iterator();
+        while (permissionIterator.hasNext()){
+            AccessPermission accessPermission = permissionIterator.next();
+            String authority = accessPermission.getAuthority();
+            boolean isGroup = authority.startsWith("GROUP_");
+            if (isGroup && !NON_RESOLVED_AUTHORITIES.contains(authority)){
+                Set<String> users = authorityService.getContainedAuthorities(AuthorityType.USER, authority, false);
+                for (String user : users){
+                    accessPermissionsBreakdown.add(new UserAccessPermission(accessPermission, user));
+                }
+                if (users.isEmpty()){
+                    logger.debug("Ignoring empty Group authority : {}", authority);
+                }
+            }else {
+                accessPermissionsBreakdown.add(accessPermission);
+            }
+        }
+        return getFormattedPermissions(accessPermissionsBreakdown);
+    }
+
     @NotNull
     private Set<AccessPermission> getDirectPermissions(Set<AccessPermission> permissions) {
         if (permissions == null){
@@ -358,4 +392,87 @@ public class Export {
         return directPermissions;
     }
 
+    private class UserAccessPermission implements AccessPermission{
+
+        private AccessPermission accessPermission;
+        private String userAuthority;
+
+        UserAccessPermission(AccessPermission accessPermission, String userAuthority){
+            this.accessPermission = accessPermission;
+            this.userAuthority = userAuthority;
+        }
+
+        /**
+         * The permission.
+         *
+         * @return
+         */
+        @Override
+        public String getPermission() {
+            return accessPermission.getPermission();
+        }
+
+        /**
+         * Get the Access enumeration value
+         *
+         * @return
+         */
+        @Override
+        public AccessStatus getAccessStatus() {
+            return accessPermission.getAccessStatus();
+        }
+
+        /**
+         * Get the user authority to which this permission applies.
+         *
+         * @return
+         */
+        @Override
+        public String getAuthority() {
+            return userAuthority;
+        }
+
+        /**
+         * Get the type of authority to which this permission applies.
+         *
+         * @return
+         */
+        @Override
+        public AuthorityType getAuthorityType() {
+            return AuthorityType.USER;
+        }
+
+        /**
+         * At what position in the inheritance chain for permissions is this permission set?
+         * = 0 -> Set direct on the object.
+         * > 0 -> Inherited
+         * < 0 -> We don't know and are using this object for reporting (e.g. the actual permissions that apply to a node for the current user)
+         *
+         * @return
+         */
+        @Override
+        public int getPosition() {
+            return accessPermission.getPosition();
+        }
+
+        /**
+         * Is this an inherited permission entry?
+         *
+         * @return
+         */
+        @Override
+        public boolean isInherited() {
+            return accessPermission.isInherited();
+        }
+
+        /**
+         * Is this permission set on the object?
+         *
+         * @return
+         */
+        @Override
+        public boolean isSetDirectly() {
+            return accessPermission.isSetDirectly();
+        }
+    }
 }
