@@ -43,7 +43,7 @@ public class Export {
     private final Logger logger = LoggerFactory.getLogger(Export.class);
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
-
+    final int MAX_QUERY_SIZE = 10000;
 
     @Autowired
     private SearchService searchService;
@@ -255,22 +255,26 @@ public class Export {
                         try {
                             do {
                                 sp.setSkipCount(start);
-                                if (start + 1000 > nbDocuments) {
+                                if (nbDocuments == -1) {
+                                    sp.setMaxItems(MAX_QUERY_SIZE);
+                                } else if (start + MAX_QUERY_SIZE > nbDocuments) {
                                     // Do not get more results than requested.
-                                    sp.setMaxItems(nbDocuments % 1000);
+                                    sp.setMaxItems(nbDocuments % MAX_QUERY_SIZE);
+                                } else {
+                                    sp.setMaxItems(MAX_QUERY_SIZE);
                                 }
                                 logger.debug("About to search...");
                                 resultSet = Export.this.searchService.query(sp);
                                 logger.debug("Search completed");
                                 List<NodeRef> chunk = resultSet.getNodeRefs();
                                 totalDocsProcessed += chunk.size();
+                                logger.info("Adding {}/{} noderefs to the queue...", chunk.size(), nodeQueue.size());
                                 for (NodeRef n : chunk) {
                                     nodeQueue.put(n);
                                 }
-                                logger.info("Added {}/{} noderefs to the queue", chunk.size(), nodeQueue.size());
-                                start += 1000;
+                                logger.info("#Added {} noderefs.", chunk.size());
+                                start += MAX_QUERY_SIZE;
                                 resultSet.close();
-                                logger.info("#noderefs in query chunk: " + chunk.size());
                             }
                             while (resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
                         } catch (Exception e) {
