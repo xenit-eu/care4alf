@@ -43,7 +43,7 @@ public class Export {
     private final Logger logger = LoggerFactory.getLogger(Export.class);
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
-    final int MAX_QUERY_SIZE = 10000;
+    final int MAX_QUERY_SIZE = 1000;
 
     @Autowired
     private SearchService searchService;
