@@ -92,6 +92,14 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         });
     };
 
+    $scope.gotoContentUrl = (node) => {
+        var store = node.properties["sys:store-identifier"];
+        var space = node.properties["sys:store-protocol"];
+        var uuid = node.properties["sys:node-uuid"];
+        var name = node.properties["cm:name"];
+        window.location.href = serviceUrl.slice(0,-10) + "share/page/document-details?nodeRef=" + space + "://" + store + "/" + uuid;
+    };
+
     $scope.addChild = (newChildRef) => {
         $http.post(serviceUrl + "/xenit/care4alf/browser/child", {parent: $scope.node.noderef, child: newChildRef}).success(() => {
             $scope.node.children.push({noderef:newChildRef});
