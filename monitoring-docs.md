@@ -64,13 +64,13 @@ In addition to the keys mentioned below, the monitoring page also contains a num
 
 #### ContentMetric
 
-**Cron:** * 0/5 * * * ? **Key:** `operations.read`
+**Cron:** 0 0/5 * * * ? **Key:** `operations.read`
 
 **Description:** Also named OperationsMetric in certain parts of the code. Measures how long a read operation takes, the value of `operations.read` is the length of time of a read operation in milliseconds.
 
 #### DbMetrics
 
-**Cron:** * 0/5 * * * ? **Key:** `db.connectionpool.…`, `db.healthy`, `db.ping`
+**Cron:** 0 0/5 * * * ? **Key:** `db.connectionpool.…`, `db.healthy`, `db.ping`
 
 **Description:** Retrieve information on the database connections, as well as whether the database repository descriptor can be obtained (`db.healthy`) and what the latency to the database is in milliseconds (`db.ping`). The information about the connections is the following:
 
