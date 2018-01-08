@@ -2,7 +2,9 @@
 
 There are metrics and shippers. The metrics are the objects that are activated on a cron schedule and decide what properties are monitored, whereas the shippers collect this information and send it off to a third-party monitoring system such as Graphite.
 
-Each monitored source is linked to a particular shipper, which is done by the `shipperName` property of the metric object. Both metrics and shippers can be enabled and disabled individually in `alfresco-global.properties`, through the `c4a.monitoring.<shippername>` and `c4a.monitoring.metric.<metricname>`options. For instance, `c4a.monitoring.graphite.enabled` for the Graphite shipper, and `c4a.monitoring.metric.activesessions.enabled`  for the ActiveSessionsMetric class.
+Each monitored source is linked to a  shipper, which is configured by the `c4a.monitoring.shipper` property. Both metrics and shippers can be enabled and disabled individually in `alfresco-global.properties`, through the `c4a.monitoring.<shippername>` and `c4a.monitoring.metric.<metricname>` options. For instance, `c4a.monitoring.graphite.enabled` for the Graphite shipper, and `c4a.monitoring.metric.activesessions.enabled`  for the ActiveSessionsMetric class.
+
+Note that the name ActiveSessionsMetric was lowercased and dropped the "metric" suffix to transform it into the name activesessions, which is what's used in the property name.
 
 If a *metric* is not mentioned explicitly in `alfresco-global.properties`, it defaults to **enabled**. If a *shipper* is not mentioned explicitly, it defaults to **disabled**.
 
@@ -25,7 +27,7 @@ As an example of the above rules, we will look at the resolution chain (accordin
    3. If it does not exist, Graphite is disabled
 2. Check if ActiveSessionsMetric is enabled:
 
-   1. Check if the `c4a.monitoring.activesessions.enabled` property exists
+   1. Check if the `c4a.monitoring.metric.activesessions.enabled` property exists
 
       - If it exists and is `true`, ActiveSessionsMetric is enabled
       - If it exists and is `false`, ActiveSessionsMetric is disabled
@@ -40,9 +42,15 @@ As an example of the above rules, we will look at the resolution chain (accordin
 
 ### Metrics
 
-Below is a list of all the metrics in Care4Alf at the time of writing. This document contains the cron expression and key for each of them. The key is the name of the metric on the [care4alf/#/monitoring](http://localhost:8080/alfresco/s/xenit/care4alf/#/monitoring) page. The cron expression determines how often each metric runs (note that they use the [Quartz syntax](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger), which contains a seconds field, as opposed to the Unix syntax).
+Below is a list of all the metrics in Care4Alf at the time of writing. This document contains the cron expression and key for each of them. The key is the name of the metric on the [care4alf/#/monitoring](http://localhost:8080/alfresco/s/xenit/care4alf/#/monitoring) page. The cron expression determines how often each metric runs.
 
 In addition to the keys mentioned below, the monitoring page also contains a number of `metric.<metricname>.timing` keys, which display the performance of each metric.
+
+The cron setting for each metric can be reconfigured in `alfresco-global.properties`. The name for this property is `c4a.monitoring.<metricname>.cron` where `<metricname>` is the lowercased version of the classname, minus the "metric" suffix. Note that they use a slightly different syntax from Unix cron. The cron expression we use has 6 fields: *second, minute, hour day, month,* and *weekday*. The first five use an asterisk (\*) as a wildcard, the weekday uses a question mark (?) when the weekday doesn't matter. For more info, see the page on [Quartz syntax](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger).
+
+For instance, if we want to use `alfresco-global.properties` to make DocumentTypesMetric run every day at 5 in the morning, the configuration line would look like this:
+
+`c4a.monitoring.documenttypes.cron=0 0 5 * * ?`
 
 ####ActiveSessionsMetric
 
