@@ -55,8 +55,8 @@ public  abstract class AbstractMonitoredSource implements MonitoredSource, Job{
         }
     }
 
-    private String getMonitoringConfigProperty(String key, String shipper, String defaultValue){
-        return properties.getProperty("c4a.monitoring."+key, properties.getProperty("c4a.monitoring."+shipper+"."+key, defaultValue));
+    private String getMonitoringConfigProperty(String subKey, String key, String defaultValue){
+        return properties.getProperty("c4a.monitoring."+key+"."+subKey, properties.getProperty("c4a.monitoring."+subKey, defaultValue));
     }
 
     @Override
