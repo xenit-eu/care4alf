@@ -38,6 +38,7 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
     @Override
     public Map<String, Long> getMonitoringMetrics() {
         try {
+            this.solrAdmin.clearCache();
             JSONObject summary = this.solrAdmin.getSolrSummaryJson();
             Map<String,String> flattened = this.flatten(summary);
             Map<String, Long> r = transform(flattened);

@@ -243,6 +243,10 @@ public class SolrAdmin {
         return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
     }
 
+    public void clearCache() {
+        this.getSolrAdminClient().clearCache();
+    }
+
     public class Transaction {
         private long txId;
         private int count;
