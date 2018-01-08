@@ -37,10 +37,12 @@ public  abstract class AbstractMonitoredSource implements MonitoredSource, Job{
 
         // Config to disable/enable a particular shipper
         this.enabled = Boolean.parseBoolean(getMonitoringConfigProperty("enabled", shipperName, "false")) &&
-                Boolean.parseBoolean(getMonitoringConfigProperty("enabled", this.getName(), "true"));
+                Boolean.parseBoolean(getMonitoringConfigProperty("enabled", "metric." + this.getName(), "true"));
 
-        if(!enabled)
+        if(!enabled) {
+            logger.warn("Metric {} is disabled!", this.getName());
             return;
+        }
 
         for (MetricsShipper ms : allShippers){
             if (ms.getName().equals(shipperName)){

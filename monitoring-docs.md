@@ -2,7 +2,7 @@
 
 There are metrics and shippers. The metrics are the objects that are activated on a cron schedule and decide what properties are monitored, whereas the shippers collect this information and send it off to a third-party monitoring system such as Graphite.
 
-Each monitored source is linked to a particular shipper, which is done by the `shipperName` property of the metric object. Both metrics and shippers can be enabled and disabled individually in `alfresco-global.properties`, through the `c4a.monitoring.…` options. For instance, `c4a.monitoring.graphite.enabled` for the Graphite shipper, and `c4a.monitoring.activesessions.enabled`  for the ActiveSessionsMetric class.
+Each monitored source is linked to a particular shipper, which is done by the `shipperName` property of the metric object. Both metrics and shippers can be enabled and disabled individually in `alfresco-global.properties`, through the `c4a.monitoring.<shippername>` and `c4a.monitoring.metric.<metricname>`options. For instance, `c4a.monitoring.graphite.enabled` for the Graphite shipper, and `c4a.monitoring.metric.activesessions.enabled`  for the ActiveSessionsMetric class.
 
 If a *metric* is not mentioned explicitly in `alfresco-global.properties`, it defaults to **enabled**. If a *shipper* is not mentioned explicitly, it defaults to **disabled**.
 
