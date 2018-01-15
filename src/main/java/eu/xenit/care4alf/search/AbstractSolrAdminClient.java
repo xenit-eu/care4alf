@@ -39,6 +39,7 @@ public abstract class AbstractSolrAdminClient {
 
     protected abstract String getSolrTypeUrl();
 
+    // This function uses a cached solrSummaryActionJSON. If new data is required call clearCache() first.
     JSONObject getSolrSummaryJson() throws JSONException, EncoderException, IOException {
         if(solrSummaryActionJSON == null) {
             Multimap<String, String> parameters = ArrayListMultimap.create();

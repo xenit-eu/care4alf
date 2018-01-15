@@ -24,6 +24,7 @@ import org.alfresco.service.namespace.QName
 import org.alfresco.service.namespace.RegexQNamePattern
 import org.alfresco.service.transaction.TransactionService
 import org.json.JSONObject
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -49,7 +50,7 @@ public class Browser @Autowired constructor(
         private val permissionService: PermissionService,
         private val aclDAO: AclDAO
 ) : RestErrorHandling {
-    override var logger = LoggerFactory.getLogger(javaClass)
+    override var logger: Logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
 
     @Uri(value = "/upload", method = HttpMethod.POST)
@@ -65,19 +66,26 @@ public class Browser @Autowired constructor(
     @Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
-
-        if(requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())){
+        logger.debug(requestBody)
+        if (requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())) {
             val dbid = requestBody?.toLong()
             val nodeRef = nodeService.getNodeRef(dbid)
-            iterable(listOf(nodeRef),nodesToBasicJson())
+            iterable(listOf(nodeRef), nodesToBasicJson())
         } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
-            iterable(NodeRef.getNodeRefs(requestBody) ,nodesToBasicJson())
+            logger.debug("true")
+            val nodeRefs = NodeRef.getNodeRefs(requestBody)
+            logger.debug(nodeRefs[0].toString())
+            obj {
+                key("nodes") {
+                    iterable(nodeRefs, nodesToBasicJson())
+                }
+            }
         } else {
             val sp = SearchParameters()
             sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)
-            sp.language=SearchService.LANGUAGE_FTS_ALFRESCO
-            sp.query=requestBody
-            sp.queryConsistency=QueryConsistency.EVENTUAL //for counting total
+            sp.language = SearchService.LANGUAGE_FTS_ALFRESCO
+            sp.query = requestBody
+            sp.queryConsistency = QueryConsistency.EVENTUAL //for counting total
             val rs = searchService.query(sp)
             obj {
                 key("nodes") {
