@@ -70,7 +70,11 @@ public class Browser @Autowired constructor(
         if (requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())) {
             val dbid = requestBody?.toLong()
             val nodeRef = nodeService.getNodeRef(dbid)
+            obj {
+                key("nodes") {
             iterable(listOf(nodeRef), nodesToBasicJson())
+                }
+            }
         } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
             logger.debug("true")
             val nodeRefs = NodeRef.getNodeRefs(requestBody)
