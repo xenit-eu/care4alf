@@ -66,7 +66,7 @@ public class Browser @Autowired constructor(
     @Uri(value = "/find", method = HttpMethod.POST)
     fun find(request: WebScriptRequest) = json {
         val requestBody = request.getContent()?.getContent()
-        logger.debug(requestBody)
+        logger.debug("Request body: {}", requestBody)
         if (requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())) {
             val dbid = requestBody?.toLong()
             val nodeRef = nodeService.getNodeRef(dbid)
@@ -76,7 +76,7 @@ public class Browser @Autowired constructor(
                 }
             }
         } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
-            logger.debug("true")
+            logger.debug("Noderef requested directly")
             val nodeRefs = NodeRef.getNodeRefs(requestBody)
             logger.debug(nodeRefs[0].toString())
             obj {

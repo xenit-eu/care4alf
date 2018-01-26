@@ -3,8 +3,6 @@ package eu.xenit.care4alf
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution
 import org.json.JSONWriter
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.util.*
 
 /**
@@ -13,7 +11,6 @@ import java.util.*
  * @author Laurent Van der Linden
  */
 open class JsonRoot(val jsonWriter: JSONWriter) {
-
     inline fun obj(body: JsonObject.() -> Unit) {
         jsonWriter.`object`()
         JsonObject(jsonWriter).body()
