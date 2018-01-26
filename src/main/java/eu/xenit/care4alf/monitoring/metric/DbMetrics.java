@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by willem on 1/17/17.
@@ -26,6 +27,8 @@ import java.util.Map;
 @ScheduledQuartzJob(name = "DbMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.db.cron")
 public class DbMetrics extends AbstractMonitoredSource {
 
+    public static final String PROPS_PREFIX = "eu.xenit.c4a.metrics.";
+
     @Autowired
     @Qualifier("defaultDataSource")
     private DataSource dataSource;
@@ -33,6 +36,10 @@ public class DbMetrics extends AbstractMonitoredSource {
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private DescriptorDAO currentRepoDescriptorDAO;
+
+    @Autowired
+    @Qualifier("global-properties")
+    private Properties globalProps;
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
@@ -51,8 +58,8 @@ public class DbMetrics extends AbstractMonitoredSource {
         map.put("db.healthy",dbCheck());
 
         ((BasicDataSource) dataSource).getUrl();
-        URI uri = URI.create(((BasicDataSource) dataSource).getUrl());
-        map.put("db.ping", this.ping(uri.getHost()));
+
+        map.put("db.ping", this.getDBPing());
 
         return map;
     }
@@ -81,4 +88,13 @@ public class DbMetrics extends AbstractMonitoredSource {
         return currentRepoDescriptorDAO.getDescriptor();
     }
 
+    private long getDBPing(){
+        String dbip = globalProps.getProperty(PROPS_PREFIX + "dbip");
+        if(dbip == null) {
+            URI uri = URI.create(((BasicDataSource) dataSource).getUrl());
+            return this.ping(uri.getHost());
+        } else {
+            return this.ping(dbip);
+        }
+    }
 }

@@ -18,6 +18,8 @@ import java.util.List;
 public abstract class AbstractSolrAdminClient {
     private SolrClient solrClient;
 
+    private JSONObject solrSummaryActionJSON;
+
     protected SolrClient getSolrClient() {
         return this.solrClient;
     }
@@ -37,11 +39,17 @@ public abstract class AbstractSolrAdminClient {
 
     protected abstract String getSolrTypeUrl();
 
-    public JSONObject getSolrSummaryJson() throws JSONException, EncoderException, IOException {
-        Multimap<String, String> parameters = ArrayListMultimap.create();
-        parameters.put("wt", "json");
-        parameters.put("action", "SUMMARY");
-        return this.getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null).getJSONObject("Summary");
+    // This function uses a cached solrSummaryActionJSON. If new data is required call clearCache() first.
+    JSONObject getSolrSummaryJson() throws JSONException, EncoderException, IOException {
+        if(solrSummaryActionJSON == null) {
+            Multimap<String, String> parameters = ArrayListMultimap.create();
+            parameters.put("wt", "json");
+            parameters.put("action", "SUMMARY");
+            solrSummaryActionJSON = this.getSolrClient().postJSON("/" + getSolrTypeUrl() + "/admin/cores", parameters, null);
+            return solrSummaryActionJSON.getJSONObject("Summary");
+        } else {
+            return solrSummaryActionJSON.getJSONObject("Summary");
+        }
     }
 
     public JSONObject reindex(long dbId) throws JSONException, EncoderException, IOException {
@@ -56,4 +64,7 @@ public abstract class AbstractSolrAdminClient {
         return this.getSolrClient().postMessage("/" + getSolrTypeUrl() + "/alfresco/update", null, "<optimize />");
     }
 
+    void clearCache(){
+        solrSummaryActionJSON = null;
+    }
 }
