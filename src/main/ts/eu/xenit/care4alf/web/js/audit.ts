@@ -3,21 +3,36 @@
 care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     $scope.sortType     = 'time';
     $scope.sortReverse  = false;
-    console.log("found route param: "+$routeParams.subtoken);
+    $scope.showClear = false;
+    console.log("found route params: "+$routeParams.subtoken+" and "+$routeParams.subtoken2);
 
     $scope.load = function(app){
         //$location.url('/audit'+app);
+        $scope.showCear = true;
         console.log("loading app: " + app);
         $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=1000&forward=true").success(function(data){
             $scope.entries = data.entries;
         });
     };
 
+    $scope.query = function(app,key, value){
+        console.log("Query: " + value);
+        console.log("key: "+key);
+        $http.get("/alfresco/s/api/audit/query"+app+key+"?verbose=true&limit=1000&forward=true&value="+value).success(function(data){
+            $scope.entries = data.entries;
+        });
+    };
 
-    if($routeParams.subtoken !== null) {
+    if($routeParams.subtoken !== undefined) {
         console.log("putting the routeparam in");
         $scope.application = "/"+$routeParams.subtoken;
-        $scope.load("/"+$routeParams.subtoken);
+
+        if($routeParams.subtoken2 !== undefined){
+            var params = decodeURIComponent($routeParams.subtoken2);
+            $scope.query("/" + $routeParams.subtoken,params,$routeParams.subtoken3)
+        } else {
+            $scope.load("/" + $routeParams.subtoken);
+        }
     }
 
     $http.get("/alfresco/service/api/audit/control").success(function(data) {
@@ -28,15 +43,15 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
 
     $scope.entries=[];
 
-    $scope.setRoute = function (app) {
-        $location.url('/audit'+app);
+    $scope.setRouteLoad = function (app) {
+        $location.path('/audit'+app, false);
+        $scope.load(app);
     };
 
-    $scope.query = function(app,key, value){
-        console.log("Query: " + value);
-        $http.get("/alfresco/s/api/audit/query"+app+key+"?verbose=true&limit=1000&forward=true&value="+value).success(function(data){
-            $scope.entries = data.entries;
-        });
+    $scope.setRouteQuery = function(app,key,value){
+        console.log(encodeURIComponent(key));
+        $location.path('/audit'+app+"/"+encodeURIComponent(key)+"/"+value, false);
+        $scope.query(app,key,value);
     };
 
     $scope.clear = function (app) {

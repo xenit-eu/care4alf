@@ -3,8 +3,8 @@
     <select
             ng-model="application"
             ng-options="app.path as app.name for app in control.applications"
-            ng-change="setRoute(application)"></select>
-    <input type="button" ng-show="application !== null" class="btn-danger" ng-click="clear(application)" value="Clear"/>
+            ng-change="setRouteLoad(application)"></select>
+    <input type="button" ng-show="showClear" class="btn-danger" ng-click="clear(application)" value="Clear"/>
 </div>
 <div class="alert alert-success" ng-show="showSuccessAlert">
     <button type="button" class="close" data-ng-click="switchBool('showSuccessAlert')">×</button> <strong>Done!</strong> {{successTextAlert}}</div>
@@ -36,7 +36,7 @@
             <td>{{::entry.time | date : "dd-MM-yyyy h:mm:ss"}}</td>
             <td>
                 <ul>
-                    <li ng-repeat="(key, value) in entry.values">{{::key}} <a href ng-click="query(application,key,value)">{{value}}</a></li>
+                    <li ng-repeat="(key, value) in entry.values">{{::key}} <a ng-click="setRouteQuery(application,key,value)">{{value}}</a></li>
                 </ul>
             </td>
         </tr>
