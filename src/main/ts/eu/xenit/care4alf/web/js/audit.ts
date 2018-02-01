@@ -5,9 +5,11 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     $scope.sortReverse  = false;
     $scope.showClear = false;
     $scope.showBack = false;
+    let lastFunc = "";
     console.log("found route params: "+$routeParams.subtoken+" and "+$routeParams.subtoken2);
 
     $scope.load = function(app){
+        lastFunc = "load";
         //$location.url('/audit'+app);
         $scope.showClear = true;
         $scope.showBack = false;
@@ -18,6 +20,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     };
 
     $scope.query = function(app,key, value){
+        lastFunc = "query?"+key+"?"+value;
         $scope.showClear = true;
         $scope.showBack = true;
         console.log("Query: " + value);
@@ -28,6 +31,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     };
     
     $scope.queryUser = function (app, user) {
+        lastFunc = "user?"+user;
         $scope.showBack = true;
         $http.get("/alfresco/s/api/audit/query"+app+"?verbose=true&limit=1000&forward=true&user="+user).success(function(data){
             $scope.entries = data.entries;
@@ -35,7 +39,16 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     };
 
     $scope.reload = function () {
-        window.location.reload();
+        let params = lastFunc.split("?");
+        if(params[0] == "load"){
+            $scope.load($scope.application);
+        }
+        if(params[0] == "user"){
+            $scope.queryUser($scope.application, params[1]);
+        }
+        if(params[0] == "query"){
+            $scope.query($scope.application, params[1], params[2]);
+        }
     };
 
     if($routeParams.subtoken !== undefined) {
