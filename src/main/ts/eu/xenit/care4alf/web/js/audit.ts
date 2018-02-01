@@ -8,7 +8,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
 
     $scope.load = function(app){
         //$location.url('/audit'+app);
-        $scope.showCear = true;
+        $scope.showClear = true;
         console.log("loading app: " + app);
         $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=1000&forward=true").success(function(data){
             $scope.entries = data.entries;
@@ -16,6 +16,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     };
 
     $scope.query = function(app,key, value){
+        $scope.showClear = true;
         console.log("Query: " + value);
         console.log("key: "+key);
         $http.get("/alfresco/s/api/audit/query"+app+key+"?verbose=true&limit=1000&forward=true&value="+value).success(function(data){
