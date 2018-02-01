@@ -5,6 +5,8 @@
             ng-options="app.path as app.name for app in control.applications"
             ng-change="setRouteLoad(application)"></select>
     <input type="button" ng-show="showClear" class="btn-danger" ng-click="clear(application)" value="Clear"/>
+    <input type="button" class="btn-primary" ng-click="reload()" value="Refresh"/>
+    <input type="button" ng-show="showBack" class=".btn-info" ng-click="setRouteLoad(application)" value="Back"/>
 </div>
 <div class="alert alert-success" ng-show="showSuccessAlert">
     <button type="button" class="close" data-ng-click="switchBool('showSuccessAlert')">×</button> <strong>Done!</strong> {{successTextAlert}}</div>
@@ -32,7 +34,7 @@
     <tbody>
         <tr ng-repeat="entry in entries | orderBy:sortType:sortReverse">
             <td>{{::entry.id}}</td>
-            <td>{{::entry.user}}</td>
+            <td><a ng-click="setRouteUser(application,entry.user)">{{::entry.user}}</a></td>
             <td>{{::entry.time | date : "dd-MM-yyyy h:mm:ss"}}</td>
             <td>
                 <ul>
