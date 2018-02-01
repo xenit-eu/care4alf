@@ -24,7 +24,7 @@
 	    var serviceUrl = "${url.serviceContext}";
     </script>
     <link rel="stylesheet" href="${resources}/css/bootstrap.3.1.1.cached.min.css">
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="${resources}/css/font-awesome.min.css">
     <link rel="stylesheet" href="${resources}/js/angularjs-toaster/toaster.css">
     <link rel="stylesheet" href="${resources}/js/angular-loading-bar/loading-bar.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
