@@ -37,7 +37,7 @@ var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource'
         })
         .config(['$routeProvider', function ($routeProvider:ng.route.IRouteProvider) {
             angular.forEach(care4alfModules, function (module) {
-                $routeProvider.when('/' + module.id + '/:subtoken?', {
+                $routeProvider.when('/' + module.id + '/:subtoken?/:subtoken2?/:subtoken3?', {
                     templateUrl: 'resources/partials/' + module.id + '.html',
                     controller: module.id
                     , controllerAs: module.id
@@ -48,4 +48,21 @@ var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource'
         .controller('default', function ($scope) {
             $scope.modules = care4alfModules;
         })
-    ;
+
+
+        .run(['$route', '$rootScope', '$location', function ($route, $rootScope, $location) {
+        var original = $location.path;
+        $location.path = function (path, reload) {
+        if (reload === false) {
+            var lastRoute = $route.current;
+            var un = $rootScope.$on('$locationChangeSuccess', function () {
+                $route.current = lastRoute;
+                un();
+            });
+        }
+        return original.apply($location, [path]);
+        };
+        }])
+
+
+;

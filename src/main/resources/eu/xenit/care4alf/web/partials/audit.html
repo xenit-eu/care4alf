@@ -1,25 +1,47 @@
 <h3>Audit</h3>
-<table class="table">
+<div>
     <select
             ng-model="application"
-            ng-options="app.name for app in control.applications"
-            ng-change="load(application)"></select>
+            ng-options="app.path as app.name for app in control.applications"
+            ng-change="setRouteLoad(application)"></select>
+    <input type="button" ng-show="showClear" class="btn-danger" ng-click="clear(application)" value="Clear"/>
+    <input type="button" class="btn-primary" ng-click="reload()" value="Refresh"/>
+    <input type="button" ng-show="showBack" class=".btn-info" ng-click="setRouteLoad(application)" value="Back"/>
+</div>
+<div class="alert alert-success" ng-show="showSuccessAlert">
+    <button type="button" class="close" data-ng-click="switchBool('showSuccessAlert')">×</button> <strong>Done!</strong> {{successTextAlert}}</div>
+<table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>Id</th>
-            <th>User</th>
-            <th>Time</th>
+            <th><a  ng-click="sortType = 'id' ; sortReverse = !sortReverse">
+                Id
+                <i ng-show="sortType == 'id' && !sortReverse" >&#709;</i>
+                <i ng-show="sortType == 'id' && sortReverse" >&#708;</i>
+            </a>
+            </th>
+            <th><a ng-click="sortType = 'user' ; sortReverse = !sortReverse">
+                User
+                <i ng-show="sortType == 'user' && !sortReverse" >&#709;</i>
+                <i ng-show="sortType == 'user' && sortReverse" >&#708;</i>
+            </a>
+            </th>
+            <th><a ng-click="sortType = 'time' ; sortReverse = !sortReverse">
+                Time
+                <i ng-show="sortType == 'time' && !sortReverse" >&#709;</i>
+                <i ng-show="sortType == 'time' && sortReverse" >&#708;</i>
+            </a>
+            </th>
             <th>Values</th>
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="entry in entries">
+        <tr ng-repeat="entry in entries | orderBy:sortType:sortReverse">
             <td>{{::entry.id}}</td>
-            <td>{{::entry.user}}</td>
+            <td><a ng-click="setRouteUser(application,entry.user)">{{::entry.user}}</a></td>
             <td>{{::entry.time | date : "dd-MM-yyyy h:mm:ss"}}</td>
             <td>
                 <ul>
-                    <li ng-repeat="(key, value) in entry.values">{{::key}} <a href ng-click="query(application,key,value)">{{value}}</a></li>
+                    <li ng-repeat="(key, value) in entry.values">{{::key}} <a ng-click="setRouteQuery(application,key,value)">{{value}}</a></li>
                 </ul>
             </td>
         </tr>
