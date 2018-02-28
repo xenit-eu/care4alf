@@ -74,6 +74,8 @@ public class Export {
     private String aclAuthorityPermissionSeparator = ",";
     private String aclSeparator = ",";
     private Boolean includeAccessStatus;
+    // Flag to indicate if permissions breakdown column should be CSV escaped
+    private Boolean escapePermissionBreakdown;
 
     @PostConstruct
     private void init(){
@@ -83,6 +85,7 @@ public class Export {
                 aclAuthorityPermissionSeparator);
         aclSeparator = globalProps.getProperty(PROPS_PREFIX +"aclSeparator", aclSeparator);
         includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX +"includeAccessStatus", "false"));
+        escapePermissionBreakdown = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX +"escapePermissionBreakdown", "true"));
     }
 
     @Uri(value="/query", method = HttpMethod.GET)
@@ -207,7 +210,7 @@ public class Export {
                                     } else if ("permissions-breakdown".equals(element)) {
                                         // Breakdown of all permissions
                                         Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissionsBreakdown(permissions)));
+                                        result.append(renderColumnWithConfiguredEscaping(getFormattedPermissionsBreakdown(permissions)));
                                     } else if ("direct-permissions".equals(element)) {
                                         // Direct permissions on a node (excludes inherited permissions)
                                         Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
@@ -326,6 +329,13 @@ public class Export {
                 outputStreamWriter.close();
             }
         }
+    }
+
+    private String renderColumnWithConfiguredEscaping(String columnContent){
+        if (escapePermissionBreakdown.booleanValue()){
+            return StringEscapeUtils.escapeCsv(columnContent);
+        }
+        return columnContent;
     }
 
     private String getFormattedPermissions(Set<AccessPermission> permissions) {
