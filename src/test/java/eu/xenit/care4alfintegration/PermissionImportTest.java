@@ -45,7 +45,7 @@ public class PermissionImportTest {
         String username = System.getProperty("username");
         authScheme.setUserName(username != null ? username : "admin");
         String password = System.getProperty("password");
-        authScheme.setPassword(password == null ? password : "admin");
+        authScheme.setPassword(password != null ? password : "admin");
         RestAssured.authentication = authScheme;
 
         RestAssured.defaultParser = Parser.JSON;
