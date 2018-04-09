@@ -101,7 +101,7 @@ public class Sql {
         queries.add(new Query("Get doc info from File System path", doc_from_path));
         queries.add(new Query("Get the number of users", "SELECT count(*) FROM alf_node AS n, alf_qname AS q WHERE n.type_qname_id=q.id AND q.local_name='user';"));
         queries.add(new Query("Get number of nodes with content", "SELECT count(*) FROM alf_node AS n, alf_qname AS q WHERE n.type_qname_id=q.id AND q.local_name='content';"));
-        queries.add(new Query("Number of documetns of type X", "SELECT count(*) FROM alf_node AS n, alf_qname AS q, alf_node_properties AS p WHERE n.type_qname_id=q.id\n " +
+        queries.add(new Query("Number of documents of type X", "SELECT count(*) FROM alf_node AS n, alf_qname AS q, alf_node_properties AS p WHERE n.type_qname_id=q.id\n " +
                 "AND p.node_id=n.id AND p.qname_id IN (SELECT id FROM alf_qname WHERE local_name='name') AND q.local_name='content' AND p.string_value LIKE '%.X';"));
         queries.add(new Query("All documents in specific Store", "SELECT * FROM alf_node WHERE store_id=6 AND type_qname_id=51;"));
         queries.add(new Query("Orphaned nodes", "SELECT * FROM alf_content_url WHERE orphan_time IS NOT NULL;"));
