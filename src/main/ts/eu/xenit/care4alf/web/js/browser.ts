@@ -120,9 +120,14 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
             // Allow pasting in a noderef
             $window.localStorage.setItem(LS_QUERY, query);
 
-            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query).success((matches) => {
-                $scope.results = matches;
-            });
+            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query)
+                .success((matches) => {
+                    $scope.results = matches;
+                    $scope.results.success = true;
+                })
+                .error((err) => {
+                    $scope.results.success = false;
+                });
         }
     };
 
