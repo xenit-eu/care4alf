@@ -1,6 +1,18 @@
 <h3>Node browser</h3>
 
 <div ng-if="!node">
+    <p><a href="javascript:void(0);" ng-click="toggleHelp();">Node browser syntax [click to <span ng-if="showhelp">collapse</span><span ng-if="!showhelp">expand</span>]</a></p>
+    <div ng-show="showhelp" class="form-info">
+        <div class="form-info-icon"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></div>
+        <div class="form-info-text"><p>You can search for one or more nodes in the following ways:</p>
+            <ul>
+                <li>By database ID: Just enter the number, e.g. <code>123</code></li>
+                <li>By reference: Enter the noderef path, e.g. <code>workspace://SpacesStore/b4cff62a-664d-4d45-9302-98723eac1319</code></li>
+                <li>Through FTS: Enter a valid Lucene/FTS query, e.g. <code>TYPE:"cm:authority" AND (cm:authorityName:"*admin*" OR cm:firstName:"*admin*")</code></li>
+            </ul>
+            <p><a href="https://community.alfresco.com/docs/DOC-5729-full-text-search-query-syntax">A decent reference of the FTS syntax can be found here.</a></p>
+        </div>
+    </div>
     <form ng-submit="search()">
         <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control text-monospace" name="query"/>
     </form>

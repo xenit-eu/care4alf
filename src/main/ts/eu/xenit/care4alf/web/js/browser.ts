@@ -134,6 +134,9 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     $scope.searchModel = {};
     $scope.serviceUrl = serviceUrl;
 
+    $scope.showhelp = false;
+    $scope.toggleHelp = () => $scope.showhelp = !$scope.showhelp;
+
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
         $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
