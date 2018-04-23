@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="${resources}/js/angularjs-toaster/toaster.css">
     <link rel="stylesheet" href="${resources}/js/angular-loading-bar/loading-bar.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
+    <link rel="icon" href="${resources}/img/favicon.ico" sizes="16x16" type="image/x-icon">
 </head>
 <body>
 <div class="title">
