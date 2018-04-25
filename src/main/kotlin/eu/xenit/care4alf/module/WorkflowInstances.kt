@@ -12,11 +12,13 @@ import org.alfresco.service.cmr.workflow.WorkflowInstance
 import org.alfresco.service.cmr.workflow.WorkflowService
 import org.alfresco.service.cmr.workflow.WorkflowTask
 import org.alfresco.service.cmr.workflow.WorkflowTaskQuery
+import org.alfresco.service.namespace.QName
 import org.alfresco.util.UrlUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
+import java.io.Serializable
 
 /**
  * @author Laurent Van der Linden
@@ -135,13 +137,31 @@ public class WorkflowInstances @Autowired constructor(
     @Uri(value = "/active", method = HttpMethod.DELETE)
     fun deleteAllActive() {
         for (wf in workflowService.getActiveWorkflows()) {
-        try {
-            workflowService.deleteWorkflow(wf.getId())
-            logger.debug("Deleted workflow instance ${wf.getId()}.")
-        }
-        catch(ex: Exception) {
-            logger.info("Failed to delete workflow instance ${wf.getId()}: ${ex.message}.")
+            try {
+                workflowService.deleteWorkflow(wf.getId())
+                logger.debug("Deleted workflow instance ${wf.getId()}.")
+            }
+            catch(ex: Exception) {
+                logger.info("Failed to delete workflow instance ${wf.getId()}: ${ex.message}.")
+            }
         }
     }
-}
+
+    @Uri(value = "/tasks/{id}/release", method = HttpMethod.POST, defaultFormat = "json")
+    fun releaseTask(@UriVariable("id") id: String) = json {
+        logger.error("Id is {}", id);
+        val props: MutableMap<QName, Serializable?> = hashMapOf(ContentModel.PROP_OWNER to null);
+        val task = workflowService.updateTask(id, props, null, null);
+        obj {
+            entry("id", task.getId())
+            entry("description", task.getDescription())
+            key("properties") {
+                obj {
+                    for (property in task.getProperties()) {
+                        entry(property.key.toString(), property.value)
+                    }
+                }
+            }
+        }
+    }
 }
