@@ -29,6 +29,15 @@ care4alf.controller('workflowinstances', function($scope, $resource: ng.resource
         });
     };
 
+    $scope.releaseTask = (instance, taskId) => {
+        $http.post('workflow/instances/tasks/' + taskId + '/release', '').success((task:{id:string}) => {
+            // Update matching task in frontend
+            instance.tasks = instance.tasks.map((t) => t.id == task.id ? task : t);
+        }).error((error) => {
+            $window.alert(error);
+        });
+    };
+
     $scope.findInstances = () => {
         if (angular.isDefined($scope.taskid) && $scope.taskid.length > 0) {
             $http.get('workflow/instances/find/task/' + $scope.taskid).success(instanceResultHandler);
