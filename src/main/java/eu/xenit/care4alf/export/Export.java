@@ -170,7 +170,8 @@ public class Export {
                             if (hardcodedNames.containsKey(el)) {
                                 outputStreamWriter.write(el);
                             } else {
-                                outputStreamWriter.write(dictionaryService.getProperty(QName.createQName(el, namespaceService)).getTitle());
+                                outputStreamWriter.write(StringEscapeUtils.escapeCsv(dictionaryService.getProperty(
+                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService)));
                             }
                             if (i != column.length - 1) {
                                 outputStreamWriter.write(separator);
