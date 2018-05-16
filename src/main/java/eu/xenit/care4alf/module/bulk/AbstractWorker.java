@@ -4,9 +4,7 @@ import eu.xenit.care4alf.BetterBatchProcessor;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.ScriptService;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
@@ -27,6 +25,7 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
     protected ServiceRegistry serviceRegistry;
     protected PersonService personService;
     protected SolrAdmin solrAdmin;
+    protected MimetypeService mimetypeService;
 
 
     public AbstractWorker(JSONObject parameters) {
@@ -71,7 +70,11 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
         this.serviceRegistry = serviceRegistry;
     }
 
-    public void setSolrAdmin(SolrAdmin solrAdmin){
+    public void setSolrAdmin(SolrAdmin solrAdmin) {
         this.solrAdmin = solrAdmin;
+    }
+
+    public void setMimetypeService(MimetypeService mimetypeService) {
+        this.mimetypeService = mimetypeService;
     }
 }
