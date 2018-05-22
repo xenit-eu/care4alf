@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@ScheduledQuartzJob(name = "AuditMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?", cronProp = "c4a.monitoring.audit.cron")
+@ScheduledQuartzJob(name = "AuditMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?", cronProp = "c4a.monitoring.audit.cron")
 public class AuditMetric extends AbstractMonitoredSource {
     @Autowired
     private DataSource dataSource;
@@ -34,7 +34,7 @@ public class AuditMetric extends AbstractMonitoredSource {
     }
 
     private long query(String query) throws SQLException {
-        long r = 0;
+        long r = -1;
         final Connection connection = dataSource.getConnection();
         try {
             final Statement stmt = connection.createStatement();
