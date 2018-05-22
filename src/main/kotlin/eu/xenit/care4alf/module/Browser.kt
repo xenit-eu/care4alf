@@ -11,6 +11,7 @@ import org.alfresco.repo.policy.BehaviourFilter
 import org.alfresco.service.cmr.dictionary.DictionaryService
 import org.alfresco.service.cmr.dictionary.PropertyDefinition
 import org.alfresco.service.cmr.model.FileFolderService
+import org.alfresco.service.cmr.repository.ContentData
 import org.alfresco.service.cmr.repository.NodeRef
 import org.alfresco.service.cmr.repository.NodeService
 import org.alfresco.service.cmr.repository.StoreRef
@@ -133,6 +134,13 @@ public class Browser @Autowired constructor(
                                         value(format(item!!))
                                     }
                                 }
+                            } else if (propertyValue is ContentData) {
+                                entry(qnameString, format(propertyValue))
+                                entry(qnameString+":contentUrl", propertyValue.contentUrl)
+                                entry(qnameString+":mimeType", propertyValue.mimetype)
+                                entry(qnameString+":size", propertyValue.size)
+                                entry(qnameString+":encoding", propertyValue.encoding)
+                                entry(qnameString+":locale", propertyValue.locale)
                             } else {
                                 entry(qnameString, format(propertyValue))
                             }
