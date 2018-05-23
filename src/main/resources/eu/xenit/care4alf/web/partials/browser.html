@@ -84,11 +84,12 @@
             <div ng-repeat="(qname,value) in node.properties" class="form-group form-group-sm has-feedback">
                 <label class="col-sm-2 control-label">{{qname}}</label>
                 <div class="col-sm-6">
-                    <a ng-if="qname === 'cm:content'" ng-click="gotoContentUrl(node)" ng-href="">node.properties[qname]</a>
-                    <div ng-if="qname.indexOf('cm:content:') == 0">
-                        <input readonly type="text" ng-model="node.properties[qname]" class="form-control" />
+                    <div ng-if="node.immutableFields.indexOf(qname) !== -1">
+                        <a ng-if="node.hyperlinkedFields.indexOf(qname) !== -1" ng-click="gotoContentUrl(node)" ng-href="">node.properties[qname]</a>
+                        <input ng-if="node.hyperlinkedFields.indexOf(qname) === -1" readonly type="text" ng-model="node.properties[qname]" class="form-control"/>
+                        <span ng-if="node.hyperlinkedFields.indexOf(qname) !== -1" ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                     </div>
-                    <div ng-if="qname.indexOf('cm:content') != 0">
+                    <div ng-if="node.immutableFields.indexOf(qname) === -1">
                         <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" />
                         <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                     </div>
