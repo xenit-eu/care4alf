@@ -11,6 +11,7 @@ import org.alfresco.repo.policy.BehaviourFilter
 import org.alfresco.service.cmr.dictionary.DictionaryService
 import org.alfresco.service.cmr.dictionary.PropertyDefinition
 import org.alfresco.service.cmr.model.FileFolderService
+import org.alfresco.service.cmr.repository.ContentData
 import org.alfresco.service.cmr.repository.NodeRef
 import org.alfresco.service.cmr.repository.NodeService
 import org.alfresco.service.cmr.repository.StoreRef
@@ -31,7 +32,11 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.extensions.webscripts.WebScriptRequest
 import org.springframework.extensions.webscripts.WebScriptResponse
 import org.springframework.stereotype.Component
+import org.springframework.util.ReflectionUtils
 import java.io.Serializable
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.*
 
 /**
  * @author Laurent Van der Linden
@@ -112,6 +117,8 @@ public class Browser @Autowired constructor(
             entry("noderef", noderef)
             entry("dbid", dbid)
             entry("type", nodeService.getType(noderef))
+            val immutableFields = ArrayList<String>()
+            val hyperlinkedFields = ArrayList<String>()
             key("properties") {
                 obj {
                     for (pair in nodeService.getProperties(noderef)) {
@@ -133,6 +140,30 @@ public class Browser @Autowired constructor(
                                         value(format(item!!))
                                     }
                                 }
+                            } else if (propertyValue is ContentData) {
+                                entry(qnameString, format(propertyValue))
+                                hyperlinkedFields.add(qnameString)
+                                immutableFields.add(qnameString);
+                                //reflectionUtils does not have methods for base-class-only manipulation in the used version, so we target the class directly
+                                val contentDataClass = Class.forName("org.alfresco.service.cmr.repository.ContentData")
+                                val fieldList = ArrayList<Field>()
+                                val methodList = ArrayList<Method>()
+                                ReflectionUtils.doWithFields(contentDataClass, ReflectionUtils.FieldCallback { field ->  fieldList.add(field)})
+                                ReflectionUtils.doWithMethods(contentDataClass, ReflectionUtils.MethodCallback { method -> methodList.add(method)})
+                                for(field in fieldList) {
+                                    if(!field.name.equals("serialVersionUID") && !field.name.equals("INVALID_CONTENT_URL_CHARS")){
+                                        val fieldQName = qnameString + ":" + field.name
+                                        immutableFields.add(fieldQName)
+                                        for(method in methodList){
+                                            val regex = ("get" + field.name + "()").toRegex(RegexOption.IGNORE_CASE)
+                                            if(method.name.contains(regex)){
+                                                val fieldValue = ReflectionUtils.invokeMethod(method, propertyValue)
+                                                entry(fieldQName, fieldValue)
+                                                break
+                                            }
+                                        }
+                                    }
+                                }
                             } else {
                                 entry(qnameString, format(propertyValue))
                             }
@@ -140,6 +171,8 @@ public class Browser @Autowired constructor(
                     }
                 }
             }
+            entry("immutableFields", immutableFields)
+            entry("hyperlinkedFields", hyperlinkedFields)
             key("aspects") {
                 iterable(nodeService.getAspects(noderef)) { aspect ->
                     value(aspect)
