@@ -14,8 +14,7 @@ care4alf.controller('amps', function($scope, $http, $window: Window) {
     };
 
     $scope.clear = function() {
-        if ($window.confirm("Are you sure you want to delete all the amps in this Alfresco? " +
-                "This will cause any features implemented in these amps to stop working.")) {
+        if ($window.confirm("Are you sure you want to delete all the amps in this Alfresco?")) {
             $http.delete("amps/").then(load);
         }
     }
