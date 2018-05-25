@@ -5,6 +5,8 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import org.json.JSONException;
 import org.json.JSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
@@ -23,12 +25,14 @@ import java.util.List;
 @Authentication(AuthenticationType.ADMIN)
 @Component
 public class Sql {
+    private final Logger logger = LoggerFactory.getLogger(Sql.class);
 
     @Autowired
     private DataSource dataSource;
 
     @Uri("/xenit/care4alf/sql")
     public Resolution searchQuery(@RequestParam String query,  WebScriptResponse res) throws IOException, SQLException {
+        logger.debug("running query: "+query);
         final List<List<String>> results = this.query(query);
         return new JsonWriterResolution() {
             @Override
@@ -65,8 +69,13 @@ public class Sql {
                     row.add(rs.getString(i));
                 results.add(row);
             }
+
+            logger.debug("nmbr of results: "+ results.size());
             rs.close();
-        } finally {
+        } catch (Exception e){
+            logger.error("Error in query() function:", e);
+            throw e;
+        }finally {
             connection.close();
         }
         return results;
@@ -105,6 +114,9 @@ public class Sql {
                 "AND p.node_id=n.id AND p.qname_id IN (SELECT id FROM alf_qname WHERE local_name='name') AND q.local_name='content' AND p.string_value LIKE '%.X';"));
         queries.add(new Query("All documents in specific Store", "SELECT * FROM alf_node WHERE store_id=6 AND type_qname_id=51;"));
         queries.add(new Query("Orphaned nodes", "SELECT * FROM alf_content_url WHERE orphan_time IS NOT NULL;"));
+        queries.add(new Query("get nodecount per year of creation.", "SELECT COUNT(id), jaar FROM (SELECT id AS id, EXTRACT(YEAR FROM TO_DATE(SUBSTR(audit_created,0,10), 'YYYY-MM-DD')) AS jaar FROM alf_node WHERE store_id=6 ) GROUP BY jaar\n" +
+                "\n" +
+                "-- Query set up for oracle sql; for postgres, add alias to subquery."));
         return queries;
     }
 
