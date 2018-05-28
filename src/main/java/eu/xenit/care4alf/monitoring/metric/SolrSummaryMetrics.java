@@ -42,9 +42,13 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
             JSONObject summary = this.solrAdmin.getSolrSummaryJson();
             Map<String,String> flattened = this.flatten(summary);
             Map<String, Long> r = transform(flattened);
+            Long solrLagTime = this.solrAdmin.getSolrLag();
+            Long solrLagNodes = this.solrAdmin.getNodesToIndex();
+            Long avgLoadPerCore = solrLagTime/solrLagNodes;
             r.put("solr.errors", this.solrAdmin.getSolrErrors());
-            r.put("solr.lag.time", this.solrAdmin.getSolrLag());
-            r.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
+            r.put("solr.lag.time", solrLagTime);
+            r.put("solr.lag.nodes", solrLagNodes);
+            r.put("solr.lag.avgLoad", avgLoadPerCore);
             r.put("solr.model.errors", this.solrAdmin.getModelErrors());
             return r;
         } catch (JSONException e) {
