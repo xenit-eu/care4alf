@@ -1,0 +1,44 @@
+<h3>Impersonate</h3>
+<p>Generate tickets and test user's access to certain resources</p>
+<form>
+    <h4>Generate ticket</h4>
+    <div class="form-group">
+        <label for="userName">Username</label>
+        <input type="text" ng-model="userName" class="form-control" id="userName" />
+    </div>
+    <div class="form-group">
+        <label for="userNode">User Noderef</label>
+        <input type="text" ng-model="userNode" disabled class="form-control" id="userNode" />
+    </div>
+    <div class="form-group">
+        <button type="submit" id="genSubmit" class="btn btn-primary" ng-click="getTicketForUser(userName)">
+            Generate Ticket {{genTicketLoading?"(loading)":""}}
+        </button>
+    </div>
+    <div ng-if="impuser.ticket">
+        Ticket info:
+        <ul>
+            <li><strong>Impersonated user name:</strong> {{ impuser.name }}</li>
+            <li><strong>Impersonated user node:</strong> {{ impuser.noderef }}</li>
+            <li><strong>Impersonated user ticket:</strong> {{ impuser.ticket }}</li>
+        </ul>
+        HTTP calls to anything in <code>/alfresco/s/</code> can be authenticated with this ticket by appending
+        <code>?alf_ticket={{impuser.ticket}}</code> to the URL.
+        <h4>Test access</h4>
+        Test access to a noderef (<a href="#/browser">find one via the nodebrowser</a>) using the above user.
+        <div class="form-group">
+            <label for="userNode2">User Noderef</label>
+            <input type="text" ng-model="userNode" class="form-control" id="userNode2" />
+        </div>
+        <div class="form-group">
+            <label for="testNode">NodeRef to access</label>
+            <input type="text" ng-model="testNode" class="form-control" id="testNode" />
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary" ng-click="testInFrame(testNode, userNode)">
+                Test in iframe
+            </button>
+        </div>
+        <iframe src="{{testFrameSrc}}"></iframe>
+    </div>
+</form>
