@@ -88,21 +88,20 @@ public class WorkflowInstances @Autowired constructor(
                     }
                 }
                 if (includeTasks) {
+                    val tasks = AuthenticationUtil.runAsSystem {
+                        getTasksForInstance(instance)
+                    }
                     key("tasks") {
-                        tasksForInstance(instance.getId())
+                        iterable(tasks, taskToJson())
                     }
                 }
             }
         }
     }
 
-    @Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
-    fun tasksForInstance(@UriVariable workflowid: String) = json {
-        val tasks = AuthenticationUtil.runAsSystem {
-            getTasksForInstance(workflowService.getWorkflowById(workflowid))
-        }
-        iterable(tasks) { task ->
-            obj {
+    fun taskToJson(): JsonRoot.(WorkflowTask) -> Unit {
+        return {
+            task -> obj {
                 entry("id", task.getId())
                 entry("description", task.getDescription())
                 key("properties") {
@@ -114,6 +113,15 @@ public class WorkflowInstances @Autowired constructor(
                 }
             }
         }
+
+    }
+
+    @Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
+    fun tasksForInstance(@UriVariable workflowid: String) = json {
+        val tasks = AuthenticationUtil.runAsSystem {
+            getTasksForInstance(workflowService.getWorkflowById(workflowid))
+        }
+        iterable(tasks, taskToJson())
     }
 
     fun getTasksForInstance(instance: WorkflowInstance): List<WorkflowTask>? {
