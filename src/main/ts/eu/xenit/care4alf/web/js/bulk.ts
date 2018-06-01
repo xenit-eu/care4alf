@@ -22,10 +22,15 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
 
     $http.get("bulk/listActions").success(function (data) {
         $scope.actions = data;
-        var keys = Object.keys(data);
-        if (keys.length > 0)
-            $scope.form.action = keys[0];
-
+        var actkeys = Object.keys(data);
+        if (actkeys.length > 0) {
+            // Put the dummy action (i.e. the no-op) as the default selected, if possible
+            if (actkeys.indexOf("dummy") != -1) {
+                $scope.form.action = "dummy";
+            } else {
+                $scope.form.action = actkeys[0];
+            }
+        }
     });
     $scope.form.parameters = {};
     $scope.loading = false;
