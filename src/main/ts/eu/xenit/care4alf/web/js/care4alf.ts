@@ -39,3 +39,4 @@
 /// <reference path="attributes.ts" />
 /// <reference path="behaviourlist.ts" />
 /// <reference path="permissionimport.ts" />
+/// <reference path="impersonate.ts" />
