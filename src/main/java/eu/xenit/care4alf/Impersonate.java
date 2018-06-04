@@ -2,10 +2,11 @@ package eu.xenit.care4alf;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
-import eu.xenit.care4alf.web.WebscriptDefaults;
+import org.alfresco.model.ContentModel;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.AuthenticationService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.json.JSONException;
@@ -15,15 +16,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptException;
-import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
 
 /**
- * Created by Thomas S on 04/07/2017.
+ * Something to note: The original impersonate webscript has two endpoints, one for starting the impersonation, another
+ * for ending it. The implication there was that you could make a call to /start, do some requests which would then be
+ * automatically impersonated, and call /end. However I couldn't get this to work in testing, and only managed imperso-
+ * nation within a clearly defined RunAs scope, or by using ?alf_ticket=...
+ *
+ * If you want the original Impersonate.java script that provides these endpoints, look in ovam-custom.
  */
 @Component
 @WebScript(baseUri = "/xenit/care4alf/impersonate", families = {"care4alf"}, description = "Impersonate")
@@ -34,6 +38,8 @@ public class Impersonate {
 
     @Autowired
     private ServiceRegistry services;
+    @Autowired
+    private NodeService nodeService;
     @Autowired
     private PersonService personService;
     @Autowired
@@ -68,6 +74,9 @@ public class Impersonate {
                 json.key("name");
                 json.value(authenticationService.getCurrentUserName());
 
+                json.key("userid");
+                json.value(userId);
+
                 json.key("ticket");
                 json.value(authenticationService.getCurrentTicket());
 
@@ -82,57 +91,26 @@ public class Impersonate {
         };
     }
 
+    @Uri(value="/prop/{space}/{store}/{guid}/{user}", method = HttpMethod.GET)
+    public JsonWriterResolution tryPropertyAs(@UriVariable final String space, @UriVariable final String store,
+                              @UriVariable final String guid, @UriVariable final String user) {
+        return new JsonWriterResolution() {
+            protected void writeJson(final JSONWriter json) throws JSONException {
+                final NodeRef node = new NodeRef(space, store, guid);
 
-    @Uri(value = "exec", method = HttpMethod.POST)
-    protected void excecute(WebScriptResponse response, @RequestParam(defaultValue = "admin") String username) throws IOException, JSONException {
+                Serializable result = AuthenticationUtil.runAs(new AuthenticationUtil.RunAsWork<Serializable>() {
+                    @Override
+                    public Serializable doWork() {
+                        return nodeService.getProperty(node, ContentModel.PROP_NAME);
+                    }
+                }, user);
 
-        String requestingUser = services.getAuthenticationService().getCurrentUserName();
-
-        if(username.toLowerCase().equals("system")){
-            throw new WebScriptException(Status.STATUS_FORBIDDEN, "Cannot impersonate System user");
-        }
-
-        String userId = services.getPersonService().getUserIdentifier(username);
-        if (userId == null)
-            throw new WebScriptException(Status.STATUS_NOT_FOUND, "User not found: "+username);
-
-        if (!this.services.getAuthenticationService().getAuthenticationEnabled(userId))
-            throw new WebScriptException(Status.STATUS_FORBIDDEN, "The user is disabled in Alfresco");
-
-        NodeRef personRef = services.getPersonService().getPerson(userId, false);
-        logger.info("Resolved username '"+username+"' to noderef '"+personRef+"'");
-
-        Map<String, Object> model = new HashMap<String, Object>();
-
-        model.put("currentuser", this.services.getAuthenticationService().getCurrentUserName());
-        model.put("currentticket", this.services.getAuthenticationService().getCurrentTicket());
-
-        AuthenticationUtil.setRunAsUser(userId);
-        AuthenticationUtil.setFullyAuthenticatedUser(userId);
-
-        model.put("impersonateduser", this.services.getAuthenticationService().getCurrentUserName());
-        model.put("impersonatedticket", this.services.getAuthenticationService().getCurrentTicket());
-        model.put("impersonatedpersonnoderef", personRef.toString());
-
-        logger.info("[" + requestingUser + "] Impersonating user '" + username + "'");
-        //response.getWriter().append("[" + requestingUser + "] Impersonating user '" + username + "'");
-        JSONWriter json = new JSONWriter(response.getWriter());
-        json.object();
-        for (String k : model.keySet()) {
-            json.key(k);
-            json.value(model.get(k));
-        }
-        json.endObject();
-    }
-
-    @Uri(value = "stop")
-    public void stop(WebScriptResponse response) throws IOException {
-        String requestingUser = services.getAuthenticationService().getCurrentUserName();
-        String userId = services.getPersonService().getUserIdentifier(requestingUser);
-
-        AuthenticationUtil.setRunAsUser(userId);
-        AuthenticationUtil.setFullyAuthenticatedUser(userId);
-
-        response.getWriter().append("Ended impersonation.");
+                String name = (String) result;
+                json.object();
+                json.key("cm:name");
+                json.value(name);
+                json.endObject();
+            }
+        };
     }
 }

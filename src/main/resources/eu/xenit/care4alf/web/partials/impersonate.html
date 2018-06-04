@@ -19,6 +19,7 @@
         Ticket info:
         <ul>
             <li><strong>Impersonated user name:</strong> {{ impuser.name }}</li>
+            <li><strong>Impersonated user id:</strong> {{ impuser.userid }}</li>
             <li><strong>Impersonated user node:</strong> {{ impuser.noderef }}</li>
             <li><strong>Impersonated user ticket:</strong> {{ impuser.ticket }}</li>
         </ul>
@@ -27,8 +28,8 @@
         <h4>Test access</h4>
         Test access to a noderef (<a href="#/browser">find one via the nodebrowser</a>) using the above user.
         <div class="form-group">
-            <label for="userNode2">User Noderef</label>
-            <input type="text" ng-model="userNode" class="form-control" id="userNode2" />
+            <label for="userId">User Id</label>
+            <input type="text" ng-model="impuser.userid" class="form-control" id="userId" />
         </div>
         <div class="form-group">
             <label for="testNode">NodeRef to access</label>
@@ -36,8 +37,16 @@
         </div>
         <div class="form-group">
             <button type="submit" class="btn btn-primary" ng-click="testInFrame(testNode, userNode)">
-                Test in iframe
+                Test in iframe (uses ticket)
             </button>
+            <button type="submit" class="btn btn-info" ng-click="testCmName(testNode, impuser.userid)">
+                Test cm:name (uses Run As)
+            </button>
+        </div>
+        <div ng-if="testCmName.message">
+            <p>Retrieving <code>cm:name</code> on the above noderef as user <em>{{impuser.userid}}</em>:</p>
+            <p>{{testCmName.message}}</p>
+            <pre ng-if="!testCmName.success"><code>{{testCmName.error}}</code></pre>
         </div>
         <iframe src="{{testFrameSrc}}"></iframe>
     </div>
