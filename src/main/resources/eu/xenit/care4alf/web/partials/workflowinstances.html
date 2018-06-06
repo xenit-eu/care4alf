@@ -36,7 +36,20 @@
                                && task.properties['{http://www.alfresco.org/model/bpm/1.0}status'] != 'Completed'"
                 ng-click="releaseTask(instance, task.id)" class="btn btn-info">Release to pool</button>
             </p>
-            <pre>{{task.properties | json}}</pre>
+            <ul>
+                <li>name: {{task.name}}</li>
+                <li>title: {{task.title}}</li>
+                <li>state: {{task.state}}</li>
+                <li>properties:
+                    <pre>{{task.properties | json}}</pre>
+                    <input type="text" ng-model="taskPropQname" placeholder="Short Qname" />
+                    <input type="text" ng-model="taskPropType" placeholder="Type (String, Date, or Integer)" />
+                    <input type="text" ng-model="taskPropVal" placeholder="Value" />
+                    <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
+                        Edit property
+                    </button>
+                </li>
+            </ul>
         </li>
     </ul>
     <div class="btn-group">
