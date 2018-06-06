@@ -12,13 +12,17 @@ import org.alfresco.service.cmr.workflow.WorkflowInstance
 import org.alfresco.service.cmr.workflow.WorkflowService
 import org.alfresco.service.cmr.workflow.WorkflowTask
 import org.alfresco.service.cmr.workflow.WorkflowTaskQuery
+import org.alfresco.service.namespace.NamespacePrefixResolver
 import org.alfresco.service.namespace.QName
+import org.alfresco.util.ISO8601DateFormat
 import org.alfresco.util.UrlUtil
+import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
 import java.io.Serializable
+import java.util.*
 
 /**
  * @author Laurent Van der Linden
@@ -30,7 +34,8 @@ public class WorkflowInstances @Autowired constructor(
         private val workflowService: WorkflowService,
         private val permissionService: PermissionService,
         private val sysadminParams: SysAdminParams,
-        private val nodeService: NodeService
+        private val nodeService: NodeService,
+        private val nameSpacePrefixResolver: NamespacePrefixResolver
     ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -103,6 +108,9 @@ public class WorkflowInstances @Autowired constructor(
         return {
             task -> obj {
                 entry("id", task.getId())
+                entry("name", task.getName())
+                entry("title", task.getTitle())
+                entry("state", task.getState())
                 entry("description", task.getDescription())
                 key("properties") {
                     obj {
@@ -159,6 +167,40 @@ public class WorkflowInstances @Autowired constructor(
     fun releaseTask(@UriVariable("id") id: String) = json {
         logger.error("Id is {}", id);
         val props: MutableMap<QName, Serializable?> = hashMapOf(ContentModel.PROP_OWNER to null);
+        val task = workflowService.updateTask(id, props, null, null);
+        obj {
+            entry("id", task.getId())
+            entry("description", task.getDescription())
+            key("properties") {
+                obj {
+                    for (property in task.getProperties()) {
+                        entry(property.key.toString(), property.value)
+                    }
+                }
+            }
+        }
+    }
+
+    @Uri(value = "/tasks/{id}/setProperty", method = HttpMethod.POST, defaultFormat = "json")
+    fun setTaskProperty(@UriVariable("id") id: String, payload: JSONObject) = json {
+        logger.info("Setting property on {}", id);
+        val type = payload.getString("type");
+        val qname : QName = QName.createQName(payload.getString("qname"), nameSpacePrefixResolver);
+        var props: MutableMap<QName, Serializable?> = hashMapOf();
+        when (type.toLowerCase()) {
+            "date" -> {
+                val date: Date = ISO8601DateFormat.parse(payload.getString("value"));
+                props = hashMapOf(qname to date);
+            }
+            "integer" -> {
+                val integer: Int = Integer.parseInt(payload.getString("value"));
+                props = hashMapOf(qname to integer);
+            }
+            "string" -> props = hashMapOf(qname to payload.getString("value"));
+        }
+        if (props.isEmpty()) {
+            throw IllegalArgumentException("Type $type not recognized, should be String, Integer or Date");
+        }
         val task = workflowService.updateTask(id, props, null, null);
         obj {
             entry("id", task.getId())
