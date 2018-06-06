@@ -40,14 +40,16 @@
                 <li>name: {{task.name}}</li>
                 <li>title: {{task.title}}</li>
                 <li>state: {{task.state}}</li>
-                <li>properties:
+                <li>properties <a href="javascript:void(0)" ng-click="task.showEdit = !task.showEdit">(edit)</a>:
+                    <div ng-if="task.showEdit">
+                        <input type="text" ng-model="taskPropQname" placeholder="Short Qname" />
+                        <input type="text" ng-model="taskPropType" placeholder="Type (String, Date, or Integer)" />
+                        <input type="text" ng-model="taskPropVal" placeholder="Value" />
+                        <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
+                            Edit property
+                        </button>
+                    </div>
                     <pre>{{task.properties | json}}</pre>
-                    <input type="text" ng-model="taskPropQname" placeholder="Short Qname" />
-                    <input type="text" ng-model="taskPropType" placeholder="Type (String, Date, or Integer)" />
-                    <input type="text" ng-model="taskPropVal" placeholder="Value" />
-                    <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
-                        Edit property
-                    </button>
                 </li>
             </ul>
         </li>

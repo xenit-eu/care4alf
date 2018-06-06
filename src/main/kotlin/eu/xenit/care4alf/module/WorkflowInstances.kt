@@ -187,16 +187,16 @@ public class WorkflowInstances @Autowired constructor(
         val type = payload.getString("type");
         val qname : QName = QName.createQName(payload.getString("qname"), nameSpacePrefixResolver);
         var props: MutableMap<QName, Serializable?> = hashMapOf();
-        when (type) {
-            "Date" -> {
+        when (type.toLowerCase()) {
+            "date" -> {
                 val date: Date = ISO8601DateFormat.parse(payload.getString("value"));
                 props = hashMapOf(qname to date);
             }
-            "Integer" -> {
+            "integer" -> {
                 val integer: Int = Integer.parseInt(payload.getString("value"));
                 props = hashMapOf(qname to integer);
             }
-            "String" -> props = hashMapOf(qname to payload.getString("value"));
+            "string" -> props = hashMapOf(qname to payload.getString("value"));
         }
         if (props.isEmpty()) {
             throw IllegalArgumentException("Type $type not recognized, should be String, Integer or Date");
