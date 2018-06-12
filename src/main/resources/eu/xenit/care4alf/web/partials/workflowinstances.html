@@ -42,13 +42,13 @@
                 <li>state: {{task.state}}</li>
                 <li>properties <a href="javascript:void(0)" ng-click="task.showEdit = !task.showEdit">(edit)</a>:
                     <div ng-if="task.showEdit">
-                        <input type="text" ng-model="taskPropQname" placeholder="Short Qname" />
+                        <input type="text" class="text-monospace" ng-model="taskPropQname" placeholder="Short Qname" />
                         <select ng-model="taskPropType">
                             <option val="String">String</option>
-                            <option val="Date">Date</option>
+                            <option val="Date">Date (ISO-8601)</option>
                             <option val="Integer">Integer</option>
                         </select>
-                        <input type="text" ng-model="taskPropVal" placeholder="Value" />
+                        <input type="text" class="text-monospace" ng-model="taskPropVal" placeholder="Value" />
                         <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
                             Edit property
                         </button>
