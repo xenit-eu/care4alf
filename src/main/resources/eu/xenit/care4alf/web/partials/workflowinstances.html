@@ -44,9 +44,9 @@
                     <div ng-if="task.showEdit">
                         <input type="text" class="text-monospace" ng-model="taskPropQname" placeholder="Short Qname" />
                         <select ng-model="taskPropType">
-                            <option val="String">String</option>
-                            <option val="Date">Date (ISO-8601)</option>
-                            <option val="Integer">Integer</option>
+                            <option value="String">String</option>
+                            <option value="Date">Date (ISO-8601)</option>
+                            <option value="Integer">Integer</option>
                         </select>
                         <input type="text" class="text-monospace" ng-model="taskPropVal" placeholder="Value" />
                         <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
