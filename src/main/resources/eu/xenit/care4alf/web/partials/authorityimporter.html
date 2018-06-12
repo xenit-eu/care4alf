@@ -12,7 +12,7 @@
 
     <div style="display: flex; flex-direction: row; align-items: center;">
         <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: stretch;">
-            <textarea style="flex: 0 0 100%; resize: vertical;" ng-model="input" ng-change="doInput(input)"></textarea>
+            <textarea class="text-monospace" style="flex: 0 0 100%; resize: vertical;" ng-model="input" ng-change="doInput(input)"></textarea>
             <div style="text-align: right; color: darkred; min-height: 24px;"><i ng-show="input && !inputParsed">Input is not valid JSON</i></div>
         </div>
         <div style="flex: 0 0 20%; display: flex; justify-content: center; margin-bottom: 24px;">

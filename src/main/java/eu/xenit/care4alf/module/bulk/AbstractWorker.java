@@ -2,6 +2,7 @@ package eu.xenit.care4alf.module.bulk;
 
 import eu.xenit.care4alf.BetterBatchProcessor;
 import eu.xenit.care4alf.search.SolrAdmin;
+import org.alfresco.repo.node.archive.NodeArchiveService;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.*;
@@ -17,6 +18,7 @@ import org.json.JSONObject;
 public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
 
     protected NodeService nodeService;
+    protected NodeArchiveService nodeArchiveService;
     protected NamespacePrefixResolver nameSpacePrefixResolver;
     protected JSONObject parameters;
     protected NamespaceService namespaceService;
@@ -76,5 +78,9 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
 
     public void setMimetypeService(MimetypeService mimetypeService) {
         this.mimetypeService = mimetypeService;
+    }
+
+    public void setNodeArchiveService(NodeArchiveService nodeArchiveService) {
+        this.nodeArchiveService = nodeArchiveService;
     }
 }

@@ -14,7 +14,7 @@
     </tr>
     <tr ng-repeat="logger in loggers | filter:name">
         <td>{{::logger.name}}</td>
-        <td><input type="text" ng-model="logger.level" /> <button class="btn" ng-show="logger.level != logger.original" ng-click="apply(logger)">apply</button></td>
+        <td><input type="text" ng-model="logger.level" ng-change="touch(logger)" /> <button class="btn" ng-show="logger.touched" ng-click="apply(logger)">apply</button></td>
     </tr>
     </tbody>
 </table>

@@ -168,17 +168,7 @@ public class WorkflowInstances @Autowired constructor(
         logger.error("Id is {}", id);
         val props: MutableMap<QName, Serializable?> = hashMapOf(ContentModel.PROP_OWNER to null);
         val task = workflowService.updateTask(id, props, null, null);
-        obj {
-            entry("id", task.getId())
-            entry("description", task.getDescription())
-            key("properties") {
-                obj {
-                    for (property in task.getProperties()) {
-                        entry(property.key.toString(), property.value)
-                    }
-                }
-            }
-        }
+        taskToJson()(task);
     }
 
     @Uri(value = "/tasks/{id}/setProperty", method = HttpMethod.POST, defaultFormat = "json")
@@ -202,16 +192,6 @@ public class WorkflowInstances @Autowired constructor(
             throw IllegalArgumentException("Type $type not recognized, should be String, Integer or Date");
         }
         val task = workflowService.updateTask(id, props, null, null);
-        obj {
-            entry("id", task.getId())
-            entry("description", task.getDescription())
-            key("properties") {
-                obj {
-                    for (property in task.getProperties()) {
-                        entry(property.key.toString(), property.value)
-                    }
-                }
-            }
-        }
+        taskToJson()(task);
     }
 }

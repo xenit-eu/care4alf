@@ -7,6 +7,7 @@ import eu.xenit.care4alf.module.bulk.workers.ActionCsvWorker;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.batch.BatchProcessWorkProvider;
+import org.alfresco.repo.node.archive.NodeArchiveService;
 import org.alfresco.repo.policy.BehaviourFilter;
 import org.alfresco.service.ServiceRegistry;
 import org.alfresco.service.cmr.repository.*;
@@ -93,6 +94,9 @@ public class Bulk implements ApplicationContextAware {
 
     @Autowired
     protected MimetypeService mimetypeService;
+
+    @Autowired
+    protected NodeArchiveService nodeArchiveService;
 
     @Autowired @Qualifier("policyBehaviourFilter")
     private BehaviourFilter policyBehaviourFilter;
@@ -200,6 +204,7 @@ public class Bulk implements ApplicationContextAware {
         worker.setServiceRegistery(serviceRegistry);
         worker.setSolrAdmin(solrAdmin);
         worker.setMimetypeService(mimetypeService);
+        worker.setNodeArchiveService(nodeArchiveService);
     }
 
     @Uri("/xenit/care4alf/bulk/stores")
