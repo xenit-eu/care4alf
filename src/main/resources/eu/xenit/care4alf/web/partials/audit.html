@@ -4,31 +4,31 @@
             ng-model="application"
             ng-options="app.path as app.name for app in control.applications"
             ng-change="setRouteLoad(application)"></select>
-    <input type="button" ng-show="showClear" class="btn-danger" ng-click="clear(application)" value="Clear"/>
-    <input type="button" class="btn-primary" ng-click="reload()" value="Refresh"/>
-    <input type="button" ng-show="showBack" class=".btn-info" ng-click="setRouteLoad(application)" value="Back"/>
+    <input type="button" ng-show="showClear" class="btn btn-danger" ng-click="clear(application)" value="Clear"/>
+    <input type="button" class="btn btn-primary" ng-click="reload()" value="Refresh"/>
+    <input type="button" ng-show="showBack" class="btn btn-info" ng-click="setRouteLoad(application)" value="Back"/>
 </div>
 <div class="alert alert-success" ng-show="showSuccessAlert">
     <button type="button" class="close" data-ng-click="switchBool('showSuccessAlert')">×</button> <strong>Done!</strong> {{successTextAlert}}</div>
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th><a  ng-click="sortType = 'id' ; sortReverse = !sortReverse">
+            <th><a href="javascript:void(0);" ng-click="sortType = 'id' ; sortReverse = !sortReverse">
                 Id
-                <i ng-show="sortType == 'id' && !sortReverse" >&#709;</i>
-                <i ng-show="sortType == 'id' && sortReverse" >&#708;</i>
+                <i class="glyphicon glyphicon-chevron-down" ng-show="sortType == 'id' && !sortReverse" ></i>
+                <i class="glyphicon glyphicon-chevron-up" ng-show="sortType == 'id' && sortReverse" ></i>
             </a>
             </th>
-            <th><a ng-click="sortType = 'user' ; sortReverse = !sortReverse">
+            <th><a href="javascript:void(0);" ng-click="sortType = 'user' ; sortReverse = !sortReverse">
                 User
-                <i ng-show="sortType == 'user' && !sortReverse" >&#709;</i>
-                <i ng-show="sortType == 'user' && sortReverse" >&#708;</i>
+                <i class="glyphicon glyphicon-chevron-down" ng-show="sortType == 'user' && !sortReverse" ></i>
+                <i class="glyphicon glyphicon-chevron-up" ng-show="sortType == 'user' && sortReverse" ></i>
             </a>
             </th>
-            <th><a ng-click="sortType = 'time' ; sortReverse = !sortReverse">
+            <th><a href="javascript:void(0);" ng-click="sortType = 'time' ; sortReverse = !sortReverse">
                 Time
-                <i ng-show="sortType == 'time' && !sortReverse" >&#709;</i>
-                <i ng-show="sortType == 'time' && sortReverse" >&#708;</i>
+                <i class="glyphicon glyphicon-chevron-down" ng-show="sortType == 'time' && !sortReverse" ></i>
+                <i class="glyphicon glyphicon-chevron-up" ng-show="sortType == 'time' && sortReverse" ></i>
             </a>
             </th>
             <th>Values</th>

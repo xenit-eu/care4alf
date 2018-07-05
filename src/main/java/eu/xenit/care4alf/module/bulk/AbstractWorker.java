@@ -2,11 +2,10 @@ package eu.xenit.care4alf.module.bulk;
 
 import eu.xenit.care4alf.BetterBatchProcessor;
 import eu.xenit.care4alf.search.SolrAdmin;
+import org.alfresco.repo.node.archive.NodeArchiveService;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.ServiceRegistry;
-import org.alfresco.service.cmr.repository.NodeRef;
-import org.alfresco.service.cmr.repository.NodeService;
-import org.alfresco.service.cmr.repository.ScriptService;
+import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespacePrefixResolver;
@@ -19,6 +18,7 @@ import org.json.JSONObject;
 public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWorkerAdaptor<NodeRef> {
 
     protected NodeService nodeService;
+    protected NodeArchiveService nodeArchiveService;
     protected NamespacePrefixResolver nameSpacePrefixResolver;
     protected JSONObject parameters;
     protected NamespaceService namespaceService;
@@ -27,6 +27,7 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
     protected ServiceRegistry serviceRegistry;
     protected PersonService personService;
     protected SolrAdmin solrAdmin;
+    protected MimetypeService mimetypeService;
 
 
     public AbstractWorker(JSONObject parameters) {
@@ -71,7 +72,15 @@ public abstract class AbstractWorker extends BetterBatchProcessor.BatchProcessWo
         this.serviceRegistry = serviceRegistry;
     }
 
-    public void setSolrAdmin(SolrAdmin solrAdmin){
+    public void setSolrAdmin(SolrAdmin solrAdmin) {
         this.solrAdmin = solrAdmin;
+    }
+
+    public void setMimetypeService(MimetypeService mimetypeService) {
+        this.mimetypeService = mimetypeService;
+    }
+
+    public void setNodeArchiveService(NodeArchiveService nodeArchiveService) {
+        this.nodeArchiveService = nodeArchiveService;
     }
 }

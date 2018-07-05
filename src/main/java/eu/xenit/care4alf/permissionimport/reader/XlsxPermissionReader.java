@@ -65,7 +65,9 @@ public class XlsxPermissionReader implements PermissionReader {
                     if(cell.getColumnIndex() == 2){
                         String pathString = cell.getStringCellValue().trim();
                         // cut of slash in the beginning if needed, otherwise empty first part of path
-                        if(pathString.charAt(0) == '/'){
+                        if(pathString.equals("/") || pathString.isEmpty()) {
+                            next.setPath(new String[] {});
+                        } else if(pathString.charAt(0) == '/') {
                             next.setPath(pathString.substring(1).split("/"));
                         } else {
                             next.setPath(pathString.split("/"));

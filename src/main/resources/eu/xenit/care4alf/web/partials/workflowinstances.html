@@ -31,8 +31,31 @@
     <button ng-click="loadTasks(instance)" class="btn btn-info" ng-hide="instance.tasks.length >= 0">load tasks</button>
     <ul>
         <li ng-repeat="task in instance.tasks">
-            <p>{{task.id}}: {{task.description}}</p>
-            <pre>{{task.properties | json}}</pre>
+            <p>{{task.id}}: {{task.description}}
+                <button ng-if="task.properties['{http://www.alfresco.org/model/content/1.0}owner'] != null
+                               && task.properties['{http://www.alfresco.org/model/bpm/1.0}status'] != 'Completed'"
+                ng-click="releaseTask(instance, task.id)" class="btn btn-info">Release to pool</button>
+            </p>
+            <ul>
+                <li>name: {{task.name}}</li>
+                <li>title: {{task.title}}</li>
+                <li>state: {{task.state}}</li>
+                <li>properties <a href="javascript:void(0)" ng-click="task.showEdit = !task.showEdit">(edit)</a>:
+                    <div ng-if="task.showEdit">
+                        <input type="text" class="text-monospace" ng-model="taskPropQname" placeholder="Short Qname" />
+                        <select ng-model="taskPropType">
+                            <option value="String">String</option>
+                            <option value="Date">Date (ISO-8601)</option>
+                            <option value="Integer">Integer</option>
+                        </select>
+                        <input type="text" class="text-monospace" ng-model="taskPropVal" placeholder="Value" />
+                        <button type="submit" ng-click="setTaskProperty(instance, task.id, taskPropQname, taskPropType, taskPropVal)">
+                            Edit property
+                        </button>
+                    </div>
+                    <pre>{{task.properties | json}}</pre>
+                </li>
+            </ul>
         </li>
     </ul>
     <div class="btn-group">

@@ -39,9 +39,11 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     };
 
     $scope.deleteProperty = (property) => {
-        $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property).then(() => {
-            delete $scope.node.properties[property];
-        })
+        if ($window.confirm("Are you sure you want to delete this property?")) {
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property).then(() => {
+                delete $scope.node.properties[property];
+            })
+        }
     };
 
     $scope.saveProperty = (property) => {
@@ -69,6 +71,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
             $http.delete(serviceUrl + "/xenit/care4alf/browser/" + node.noderef).success(() => {
                 $scope.node.children = _.without($scope.node.children, node);
             });
+            $window.history.back();
         }
     };
 
@@ -120,14 +123,22 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
             // Allow pasting in a noderef
             $window.localStorage.setItem(LS_QUERY, query);
 
-            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query).success((matches) => {
-                $scope.results = matches;
-            });
+            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query)
+                .success((matches) => {
+                    $scope.results = matches;
+                    $scope.results.success = true;
+                })
+                .error((err) => {
+                    $scope.results.success = false;
+                });
         }
     };
 
     $scope.searchModel = {};
     $scope.serviceUrl = serviceUrl;
+
+    $scope.showhelp = false;
+    $scope.toggleHelp = () => $scope.showhelp = !$scope.showhelp;
 
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");

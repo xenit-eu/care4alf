@@ -28,8 +28,13 @@ public class SystemMetrics extends AbstractMonitoredSource {
 
         OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
 
-        map.put("system.loadavg", (long) os.getSystemLoadAverage()*100);
-        map.put("system.processors", (long) os.getAvailableProcessors());
+        long loadAvg = (long) os.getSystemLoadAverage()*100;
+        long availableProcessors = (long) os.getAvailableProcessors();
+        long loadOverCores = loadAvg/availableProcessors;
+
+        map.put("system.loadavg", loadAvg);
+        map.put("system.processors", availableProcessors);
+        map.put("system.loadPerNmbrOfCores", loadOverCores);
 
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
         map.put("jvm.threads.count", (long) threadMXBean.getThreadCount());

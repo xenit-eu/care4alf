@@ -3,6 +3,10 @@
 care4alf.controller('workflowinstances', function($scope, $resource: ng.resource.IResourceService, $http: ng.IHttpService, $window: ng.IWindowService) {
     $scope.idpattern = /^\w+\$\d+$/;
 
+    $scope.taskPropQname = ""
+    $scope.taskPropType = ""
+    $scope.taskPropVal = ""
+
     var instanceResultHandler = function (instances) {
         $scope.instances = instances;
     };
@@ -28,6 +32,30 @@ care4alf.controller('workflowinstances', function($scope, $resource: ng.resource
             instance.tasks = tasks;
         });
     };
+
+    $scope.releaseTask = (instance, taskId) => {
+        $http.post('workflow/instances/tasks/' + taskId + '/release', '').success((task:{id:string}) => {
+            // Update matching task in frontend
+            instance.tasks = instance.tasks.map((t) => t.id == task.id ? task : t);
+        }).error((error) => {
+            $window.alert(error);
+        });
+    };
+
+    $scope.setTaskProperty = (instance, taskId, propQname, propType, propVal) => {
+        $http.post('workflow/instances/tasks/' + taskId + '/setProperty',
+            {
+                'qname': propQname,
+                'type': propType,
+                'value': propVal
+            }
+        ).success((task:{id:string}) => {
+            instance.tasks = instance.tasks.map((t) => t.id == task.id ? task : t);
+        }).error((error) => {
+            $window.alert(error);
+        });
+    };
+
 
     $scope.findInstances = () => {
         if (angular.isDefined($scope.taskid) && $scope.taskid.length > 0) {

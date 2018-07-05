@@ -27,6 +27,10 @@
     <link rel="stylesheet" href="${resources}/js/angularjs-toaster/toaster.css">
     <link rel="stylesheet" href="${resources}/js/angular-loading-bar/loading-bar.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
+    <!-- Icon by DinoSoftLabs on Flaticon.com -->
+    <link rel="icon" href="${resources}/img/fire-extinguisher16.png" sizes="16x16" type="image/png" />
+    <link rel="icon" href="${resources}/img/fire-extinguisher32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="${resources}/img/fire-extinguisher128.png" sizes="128x128" type="image/png" />
 </head>
 <body>
 <div class="title">
