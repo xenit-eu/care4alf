@@ -38,14 +38,13 @@ import java.util.concurrent.*;
 @WebScript(baseUri = "/xenit/care4alf/export", families = {"care4alf"}, description = "Export Alfresco")
 public class Export {
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
-    private final Logger logger = LoggerFactory.getLogger(Export.class);
-    private final static Set<String> NON_RESOLVED_AUTHORITIES = new HashSet<String>(Arrays.asList("GROUP_EVERYONE", "GROUP_ALFRESCO_ADMINISTRATORS", "guest"));
+    private final static Set<String> NON_RESOLVED_AUTHORITIES = new HashSet<String>(
+            Arrays.asList("GROUP_EVERYONE", "GROUP_ALFRESCO_ADMINISTRATORS", "guest"));
+    private static final char[] CSV_SEARCH_CHARS = new char[]{',', ';', '"', '\r', '\n'};
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
     final int MAX_QUERY_SIZE = 1000;
-
-    private static final char[] CSV_SEARCH_CHARS = new char[] {',', ';', '"', '\r', '\n'};
-
+    private final Logger logger = LoggerFactory.getLogger(Export.class);
     @Autowired
     private SearchService searchService;
     @Autowired
@@ -79,17 +78,18 @@ public class Export {
     private Boolean escapePermissionBreakdown;
 
     @PostConstruct
-    private void init(){
-        aclStart = globalProps.getProperty(PROPS_PREFIX +"aclStart", aclStart);
-        aclEnd = globalProps.getProperty(PROPS_PREFIX +"aclEnd", aclEnd);
-        aclAuthorityPermissionSeparator = globalProps.getProperty(PROPS_PREFIX +"aclAuthorityPermissionSeparator",
+    private void init() {
+        aclStart = globalProps.getProperty(PROPS_PREFIX + "aclStart", aclStart);
+        aclEnd = globalProps.getProperty(PROPS_PREFIX + "aclEnd", aclEnd);
+        aclAuthorityPermissionSeparator = globalProps.getProperty(PROPS_PREFIX + "aclAuthorityPermissionSeparator",
                 aclAuthorityPermissionSeparator);
-        aclSeparator = globalProps.getProperty(PROPS_PREFIX +"aclSeparator", aclSeparator);
-        includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX +"includeAccessStatus", "false"));
-        escapePermissionBreakdown = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX +"escapePermissionBreakdown", "true"));
+        aclSeparator = globalProps.getProperty(PROPS_PREFIX + "aclSeparator", aclSeparator);
+        includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX + "includeAccessStatus", "false"));
+        escapePermissionBreakdown = Boolean
+                .valueOf(globalProps.getProperty(PROPS_PREFIX + "escapePermissionBreakdown", "true"));
     }
 
-    @Uri(value="/query", method = HttpMethod.GET)
+    @Uri(value = "/query", method = HttpMethod.GET)
     @Transaction(readOnly = false)
     public void exportQuery(@RequestParam(required = false)                    String query,
                             @RequestParam(defaultValue = ",")            final String separator,
@@ -98,8 +98,8 @@ public class Export {
                             @RequestParam(defaultValue = "cm:name,path") final String columns,
                             @RequestParam(defaultValue = "-1")           final String amountDoc,
                             @RequestParam(required = false)                    String path, // unused?
-                            @RequestParam(defaultValue = "false")        final boolean localSave,
-                            WebScriptResponse wsResponse) throws IOException, ExecutionException, InterruptedException {
+                            @RequestParam(defaultValue = "false") final boolean localSave,
+                            WebScriptResponse wsResponse) throws IOException {
         /* The WrappingWebScriptResponse messes up with the interaction with client request making it impossible
            to buffer response, we need to access the wrapped WebScriptResponse and write directly to it in order
            to avoid having timeouts on the client side. Note: doing this implicitly returns a '200 OK' response,
@@ -110,20 +110,20 @@ public class Export {
         boolean shouldBypassWrappingWSResponse = isWrapped && next != null;
         final WebScriptResponse response = shouldBypassWrappingWSResponse ? next : wsResponse;
 
-        if(query == null)
+        if (query == null) {
             query = "PATH:\"/app:company_home/cm:Projects_x0020_Home//*\" AND TYPE:\"cm:content\"";
+        }
         final int nbDocuments = Integer.parseInt(amountDoc);
 
-
-        final HashMap<String,Boolean> hardcodedNames = new HashMap<String,Boolean>();
-        hardcodedNames.put("path",true);
-        hardcodedNames.put("text",true);
-        hardcodedNames.put("type",true);
-        hardcodedNames.put("noderef",true);
-        hardcodedNames.put("permissions",true);
-        hardcodedNames.put("permissions-breakdown",true);
-        hardcodedNames.put("direct-permissions",true);
-        hardcodedNames.put("permissions-inheritance",true);
+        final HashMap<String, Boolean> hardcodedNames = new HashMap<String, Boolean>();
+        hardcodedNames.put("path", true);
+        hardcodedNames.put("text", true);
+        hardcodedNames.put("type", true);
+        hardcodedNames.put("noderef", true);
+        hardcodedNames.put("permissions", true);
+        hardcodedNames.put("permissions-breakdown", true);
+        hardcodedNames.put("direct-permissions", true);
+        hardcodedNames.put("permissions-inheritance", true);
 
         final SearchParameters sp = new SearchParameters();
         sp.setLanguage(SearchService.LANGUAGE_FTS_ALFRESCO);
@@ -142,9 +142,9 @@ public class Export {
         // OutputHandler is the consumer thread that will read from the nodeQueue and write to CSV
         class OutputHandler implements Callable<Void> {
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 // This needs to be here so this thread has the correct permissions to access the services we need
-                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>(){
+                return AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Void>() {
                     @Override
                     public Void doWork() throws Exception {
                         Writer outputStreamWriter;
@@ -152,7 +152,8 @@ public class Export {
 
                         if (localSave) {
                             logger.debug("Saving file locally. Creating parent folder CSVExports...");
-                            final NodeRef finalParentFolder = nodeHelper.createFolderIfNotExists(nodeHelper.getCompanyHome(), "CSVExports");
+                            final NodeRef finalParentFolder = nodeHelper
+                                    .createFolderIfNotExists(nodeHelper.getCompanyHome(), "CSVExports");
                             logger.debug("Folder created. Creating document {}...", documentName);
                             NodeRef ref = nodeHelper.createDocument(finalParentFolder, documentName);
                             logger.debug("Document created. Getting ContentWriter...");
@@ -172,7 +173,8 @@ public class Export {
                                 outputStreamWriter.write(el);
                             } else {
                                 outputStreamWriter.write(escapeCsv(dictionaryService.getProperty(
-                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService), separator));
+                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService),
+                                        separator));
                             }
                             if (i != column.length - 1) {
                                 outputStreamWriter.write(separator);
@@ -207,28 +209,39 @@ public class Export {
                                         result.append(nRef);
                                     } else if ("permissions".equals(element)) {
                                         // All permissions
-                                        Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
+                                        Set<AccessPermission> permissions = permissionService
+                                                .getAllSetPermissions(nRef);
                                         result.append(escapeCsv(getFormattedPermissions(permissions), separator));
                                     } else if ("permissions-breakdown".equals(element)) {
                                         // Breakdown of all permissions
-                                        Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(renderColumnWithConfiguredEscaping(getFormattedPermissionsBreakdown(permissions), separator));
+                                        Set<AccessPermission> permissions = permissionService
+                                                .getAllSetPermissions(nRef);
+                                        result.append(renderColumnWithConfiguredEscaping(
+                                                getFormattedPermissionsBreakdown(permissions), separator));
                                     } else if ("direct-permissions".equals(element)) {
                                         // Direct permissions on a node (excludes inherited permissions)
-                                        Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions)), separator));
+                                        Set<AccessPermission> allPermissions = permissionService
+                                                .getAllSetPermissions(nRef);
+                                        result.append(
+                                                escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions)),
+                                                        separator));
                                     } else if ("permissions-inheritance".equals(element)) {
                                         // Flag to determine if permission inheritance is enabled
-                                        result.append(escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString(), separator));
+                                        result.append(escapeCsv(
+                                                ((Boolean) permissionService.getInheritParentPermissions(nRef))
+                                                        .toString(), separator));
                                     } else {
-                                        Serializable property = nodeService.getProperty(nRef, QName.createQName(element, namespaceService));
-                                        result.append(escapeCsv((property==null)?nullValue:property.toString(), separator));
+                                        Serializable property = nodeService
+                                                .getProperty(nRef, QName.createQName(element, namespaceService));
+                                        result.append(escapeCsv((property == null) ? nullValue : property.toString(),
+                                                separator));
                                     }
                                 } catch (RuntimeException e) {
                                     logger.error("Runtime Exception: ", e);
                                 }
-                                if (i < column.length - 1)
+                                if (i < column.length - 1) {
                                     result.append(separator);
+                                }
                             }
                             String str = result.toString();
                             outputStreamWriter.write(str);
@@ -252,7 +265,7 @@ public class Export {
                     }
                 });
             }
-        };
+        }
 
         // QueryRunner is the producer thread that executes the query and places the results in nodeQueue
         class QueryRunner implements Callable<Void> {
@@ -290,14 +303,17 @@ public class Export {
                                 start += MAX_QUERY_SIZE;
                                 resultSet.close();
                             }
-                            while (resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
+                            while (resultSet.getNodeRefs().size() > 0 && (totalDocsProcessed < nbDocuments
+                                    || nbDocuments == -1));//TODO: nodeRefs.size <= nbDocuments
                         } catch (Exception e) {
                             logger.error("Exception in producer thread", e);
                         } finally {
                             logger.debug("Placing STOP_INDICATOR, might block");
                             nodeQueue.put(STOP_INDICATOR);
                             logger.debug("Placed STOP_INDICATOR");
-                            if (resultSet != null) resultSet.close();
+                            if (resultSet != null) {
+                                resultSet.close();
+                            }
                         }
                         return null;
                     }
@@ -333,32 +349,32 @@ public class Export {
         }
     }
 
-    private String renderColumnWithConfiguredEscaping(String columnContent, String separator){
-        if (escapePermissionBreakdown){
+    private String renderColumnWithConfiguredEscaping(String columnContent, String separator) {
+        if (escapePermissionBreakdown) {
             return escapeCsv(columnContent, separator);
         }
         return columnContent;
     }
 
     private String getFormattedPermissions(Set<AccessPermission> permissions) {
-        if (permissions == null){
+        if (permissions == null) {
             return null;
         }
         StringBuilder sb = new StringBuilder();
         Iterator<AccessPermission> permissionIterator = permissions.iterator();
-        if (permissionIterator.hasNext()){
+        if (permissionIterator.hasNext()) {
             AccessPermission accessPermission = permissionIterator.next();
-            sb.append(includeAccessStatus?accessPermission.getAccessStatus():"")
+            sb.append(includeAccessStatus ? accessPermission.getAccessStatus() : "")
                     .append(aclStart)
                     .append(accessPermission.getAuthority())
                     .append(aclAuthorityPermissionSeparator)
                     .append(accessPermission.getPermission())
                     .append(aclEnd);
         }
-        while (permissionIterator.hasNext()){
-            AccessPermission accessPermission=permissionIterator.next();
+        while (permissionIterator.hasNext()) {
+            AccessPermission accessPermission = permissionIterator.next();
             sb.append(aclSeparator)
-                    .append(includeAccessStatus?accessPermission.getAccessStatus():"")
+                    .append(includeAccessStatus ? accessPermission.getAccessStatus() : "")
                     .append(aclStart)
                     .append(accessPermission.getAuthority())
                     .append(aclAuthorityPermissionSeparator)
@@ -370,24 +386,24 @@ public class Export {
     }
 
     private String getFormattedPermissionsBreakdown(Set<AccessPermission> permissions) {
-        if (permissions == null){
+        if (permissions == null) {
             return null;
         }
         Set<AccessPermission> accessPermissionsBreakdown = new HashSet<>(permissions.size());
         Iterator<AccessPermission> permissionIterator = permissions.iterator();
-        while (permissionIterator.hasNext()){
+        while (permissionIterator.hasNext()) {
             AccessPermission accessPermission = permissionIterator.next();
             String authority = accessPermission.getAuthority();
             boolean isGroup = authority.startsWith("GROUP_");
-            if (isGroup && !NON_RESOLVED_AUTHORITIES.contains(authority)){
+            if (isGroup && !NON_RESOLVED_AUTHORITIES.contains(authority)) {
                 Set<String> users = authorityService.getContainedAuthorities(AuthorityType.USER, authority, false);
-                for (String user : users){
+                for (String user : users) {
                     accessPermissionsBreakdown.add(new UserAccessPermission(accessPermission, user));
                 }
-                if (users.isEmpty()){
+                if (users.isEmpty()) {
                     logger.debug("Ignoring empty Group authority : {}", authority);
                 }
-            }else {
+            } else {
                 accessPermissionsBreakdown.add(accessPermission);
             }
         }
@@ -396,12 +412,12 @@ public class Export {
 
     @NotNull
     private Set<AccessPermission> getDirectPermissions(Set<AccessPermission> permissions) {
-        if (permissions == null){
+        if (permissions == null) {
             return null;
         }
         Set<AccessPermission> directPermissions = new HashSet<>();
-        for (AccessPermission accessPermission: permissions){
-            if (accessPermission.isSetDirectly()){
+        for (AccessPermission accessPermission : permissions) {
+            if (accessPermission.isSetDirectly()) {
                 directPermissions.add(accessPermission);
             }
         }
@@ -409,10 +425,10 @@ public class Export {
     }
 
     /**
-     * Based on Apache Commons StringEscapeUtils.escapeCsv(Writer, String).
-     * That one, however, doesn't account for user-configurable column separators: if the user selects semicolon as a
-     * separator (for e.g. MS Excel compatibility) and a field value has a semicolon in it, that field isn't quoted and
-     * is split in half when opened in a spreadsheet program.
+     * Based on Apache Commons StringEscapeUtils.escapeCsv(Writer, String). That one, however, doesn't account for
+     * user-configurable column separators: if the user selects semicolon as a separator (for e.g. MS Excel
+     * compatibility) and a field value has a semicolon in it, that field isn't quoted and is split in half when opened
+     * in a spreadsheet program.
      *
      * This version of the function rectifies that by being aware of the user-configured separator as well as
      * considering semicolon a separator by default.
@@ -430,7 +446,7 @@ public class Export {
         }
 
         // Iterate over the given string, see if it needs to be escaped at all (i.e. contains any csv chars)
-        for (int i=0; i<str.length(); i++) {
+        for (int i = 0; i < str.length(); i++) {
             if (charArrayContains(searchChars, str.charAt(i))) {
                 containsCsvChar = true;
                 break;
@@ -458,7 +474,7 @@ public class Export {
     }
 
     private boolean charArrayContains(char[] haystack, char needle) {
-        for (int i=0; i<haystack.length; i++) {
+        for (int i = 0; i < haystack.length; i++) {
             if (haystack[i] == needle) {
                 return true;
             }
@@ -466,20 +482,18 @@ public class Export {
         return false;
     }
 
-    private class UserAccessPermission implements AccessPermission{
+    private class UserAccessPermission implements AccessPermission {
 
         private AccessPermission accessPermission;
         private String userAuthority;
 
-        UserAccessPermission(AccessPermission accessPermission, String userAuthority){
+        UserAccessPermission(AccessPermission accessPermission, String userAuthority) {
             this.accessPermission = accessPermission;
             this.userAuthority = userAuthority;
         }
 
         /**
          * The permission.
-         *
-         * @return
          */
         @Override
         public String getPermission() {
@@ -488,8 +502,6 @@ public class Export {
 
         /**
          * Get the Access enumeration value
-         *
-         * @return
          */
         @Override
         public AccessStatus getAccessStatus() {
@@ -498,8 +510,6 @@ public class Export {
 
         /**
          * Get the user authority to which this permission applies.
-         *
-         * @return
          */
         @Override
         public String getAuthority() {
@@ -508,8 +518,6 @@ public class Export {
 
         /**
          * Get the type of authority to which this permission applies.
-         *
-         * @return
          */
         @Override
         public AuthorityType getAuthorityType() {
@@ -520,9 +528,8 @@ public class Export {
          * At what position in the inheritance chain for permissions is this permission set?
          * = 0 -> Set direct on the object.
          * > 0 -> Inherited
-         * < 0 -> We don't know and are using this object for reporting (e.g. the actual permissions that apply to a node for the current user)
-         *
-         * @return
+         * < 0 -> We don't know and are using this object for reporting (e.g. the actual permissions that apply to a
+         *        node for the current user)
          */
         @Override
         public int getPosition() {
@@ -531,8 +538,6 @@ public class Export {
 
         /**
          * Is this an inherited permission entry?
-         *
-         * @return
          */
         @Override
         public boolean isInherited() {
@@ -541,8 +546,6 @@ public class Export {
 
         /**
          * Is this permission set on the object?
-         *
-         * @return
          */
         @Override
         public boolean isSetDirectly() {
