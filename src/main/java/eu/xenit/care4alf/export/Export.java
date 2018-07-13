@@ -16,7 +16,6 @@ import org.alfresco.service.cmr.search.SearchService;
 import org.alfresco.service.cmr.security.*;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +43,8 @@ public class Export {
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
     final int MAX_QUERY_SIZE = 1000;
+
+    private static final char[] CSV_SEARCH_CHARS = new char[] {',', ';', '"', '\r', '\n'};
 
     @Autowired
     private SearchService searchService;
@@ -170,8 +171,8 @@ public class Export {
                             if (hardcodedNames.containsKey(el)) {
                                 outputStreamWriter.write(el);
                             } else {
-                                outputStreamWriter.write(StringEscapeUtils.escapeCsv(dictionaryService.getProperty(
-                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService)));
+                                outputStreamWriter.write(escapeCsv(dictionaryService.getProperty(
+                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService), separator));
                             }
                             if (i != column.length - 1) {
                                 outputStreamWriter.write(separator);
@@ -197,8 +198,8 @@ public class Export {
                                 try {
                                     String element = column[i].trim();
                                     if ("path".equals(element)) {
-                                        result.append(StringEscapeUtils.escapeCsv(nodeService.getPath(nRef).toDisplayPath(
-                                                nodeService, new AllowPermissionServiceImpl())));
+                                        result.append(escapeCsv(nodeService.getPath(nRef).toDisplayPath(
+                                                nodeService, new AllowPermissionServiceImpl()), separator));
                                     } else if ("type".equals(element)) {
                                         QName type = nodeService.getType(nRef);
                                         result.append(dictionaryService.getType(type).getTitle());
@@ -207,21 +208,21 @@ public class Export {
                                     } else if ("permissions".equals(element)) {
                                         // All permissions
                                         Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(permissions)));
+                                        result.append(escapeCsv(getFormattedPermissions(permissions), separator));
                                     } else if ("permissions-breakdown".equals(element)) {
                                         // Breakdown of all permissions
                                         Set<AccessPermission> permissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(renderColumnWithConfiguredEscaping(getFormattedPermissionsBreakdown(permissions)));
+                                        result.append(renderColumnWithConfiguredEscaping(getFormattedPermissionsBreakdown(permissions), separator));
                                     } else if ("direct-permissions".equals(element)) {
                                         // Direct permissions on a node (excludes inherited permissions)
                                         Set<AccessPermission> allPermissions = permissionService.getAllSetPermissions(nRef);
-                                        result.append(StringEscapeUtils.escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions))));
+                                        result.append(escapeCsv(getFormattedPermissions(getDirectPermissions(allPermissions)), separator));
                                     } else if ("permissions-inheritance".equals(element)) {
                                         // Flag to determine if permission inheritance is enabled
-                                        result.append(StringEscapeUtils.escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString()));
+                                        result.append(escapeCsv(((Boolean) permissionService.getInheritParentPermissions(nRef)).toString(), separator));
                                     } else {
                                         Serializable property = nodeService.getProperty(nRef, QName.createQName(element, namespaceService));
-                                        result.append(StringEscapeUtils.escapeCsv((property==null)?nullValue:property.toString()));
+                                        result.append(escapeCsv((property==null)?nullValue:property.toString(), separator));
                                     }
                                 } catch (RuntimeException e) {
                                     logger.error("Runtime Exception: ", e);
@@ -332,9 +333,9 @@ public class Export {
         }
     }
 
-    private String renderColumnWithConfiguredEscaping(String columnContent){
-        if (escapePermissionBreakdown.booleanValue()){
-            return StringEscapeUtils.escapeCsv(columnContent);
+    private String renderColumnWithConfiguredEscaping(String columnContent, String separator){
+        if (escapePermissionBreakdown){
+            return escapeCsv(columnContent, separator);
         }
         return columnContent;
     }
@@ -405,6 +406,64 @@ public class Export {
             }
         }
         return directPermissions;
+    }
+
+    /**
+     * Based on Apache Commons StringEscapeUtils.escapeCsv(Writer, String).
+     * That one, however, doesn't account for user-configurable column separators: if the user selects semicolon as a
+     * separator (for e.g. MS Excel compatibility) and a field value has a semicolon in it, that field isn't quoted and
+     * is split in half when opened in a spreadsheet program.
+     *
+     * This version of the function rectifies that by being aware of the user-configured separator as well as
+     * considering semicolon a separator by default.
+     */
+    public String escapeCsv(String str, String separator) {
+        char[] searchChars;
+        boolean containsCsvChar = false;
+
+        // Ensure that searchChars contains the CSV_SEARCH_CHARS plus the separator (if it isn't in there already)
+        if (!charArrayContains(CSV_SEARCH_CHARS, separator.charAt(0))) {
+            searchChars = Arrays.copyOf(CSV_SEARCH_CHARS, CSV_SEARCH_CHARS.length + 1);
+            searchChars[CSV_SEARCH_CHARS.length] = separator.charAt(0);
+        } else {
+            searchChars = CSV_SEARCH_CHARS;
+        }
+
+        // Iterate over the given string, see if it needs to be escaped at all (i.e. contains any csv chars)
+        for (int i=0; i<str.length(); i++) {
+            if (charArrayContains(searchChars, str.charAt(i))) {
+                containsCsvChar = true;
+                break;
+            }
+        }
+
+        // If not, just return the original string
+        if (!containsCsvChar) {
+            return str;
+        }
+
+        // Otherwise, surround it with quotes, double-quoting existing quotes
+        StringBuilder sb = new StringBuilder();
+
+        sb.append('"');
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (c == '"') {
+                sb.append('"'); // escape double quote
+            }
+            sb.append(c);
+        }
+        sb.append('"');
+        return sb.toString();
+    }
+
+    private boolean charArrayContains(char[] haystack, char needle) {
+        for (int i=0; i<haystack.length; i++) {
+            if (haystack[i] == needle) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private class UserAccessPermission implements AccessPermission{
