@@ -9,15 +9,22 @@
                 <li>By database ID: Just enter the number, e.g. <code>123</code></li>
                 <li>By reference: Enter the noderef path, e.g. <code>workspace://SpacesStore/b4cff62a-664d-4d45-9302-98723eac1319</code></li>
                 <li>Through FTS: Enter a valid Lucene/FTS query, e.g. <code>TYPE:"cm:authority" AND (cm:authorityName:"*admin*" OR cm:firstName:"*admin*")</code></li>
+                <li>For timespans: use a range of dates, e.g. <code>cm:modified:[* TO 2016-07-08]</code> or <code>cm:created:[NOW-14DAYS TO NOW-7DAYS]</code></li>
             </ul>
-            <p><a href="https://community.alfresco.com/docs/DOC-5729-full-text-search-query-syntax">A decent reference of the FTS syntax can be found here.</a></p>
+            <p>
+                You can find <a href="https://community.alfresco.com/docs/DOC-5729-full-text-search-query-syntax">a
+                decent reference of the FTS syntax here</a>. Should you find it too vague/incomplete, you can also peek
+                at <a href="https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html">the Solr Query
+                Syntax</a> for inspiration (FTS is based on it), but there's no guarantee everything in there will work.
+            </p>
         </div>
     </div>
     <form ng-submit="search()">
         <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control text-monospace" name="query"/>
     </form>
-    <div class="alert alert-secondary" role="alert" ng-if="results.success">
-        Showing {{results.nodes.length | number}} of {{results.total | number}} results
+    <div class="small alert alert-secondary" role="alert" ng-if="results.success">
+        Showing {{results.nodes.length | number}} of {{results.total | number}} results. Execution started at
+        {{times.start | date:'HH:mm:ss'}} and took {{(times.end - times.start) | number}}ms to complete.
     </div>
     <table class="table">
         <thead>

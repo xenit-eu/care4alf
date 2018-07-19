@@ -113,6 +113,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
 
     $scope.search = () => {
         var query: string = $scope.searchModel.query;
+        var startTime = new Date();
 
         if (query == null || query.length == 0) {
             $http.get(serviceUrl + "/xenit/care4alf/browser/rootNodes").success((rootNodes) => {
@@ -127,6 +128,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
                 .success((matches) => {
                     $scope.results = matches;
                     $scope.results.success = true;
+                    $scope.times = {"start": startTime, "end": new Date()};
                 })
                 .error((err) => {
                     $scope.results.success = false;
