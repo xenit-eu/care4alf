@@ -2,6 +2,7 @@
         ng-change="update()"></select>
 <form role="form">
     <label for="query">Query:</label>
+    <span class="text-muted pull-right">Queries that require (auto)commit are not supported. That means no UPDATE, INSERT,… This is a feature, not a bug.</span>
     <textarea class="form-control text-monospace" type="text" ng-model="sql.query" id="query">
     </textarea>
     <button type="submit" class="btn btn-default" ng-click="query()">Query</button>
