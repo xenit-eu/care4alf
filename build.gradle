@@ -1,4 +1,23 @@
+import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
+
+def bundleClassPath(configuration) {
+    def list = ['.']
+    configuration.each {
+        list += 'lib/' + it.name
+    }
+    return list.join(',')
+}
+def includeResource(configuration) {
+    def list = []
+    configuration.each {
+        list += 'lib/' + it.name + "=" + it.path
+    }
+    return list.join(',')
+}
+
 ext.alfrescoVersion = '4.2.3.1'
+//ext.alfrescoVersion = '4.2.f'
+ext.deVersion = '1.7.5'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber')?project.getProperty('buildNumber'):"SNAPSHOT";
@@ -16,7 +35,15 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
         maven {
-            url 'https://artifactory.xenit.eu/artifactory/plugins-release-local'
+            url 'https://artifactory.xenit.eu/artifactory/plugins-release'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+
+        maven {
+            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot'
             credentials {
                 username property("eu.xenit.artifactory.username")
                 password property("eu.xenit.artifactory.password")
@@ -24,30 +51,30 @@ buildscript {
         }
     }
     dependencies {
-        classpath(group: 'eu.xenit.de', name: 'gradle-plugin', version: '1.6.0')
+        classpath(group: 'eu.xenit.de', name: 'gradle-plugin', version: '1.7.5')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.8.0'
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
         classpath "com.moowork.gradle:gradle-node-plugin:0.13"
-        classpath 'eu.xenit.gradle.plugins:ampde_gradle_plugin:1.0.0'
+        classpath 'eu.xenit.gradle:ampde-plugin:2.0.0-SNAPSHOT'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.8.0"
+        classpath "org.dm.gradle:gradle-bundle-plugin:0.10.0"
     }
 }
 
+apply plugin: 'org.dm.bundle'
 apply plugin: 'kotlin'
-apply plugin: 'ampde'
+apply plugin: 'java'
+//apply plugin: 'ampde'
 apply plugin: 'idea'
-apply plugin: 'alfresco-dynamic-extension'
 apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
-apply plugin: 'maven-publish'
-apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2.1'
+    gradleVersion = '4.9'
     distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
@@ -75,100 +102,100 @@ task setupArtifacts {
     }
 }
 
-uploadArchives {
-    dependsOn setupArtifacts
-    repositories {
-        mavenDeployer {
-            signing {
-                required {false}
-                sign configurations.archives
-            }
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment)
-            }
-
-            repository(url: project.hasProperty('publish_url') ? project.publish_url : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
-            }
-
-            pom.project {
-                url 'https://bitbucket.org/xenit/care4alf'
-                name "Care4Alf"
-                description "An Alfresco dynamic extension providing a variety of maintainance/admin/support utilities " +
-                        "for alfresco, along side with optional monitoring extension"
-
-                scm {
-                    connection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
-                    developerConnection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
-                    url 'https://bitbucket.org/xenit/care4alf'
-                }
-
-                licenses {
-                    license {
-                        name 'GNU Lesser General Public License v3.0 or later'
-                        url 'http://www.gnu.org/licenses/lgpl-3.0-standalone.html'
-                    }
-                }
-
-                developers {
-                    developer{
-                        id "laurentvdl"
-                        name "Laurent Van der Linden"
-                        roles{
-                            role "Founder"
-                            role "Architect"
-                        }
-                    }
-                    developer {
-                        id 'willemvde'
-                        name 'Willem Van den Eynde'
-                        email 'willem.vandeneynde@xenit.eu '
-                        roles{
-                            role "Architect"
-                            role "Developer"
-                        }
-                    }
-                    developer {
-                        id 'stanmine'
-                        name 'Stan Mine'
-                        email 'stan.mine@xenit.eu'
-                        roles{
-                            role "Developer"
-                        }
-                    }
-                    developer {
-                        id 'Pantera160'
-                        name 'Thomas Straetmans'
-                        email 'thomas.straetmans@xenit.eu'
-                        roles{
-                            role "Developer"
-                        }
-                    }
-                    developer {
-                        id 'yregaieg'
-                        name 'Younes Regaieg'
-                        email 'younes.regaieg@xenit.eu'
-                        roles{
-                            role "Developer"
-                        }
-                    }
-                    developer {
-                        id 'thijslemmens'
-                        name 'Thijs Lemmens'
-                        email 'thijs.lemmens@xenit.eu'
-                        roles{
-                            role "Developer"
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//uploadArchives {
+//    dependsOn setupArtifacts
+//    repositories {
+//        mavenDeployer {
+//            signing {
+//                required {false}
+//                sign configurations.archives
+//            }
+//            beforeDeployment {
+//                MavenDeployment deployment -> signing.signPom(deployment)
+//            }
+//
+//            repository(url: project.hasProperty('publish_url') ? project.publish_url : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+//                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
+//            }
+//
+//            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+//                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
+//            }
+//
+//            pom.project {
+//                url 'https://bitbucket.org/xenit/care4alf'
+//                name "Care4Alf"
+//                description "An Alfresco dynamic extension providing a variety of maintainance/admin/support utilities " +
+//                        "for alfresco, along side with optional monitoring extension"
+//
+//                scm {
+//                    connection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
+//                    developerConnection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
+//                    url 'https://bitbucket.org/xenit/care4alf'
+//                }
+//
+//                licenses {
+//                    license {
+//                        name 'GNU Lesser General Public License v3.0 or later'
+//                        url 'http://www.gnu.org/licenses/lgpl-3.0-standalone.html'
+//                    }
+//                }
+//
+//                developers {
+//                    developer{
+//                        id "laurentvdl"
+//                        name "Laurent Van der Linden"
+//                        roles{
+//                            role "Founder"
+//                            role "Architect"
+//                        }
+//                    }
+//                    developer {
+//                        id 'willemvde'
+//                        name 'Willem Van den Eynde'
+//                        email 'willem.vandeneynde@xenit.eu '
+//                        roles{
+//                            role "Architect"
+//                            role "Developer"
+//                        }
+//                    }
+//                    developer {
+//                        id 'stanmine'
+//                        name 'Stan Mine'
+//                        email 'stan.mine@xenit.eu'
+//                        roles{
+//                            role "Developer"
+//                        }
+//                    }
+//                    developer {
+//                        id 'Pantera160'
+//                        name 'Thomas Straetmans'
+//                        email 'thomas.straetmans@xenit.eu'
+//                        roles{
+//                            role "Developer"
+//                        }
+//                    }
+//                    developer {
+//                        id 'yregaieg'
+//                        name 'Younes Regaieg'
+//                        email 'younes.regaieg@xenit.eu'
+//                        roles{
+//                            role "Developer"
+//                        }
+//                    }
+//                    developer {
+//                        id 'thijslemmens'
+//                        name 'Thijs Lemmens'
+//                        email 'thijs.lemmens@xenit.eu'
+//                        roles{
+//                            role "Developer"
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(uploadArchives)) {
@@ -187,48 +214,48 @@ gradle.taskGraph.whenReady { graph ->
         version = project.version.replace("SNAPSHOT", buildNumber)
     }
 }
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            groupId 'eu.xenit'
-            version project.version.replace("SNAPSHOT", buildNumber)
-        }
-        amp(MavenPublication) {
-            artifactId project.name + '-amp'
-            groupId 'eu.xenit'
-            version project.version.replace("SNAPSHOT", buildNumber)
-            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
-            //artifact ampde
-        }
-        integrationJar(MavenPublication) {
-            artifactId project.name + '-integration'
-            groupId 'eu.xenit'
-            version project.version.replace("SNAPSHOT", buildNumber)
-            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
-        }
-    }
-    repositories {
-        maven {
-            name 'snapshot'
-            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
-            credentials {
-                username property("eu.xenit.artifactory.username")
-                password property("eu.xenit.artifactory.password")
-            }
-        }
-        maven {
-            name 'release'
-            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
-            credentials {
-                username property("eu.xenit.artifactory.username")
-                password property("eu.xenit.artifactory.password")
-            }
-        }
-
-    }
-}
+//
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            from components.java
+//            groupId 'eu.xenit'
+//            version project.version.replace("SNAPSHOT", buildNumber)
+//        }
+//        amp(MavenPublication) {
+//            artifactId project.name + '-amp'
+//            groupId 'eu.xenit'
+//            version project.version.replace("SNAPSHOT", buildNumber)
+//            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
+//            //artifact ampde
+//        }
+////        integrationJar(MavenPublication) {
+////            artifactId project.name + '-integration'
+////            groupId 'eu.xenit'
+////            version project.version.replace("SNAPSHOT", buildNumber)
+////            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
+////        }
+//    }
+//    repositories {
+//        maven {
+//            name 'snapshot'
+//            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
+//            credentials {
+//                username property("eu.xenit.artifactory.username")
+//                password property("eu.xenit.artifactory.password")
+//            }
+//        }
+//        maven {
+//            name 'release'
+//            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
+//            credentials {
+//                username property("eu.xenit.artifactory.username")
+//                password property("eu.xenit.artifactory.password")
+//            }
+//        }
+//
+//    }
+//}
 
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
@@ -249,44 +276,45 @@ repositories {
     }
 }
 
-configurations {
-    embedded
-    testEmbedded
-    amp
-    testInstallDep
-    ampdeLib {
-        transitive = false
-    }
-    compile {
-        extendsFrom embedded
-        extendsFrom ampdeLib
-    }
-    testInstallDep {
-        transitive = false
-    }
-    testCompile {
-        extendsFrom testEmbedded
-        extendsFrom testInstallDep
-    }
-    testEmbedded {
-        extendsFrom embedded
-    }
-}
+//configurations {
+//    embedded
+//    testEmbedded
+//    amp
+//    testInstallDep
+//    ampdeLib {
+//        transitive = false
+//    }
+//    compile {
+//        extendsFrom embedded
+//        extendsFrom ampdeLib
+//    }
+//    testInstallDep {
+//        transitive = false
+//    }
+//    testCompile {
+//        extendsFrom testEmbedded
+//        extendsFrom testInstallDep
+//    }
+//    testEmbedded {
+//        extendsFrom embedded
+//    }
+//}
+
 
 dependencies {
-    compile("org.alfresco:alfresco-core:${alfrescoVersion}") {
-        transitive = false
-        exclude module: 'junit'
+//    compileOnly("org.alfresco:alfresco-core:${alfrescoVersion}") {}
+    compileOnly("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") {
+        exclude group: 'org.activiti'
+        exclude group: 'maven-plugins'
     }
-    compile("org.alfresco:alfresco-repository:${alfrescoVersion}") {
-        transitive = false
-        exclude module: 'junit'
+//    compileOnly("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") {}
+    compileOnly("org.alfresco:alfresco-data-model:${alfrescoVersion}") {
+        exclude group: 'maven-plugins'
     }
-    compile("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") { transitive = false }
-    compile("org.alfresco:alfresco-data-model:${alfrescoVersion}") {
-        transitive = true
-        exclude module: 'junit'
-    }
+
+    compileOnly ("eu.xenit.de:annotations:${deVersion}") { transitive = false }
+    compileOnly ("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
+    compileOnly ("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
 
     compile "org.springframework:spring-context:${project.springVersion}"
     compile "org.springframework:spring-jdbc:${project.springVersion}"
@@ -299,32 +327,31 @@ dependencies {
     compile('org.jibx:jibx-run:1.2.3') { transitive = false }
     compile('com.googlecode.json-simple:json-simple:1.1')
     compile('javax.servlet:servlet-api:2.5')
-    embedded('com.google.collections:google-collections:1.0')
+//    embedded('com.google.collections:google-collections:1.0')
     compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
     compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
     compile('org.apache.commons:commons-csv:20110211')
 
-    testInstallDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
-
-    embedded(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
-    embedded group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
-    embedded group: 'com.google.guava', name: 'guava', version: '19.0'
 
 
+//    testInstallDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
 
-    embedded "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
+    compileOnly(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
+    compileOnly group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    compileOnly group: 'com.google.guava', name: 'guava', version: '19.0'
+
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+//    embedded group: 'commons-codec', name: 'commons-codec', version: '1.10'
 //    testCompile "junit:junit:${project.ext.junitVersion}"
 
     //These are actually test dependencies, but they need to be bundled because of the current sourceSet config
-    testEmbedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-    testEmbedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
-    testEmbedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
-    testEmbedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-    testEmbedded 'org.codehaus.groovy:groovy-all:2.4.7'
-
+//    testEmbedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+//    testEmbedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+//    testEmbedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+//    testEmbedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
+//    testEmbedded 'org.codehaus.groovy:groovy-all:2.4.7'
 }
-
 lesscss {
     source = fileTree('src/main/less') {
         include '**/*.less'
@@ -338,56 +365,58 @@ lesscss {
 //}
 
 jar {
-    from(configurations.embedded) {
-        into('lib')
-    }
+//    from(configurations.embedded) {
+//        into('lib')
+//    }
     version = project.version.replace("SNAPSHOT", buildNumber)
     from(compileTypeScript.outputs)
-    manifest {
-        instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,!eu.xenit.care4alf.*,*'
-    }
+//    manifest {
+//        instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
+//        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,!eu.xenit.care4alf.*,*'
+//    }
 }
 
-alfrescoDynamicExtensions {
-    repository {
-        endpoint {
-            protocol = project.hasProperty('protocol') ? project.protocol : 'https'
-            host = project.hasProperty('host') ? project.host : 'jenkins-c4a.dev.xenit.eu'
-            port = project.hasProperty('port') ? project.port : '443'
-            serviceUrl = '/alfresco/service'
-        }
-        authentication {
-            username = project.hasProperty('username') ? project.username : 'admin'
-            password = project.hasProperty('password') ? project.password : 'admin'
-        }
-    }
-}
+project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
+
+//alfrescoDynamicExtensions {
+//    repository {
+//        endpoint {
+//            protocol = project.hasProperty('protocol') ? project.protocol : 'https'
+//            host = project.hasProperty('host') ? project.host : 'jenkins-c4a.dev.xenit.eu'
+//            port = project.hasProperty('port') ? project.port : '443'
+//            serviceUrl = '/alfresco/service'
+//        }
+//        authentication {
+//            username = project.hasProperty('username') ? project.username : 'admin'
+//            password = project.hasProperty('password') ? project.password : 'admin'
+//        }
+//    }
+//}
 
 jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
 
 // generates an "integration" jar containing only interfaces
 // that other modules which want to publish information to care4alf
 // can implement.
-task integrationJar(type: Jar) {
-    baseName = 'care4alf-integration'
-    dependsOn testClasses
-    from(sourceSets.test.output)
-    from(configurations.testEmbedded) {
-        into('lib')
-    }
-    destinationDir = file("${buildDir}/libs-test")
-    manifest = osgiManifest {
-        attributes('Bundle-Name': baseName)
-        instruction 'Bundle-Classpath', ".,${configurations.testEmbedded.files.collect({ 'lib/' + it.name }).join(',')}"
-        instruction 'Alfresco-Dynamic-Extension', 'true'
-        classesDir = sourceSets.test.output.classesDir
-        classpath = configurations.testRuntime
-        symbolicName = 'eu.xenit.care4alf-integration'
-        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,*'
-//        instruction '-exportcontents', '*'
-    }
-}
+//task integrationJar(type: Jar) {
+//    baseName = 'care4alf-integration'
+//    dependsOn testClasses
+//    from(sourceSets.test.output)
+//    from(configurations.testEmbedded) {
+//        into('lib')
+//    }
+//    destinationDir = file("${buildDir}/libs-test")
+//    manifest = osgiManifest {
+//        attributes('Bundle-Name': baseName)
+//        instruction 'Bundle-Classpath', ".,${configurations.testEmbedded.files.collect({ 'lib/' + it.name }).join(',')}"
+//        instruction 'Alfresco-Dynamic-Extension', 'true'
+//        classesDir = sourceSets.test.output.classesDir
+//        classpath = configurations.testRuntime
+//        symbolicName = 'eu.xenit.care4alf-integration'
+////        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,*'
+////        instruction '-exportcontents', '*'
+//    }
+//}
 
 
 // make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
@@ -443,8 +472,8 @@ compileTypeScript {
     compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
     dependsOn "npmInstall"
 }
-build.dependsOn("integrationJar", "assembleAmp")
-uploadArchives.dependsOn("integrationJar", "ampde")
+//build.dependsOn("integrationJar", "assembleAmp")
+//uploadArchives.dependsOn("integrationJar", "ampde")
 
 import com.github.dynamicextensionsalfresco.gradle.tasks.*
 
@@ -453,17 +482,17 @@ import com.github.dynamicextensionsalfresco.gradle.tasks.*
 //}
 //installBundle.dependsOn('installDependencies');
 
-task testInstallDependencies(type: InstallBundle) {
-    configuration = project.configurations.testInstallDep
-}
+//task testInstallDependencies(type: InstallBundle) {
+//    configuration = project.configurations.testInstallDep
+//}
 
-task installIntegrationJar(type: InstallBundle) {
-    dependsOn testInstallDependencies
-    dependsOn integrationJar
-    configuration = integrationJar.outputs.files
-}
+//task installIntegrationJar(type: InstallBundle) {
+//    dependsOn testInstallDependencies
+//    dependsOn integrationJar
+//    configuration = integrationJar.outputs.files
+//}
 
-test.dependsOn(installBundle)
-test.dependsOn(installIntegrationJar)
-test.dependsOn(testInstallDependencies)
-publish.dependsOn(setupArtifacts)
+//test.dependsOn(installBundle)
+//test.dependsOn(installIntegrationJar)
+//test.dependsOn(testInstallDependencies)
+//publish.dependsOn(setupArtifacts)
