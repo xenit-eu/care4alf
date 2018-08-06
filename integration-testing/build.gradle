@@ -1,6 +1,52 @@
-////apply plugin: 'org.dm.bundle'
-//
-//dependencies {
-//    compileOnly(group: project(":jar"))
-//}
-//
+import com.github.dynamicextensionsalfresco.gradle.tasks.InstallBundle
+import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
+
+configurations {
+    integrationJar
+    compileOnly.extendsFrom(integrationJar)
+}
+
+dependencies {
+    compileOnly(project(":care4alf-main"))
+    integrationJar(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
+    compile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+    compile group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+    compile group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
+    compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+}
+
+bundle {
+    instruction 'Export-Package', 'eu.xenit.care4alfintegration.*'
+    instruction 'Alfresco-Dynamic-Extension', 'true'
+    instruction 'Include-Resource', includeResource(configurations.compile)
+    instruction 'Bundle-ClassPath', bundleClassPath(configurations.compile)
+    // These are imported by rest-assured but not declared in the manifest
+    instruction 'Import-Package', '!com.github.scribejava.*,!com.google.gson,' +
+            // These are the fault of groovy
+            '!org.apache.commons.cli,!org.apache.ivy.*,!org.fusesource.jansi,' +
+            // This is the fault of commons-logging
+            '!org.apache.log,' +
+            // This is the fault of mockito
+            '!org.apache.tools.ant.*,!org.junit.runners.*,!org.junit.runner.notification.*,' +
+            '!org.junit.internal.runners.*,!org.junit.rules.*,!org.mockito.asm.signature,*'
+}
+
+project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
+task configureDE {
+    doLast {
+        def port = project.hasProperty('port') ? project.port : '8000'
+        def host = project.hasProperty('host') ? project.host : 'localhost'
+        alfrescoDynamicExtensions.repository.endpoint.port = port
+        alfrescoDynamicExtensions.repository.endpoint.host = host
+    }
+}
+
+task installIntegrationJar(type: InstallBundle) {
+    dependsOn configureDE
+    configuration = configurations.integrationJar {transitive=false}
+}
+
+task installTestsOnDocker(type: InstallBundle) {
+    dependsOn installIntegrationJar
+}
