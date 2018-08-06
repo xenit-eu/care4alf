@@ -1,0 +1,6 @@
+////apply plugin: 'org.dm.bundle'
+//
+//dependencies {
+//    compileOnly(group: project(":jar"))
+//}
+//

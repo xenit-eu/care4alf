@@ -1,1 +1,4 @@
 rootProject.name='care4alf'
+
+include ':care4alf-main'
+include ':integration-testing'
