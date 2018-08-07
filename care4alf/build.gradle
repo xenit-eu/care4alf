@@ -1,6 +1,6 @@
 import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
 
-
+apply plugin: 'ampde'
 apply plugin: 'kotlin'
 apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
@@ -205,11 +205,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") {
+    compileOnly("org.alfresco:alfresco-enterprise-repository:${alfresco_version}") {
         exclude group: 'org.activiti'
         exclude group: 'maven-plugins'
     }
-    compileOnly("org.alfresco:alfresco-data-model:${alfrescoVersion}") {
+    compileOnly("org.alfresco:alfresco-data-model:${alfresco_version}") {
         exclude group: 'maven-plugins'
     }
 
@@ -252,6 +252,14 @@ lesscss {
 jar {
     version = project.version.replace("SNAPSHOT", buildNumber)
     from(compileTypeScript.outputs)
+}
+
+configurations {
+    ampArtifact
+}
+
+artifacts {
+    ampArtifact ampde
 }
 
 project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
