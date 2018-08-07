@@ -149,7 +149,7 @@ public class AutorityImporterTest {
     private static void loadTestUsers() throws InterruptedException {
         Response post = given()
                 .when()
-                .multiPart(new File("src/test/resources/authorityimporter/ExampleUserUpload.csv"))
+                .multiPart(new File("src/main/resources/authorityimporter/ExampleUserUpload.csv"))
                 .post("/api/people/upload");
 
         post.then()

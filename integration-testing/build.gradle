@@ -50,3 +50,18 @@ task installIntegrationJar(type: InstallBundle) {
 task installTestsOnDocker(type: InstallBundle) {
     dependsOn installIntegrationJar
 }
+
+task integrationTestLocal(type: Test) {
+    testClassesDirs = sourceSets.main.output.classesDirs
+    classpath = sourceSets.main.runtimeClasspath
+    classpath += sourceSets.main.compileClasspath
+    def host = project.hasProperty('host') ? project.host : 'localhost'
+    def port = project.hasProperty('port') ? project.port : '8000'
+    def protocol = project.hasProperty('protocol') ? project.protocol : 'http'
+    systemProperty("alfresco.url", "$protocol://admin:admin@"+host+":" + port + "/alfresco")
+    systemProperty("protocol", protocol)
+    systemProperty("host", host)
+    systemProperty("port", port)
+
+    outputs.upToDateWhen {false}
+}
