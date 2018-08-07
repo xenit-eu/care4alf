@@ -52,7 +52,6 @@ def includeResource(configuration) {
 }
 
 ext.alfrescoVersion = '4.2.8'
-//ext.alfrescoVersion = '4.2.f'
 ext.deVersion = '1.7.5'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'

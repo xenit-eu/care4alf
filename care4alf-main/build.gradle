@@ -2,8 +2,6 @@ import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
 
 
 apply plugin: 'kotlin'
-//apply plugin: 'ampde'
-//apply plugin: 'idea'
 apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
@@ -206,81 +204,34 @@ repositories {
     }
 }
 
-//configurations {
-//    embedded
-//    testEmbedded
-//    amp
-//    testInstallDep
-//    ampdeLib {
-//        transitive = false
-//    }
-//    compile {
-//        extendsFrom embedded
-//        extendsFrom ampdeLib
-//    }
-//    testInstallDep {
-//        transitive = false
-//    }
-//    testCompile {
-//        extendsFrom testEmbedded
-//        extendsFrom testInstallDep
-//    }
-//    testEmbedded {
-//        extendsFrom embedded
-//    }
-//}
-
-
 dependencies {
-//    compileOnly("org.alfresco:alfresco-core:${alfrescoVersion}") {}
     compileOnly("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") {
         exclude group: 'org.activiti'
         exclude group: 'maven-plugins'
     }
-//    compileOnly("org.alfresco:alfresco-enterprise-repository:${alfrescoVersion}") {}
     compileOnly("org.alfresco:alfresco-data-model:${alfrescoVersion}") {
         exclude group: 'maven-plugins'
     }
 
-    compileOnly ("eu.xenit.de:annotations:${deVersion}") { transitive = false }
-    compileOnly ("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
-    compileOnly ("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
+    compileOnly("eu.xenit.de:annotations:${deVersion}") { transitive = false }
+    compileOnly("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
+    compileOnly("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
 
-//    compile "org.springframework:spring-context:${project.springVersion}"
-//    compile "org.springframework:spring-jdbc:${project.springVersion}"
-    compileOnly "org.osgi:org.osgi.core:4.3.1"
-//    compile 'org.json:json:20090211'
-    //compile("acegisecurity:acegi-security:0.8.2") {transitive = false}
-//    compile "org.slf4j:slf4j-api:1.7.5"
-//    compile 'org.eclipse.gemini:org.eclipse.gemini.blueprint.core:1.0.2.RELEASE'
+    compileOnly("org.osgi:org.osgi.core:4.3.1")
+
     compile('javax.transaction:transaction-api:1.1') { transitive = false }
-//    compile('org.jibx:jibx-run:1.2.3') { transitive = false }
     compile('com.googlecode.json-simple:json-simple:1.1')
     compile('javax.servlet:servlet-api:2.5')
     compile('com.google.collections:google-collections:1.0')
-//    compile('org.codehaus.jackson:jackson-core-asl:1.1.0')
-//    compile('org.codehaus.jackson:jackson-mapper-asl:1.1.0')
     compile('org.apache.commons:commons-csv:20110211')
 
+    compile('com.fasterxml.jackson.core:jackson-databind:2.3.2')
+    compile('org.apache.commons:commons-lang3:3.7')
+    compile('com.google.guava:guava:19.0')
 
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
 
-//    testInstallDep(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
-
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
-    compile group: 'com.google.guava', name: 'guava', version: '19.0'
-
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
-//    testCompile "junit:junit:${project.ext.junitVersion}"
-
-    //These are actually test dependencies, but they need to be bundled because of the current sourceSet config
-//    testEmbedded group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-//    testEmbedded group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
-//    testEmbedded group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
-//    testEmbedded group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-//    testEmbedded 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile('commons-codec:commons-codec:1.10')
 }
 
 bundle {
@@ -288,15 +239,6 @@ bundle {
     instruction 'Alfresco-Dynamic-Extension', 'true'
     instruction 'Include-Resource', includeResource(configurations.compile)
     instruction 'Bundle-ClassPath',  bundleClassPath(configurations.compile)
-//    instruction 'Import-Package',
-//            ('org.springframework.beans.factory,' +
-//                    //Different cglib dependency for 42
-//                    'net.sf.cglib.core,'+
-//                    'net.sf.cglib.proxy,' +
-//                    'net.sf.cglib.reflect,' +
-//                    '*')
-
-
 }
 
 lesscss {
@@ -307,64 +249,14 @@ lesscss {
     compress = false
 }
 
-//sourceSets {
-//    main { java { srcDirs = ['src/main/java','src/test/java'] } }
-//}
-
 jar {
-//    from(configurations.embedded) {
-//        into('lib')
-//    }
     version = project.version.replace("SNAPSHOT", buildNumber)
     from(compileTypeScript.outputs)
-//    manifest {
-//        instruction 'Bundle-Classpath', ".,${configurations.embedded.files.collect({ 'lib/' + it.name }).join(',')}"
-//        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,!eu.xenit.care4alf.*,*'
-//    }
 }
 
 project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
 
-//alfrescoDynamicExtensions {
-//    repository {
-//        endpoint {
-//            protocol = project.hasProperty('protocol') ? project.protocol : 'https'
-//            host = project.hasProperty('host') ? project.host : 'jenkins-c4a.dev.xenit.eu'
-//            port = project.hasProperty('port') ? project.port : '443'
-//            serviceUrl = '/alfresco/service'
-//        }
-//        authentication {
-//            username = project.hasProperty('username') ? project.username : 'admin'
-//            password = project.hasProperty('password') ? project.password : 'admin'
-//        }
-//    }
-//}
-
 jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
-
-// generates an "integration" jar containing only interfaces
-// that other modules which want to publish information to care4alf
-// can implement.
-//task integrationJar(type: Jar) {
-//    baseName = 'care4alf-integration'
-//    dependsOn testClasses
-//    from(sourceSets.test.output)
-//    from(configurations.testEmbedded) {
-//        into('lib')
-//    }
-//    destinationDir = file("${buildDir}/libs-test")
-//    manifest = osgiManifest {
-//        attributes('Bundle-Name': baseName)
-//        instruction 'Bundle-Classpath', ".,${configurations.testEmbedded.files.collect({ 'lib/' + it.name }).join(',')}"
-//        instruction 'Alfresco-Dynamic-Extension', 'true'
-//        classesDir = sourceSets.test.output.classesDir
-//        classpath = configurations.testRuntime
-//        symbolicName = 'eu.xenit.care4alf-integration'
-////        instruction 'Import-Package', 'com.google.common.cache.*;resolution:=optional,org.alfresco.enterprise.*;resolution:=optional,javax.annotation;version="[1,4)",junit.framework;resolution:=optional,org.junit;resolution:=optional,org.junit.*;resolution:=optional,eu.xenit.apix.integrationtesting.*;resolution:=optional,eu.xenit.apix.integrationtesting;resolution:=optionaleu.xenit.testing.integrationtesting.*;resolution:=optional,eu.xenit.testing.integrationtesting;resolution:=optional,!org.hamcrest.*,!org.objenesis.*,!org.mockito.*,!jet.*,!kotlin.*,!org.alfresco.repo.lock.mem,org.apache.commons.logging;version="1.0",!org.apache.commons.codec.*,!com.fasterxml.jackson.databind.*,!io.restassured.*,!org.apache.commons.lang3.*,!com.google.common.collect.*,*'
-////        instruction '-exportcontents', '*'
-//    }
-//}
-
 
 // make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
 // instead of 'tsc' command line which is not present on Jenkins server !j
@@ -419,27 +311,3 @@ compileTypeScript {
     compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
     dependsOn "npmInstall"
 }
-//build.dependsOn("integrationJar", "assembleAmp")
-//uploadArchives.dependsOn("integrationJar", "ampde")
-
-import com.github.dynamicextensionsalfresco.gradle.tasks.*
-
-//project.tasks.create('installDependencies', InstallBundle).configure {
-//    configuration = project.configurations.installDep
-//}
-//installBundle.dependsOn('installDependencies');
-
-//task testInstallDependencies(type: InstallBundle) {
-//    configuration = project.configurations.testInstallDep
-//}
-
-//task installIntegrationJar(type: InstallBundle) {
-//    dependsOn testInstallDependencies
-//    dependsOn integrationJar
-//    configuration = integrationJar.outputs.files
-//}
-
-//test.dependsOn(installBundle)
-//test.dependsOn(installIntegrationJar)
-//test.dependsOn(testInstallDependencies)
-//publish.dependsOn(setupArtifacts)
