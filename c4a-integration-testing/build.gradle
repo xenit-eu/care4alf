@@ -135,7 +135,7 @@ task integrationTest(type: Test) {
     }
 
     //After the tests, the docker setup should be stopped
-//    finalizedBy(project(":apix-docker-parent:apix-docker-$dockerAlfrescoVersion").tasks.getByName("composeDown"))
+    finalizedBy(composeDown)
 }
 
 // Like above but assuming a docker container is already running
