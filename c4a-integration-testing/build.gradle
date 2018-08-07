@@ -47,15 +47,6 @@ bundle {
 }
 
 project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
-//task configureDE {
-//    doLast {
-//        def port = project.hasProperty('port') ? project.port : '8000'
-//        def host = project.hasProperty('host') ? project.host : 'localhost'
-//        alfrescoDynamicExtensions.repository.endpoint.port = port
-//        alfrescoDynamicExtensions.repository.endpoint.host = host
-//    }
-//}
-
 
 dockerAlfresco {
     baseImage = "hub.xenit.eu/alfresco-enterprise:${dockerAlfrescoVersion}"
@@ -131,7 +122,10 @@ task integrationTest(type: Test) {
         def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
         def port = serviceInfo.getPort()
         def host = serviceInfo.getHost()
-        systemProperty("alfresco.url", "http://admin:admin@"+host+":" + port + "/alfresco")
+        systemProperty('alfresco.url', "http://admin:admin@$host:$port/alfresco")
+        systemProperty('protocol', 'http')
+        systemProperty('host', host)
+        systemProperty('port', port)
     }
 
     //After the tests, the docker setup should be stopped
@@ -146,10 +140,10 @@ task integrationTestLocal(type: Test) {
     def host = project.hasProperty('host') ? project.host : 'localhost'
     def port = project.hasProperty('port') ? project.port : '8000'
     def protocol = project.hasProperty('protocol') ? project.protocol : 'http'
-    systemProperty("alfresco.url", "$protocol://admin:admin@"+host+":" + port + "/alfresco")
-    systemProperty("protocol", protocol)
-    systemProperty("host", host)
-    systemProperty("port", port)
+    systemProperty('alfresco.url', "$protocol://admin:admin@$host:$port/alfresco")
+    systemProperty('protocol', protocol)
+    systemProperty('host', host)
+    systemProperty('port', port)
 
     outputs.upToDateWhen {false}
 }
