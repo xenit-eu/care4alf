@@ -6,6 +6,7 @@ apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
 apply plugin: 'signing'
+apply plugin: 'maven-publish'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.9'
@@ -142,48 +143,48 @@ gradle.taskGraph.whenReady { graph ->
         version = project.version.replace("SNAPSHOT", buildNumber)
     }
 }
-//
-//publishing {
-//    publications {
-//        mavenJava(MavenPublication) {
-//            from components.java
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId 'eu.xenit'
+            version project.version.replace("SNAPSHOT", buildNumber)
+        }
+        amp(MavenPublication) {
+            artifactId project.name + '-amp'
+            groupId 'eu.xenit'
+            version project.version.replace("SNAPSHOT", buildNumber)
+            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
+            //artifact ampde
+        }
+//        integrationJar(MavenPublication) {
+//            artifactId project.name + '-integration'
 //            groupId 'eu.xenit'
 //            version project.version.replace("SNAPSHOT", buildNumber)
+//            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
 //        }
-//        amp(MavenPublication) {
-//            artifactId project.name + '-amp'
-//            groupId 'eu.xenit'
-//            version project.version.replace("SNAPSHOT", buildNumber)
-//            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
-//            //artifact ampde
-//        }
-////        integrationJar(MavenPublication) {
-////            artifactId project.name + '-integration'
-////            groupId 'eu.xenit'
-////            version project.version.replace("SNAPSHOT", buildNumber)
-////            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
-////        }
-//    }
-//    repositories {
-//        maven {
-//            name 'snapshot'
-//            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
-//            credentials {
-//                username property("eu.xenit.artifactory.username")
-//                password property("eu.xenit.artifactory.password")
-//            }
-//        }
-//        maven {
-//            name 'release'
-//            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
-//            credentials {
-//                username property("eu.xenit.artifactory.username")
-//                password property("eu.xenit.artifactory.password")
-//            }
-//        }
-//
-//    }
-//}
+    }
+    repositories {
+        maven {
+            name 'snapshot'
+            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+        maven {
+            name 'release'
+            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+
+    }
+}
 
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
