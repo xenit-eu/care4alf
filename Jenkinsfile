@@ -1,25 +1,27 @@
 node {
-    stage('Checkout')
+    def buildNr = "SNAPSHOT"
+
+    def publishAmpTask = "publishAmpPublicationToSnapshotRepository"
+    def publishJarTask = "publishMavenJavaPublicationToSnapshotRepository"
+    def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
+
+    stage('Checkout') {
         checkout scm
 
-        def gitBranch = env.BRANCH_NAME
-        def buildNr = "SNAPSHOT"
-
-        def publishAmpTask = "publishAmpPublicationToSnapshotRepository"
-        def publishJarTask = "publishMavenJavaPublicationToSnapshotRepository"
-        def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
-        if (gitBranch == "master") {
+        if (env.BRANCH_NAME == "master") {
             buildNr = env.BUILD_NUMBER
             publishAmpTask = "publishAmpPublicationToReleaseRepository"
             publishJarTask = "publishMavenJavaPublicationToReleaseRepository"
             publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
         }
+    }
 
     try {
-        stage('Testing')
+        stage('Testing') {
             sh "./gradlew clean :c4a-integration-testing:integrationTest -PbuildNumber=${buildNr} -i"
+        }
 
-        stage('Building AMP')
+        stage('Building AMP') {
             sh "./gradlew :care4alf:ampde -PbuildNumber=${buildNr} --continue -i"
 
             def artifacts = [
@@ -28,13 +30,17 @@ node {
             ]
 
             archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
+        }
 
-        stage('Publishing')
+        stage('Publishing') {
             sh "./gradlew :care4alf:${publishAmpTask} :care4alf:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
+        }
 
     } catch (err) {
+        echo "Exception: ${err.getMessage()}"
         currentBuild.result = "FAILED"
     } finally {
-        step([$class: "JUnitResultArchiver", testResults: "**/build/**/TEST-*.xml"])
+        junit '**/build/**/TEST-*.xml'
+        cleanWs()
     }
 }
