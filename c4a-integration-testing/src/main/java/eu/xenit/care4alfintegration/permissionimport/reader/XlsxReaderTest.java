@@ -19,7 +19,7 @@ public class XlsxReaderTest {
 
     @Test
     public void testForLoop() throws IOException {
-        File file = new File("src/test/resources/permissionimport/test.xlsx");
+        File file = new File("src/main/resources/permissionimport/test.xlsx");
         InputStream is = new FileInputStream(file);
         PermissionReader permissionReader = new XlsxPermissionReader(is);
 

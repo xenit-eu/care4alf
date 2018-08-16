@@ -19,11 +19,10 @@ public class DNSLookupTest {
 
     @Test
     public void testGetARecords() throws NamingException, UnknownHostException {
-        List<String> values = dnsLookup.getARecords("c4atest.dev.xenit.eu");
-        Assert.assertEquals(2,values.size());
+        List<String> values = dnsLookup.getARecords("google-public-dns-a.google.com");
+        Assert.assertEquals(1,values.size());
         List<String> expected = new ArrayList<>();
-        expected.add("144.76.74.76");
-        expected.add("144.76.74.77");
+        expected.add("8.8.8.8");
         Assert.assertTrue(values.containsAll(expected) && values.containsAll(expected));
     }
 
