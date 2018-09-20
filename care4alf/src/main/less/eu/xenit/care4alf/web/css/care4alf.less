@@ -185,3 +185,9 @@ a[anchor] {
 code, kbd, pre, samp, .text-monospace {
   font-family: "Source Code Pro", "DejaVu Sans Mono", monospace;
 }
+
+.form-control.text-monospace {
+  /* Circumvent a 5-year-old Chrome bug: https://bugs.chromium.org/p/chromium/issues/detail?id=41457
+   * Firefox doesn't have this problem :^) */
+  height: inherit;
+}
