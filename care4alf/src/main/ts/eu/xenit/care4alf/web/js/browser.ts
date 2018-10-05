@@ -124,7 +124,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
             // Allow pasting in a noderef
             $window.localStorage.setItem(LS_QUERY, query);
 
-            $http.post(serviceUrl + "/xenit/care4alf/browser/find", query)
+            $http.post(serviceUrl + "/xenit/care4alf/browser/find", {"query": query})
                 .success((matches) => {
                     $scope.results = matches;
                     $scope.results.success = true;
@@ -136,7 +136,19 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         }
     };
 
-    $scope.searchModel = {};
+    $scope.searchModel = {
+        consistency: "eventual",
+        storeref: "workspace://SpacesStore"
+    };
+    $scope.storeRefs = [
+        "workspace://SpacesStore",
+        "archive://SpacesStore",
+        "workspace://version2Store",
+        "workspace://lightWeightVersionStore",
+        "user://alfrescoUserStore",
+        "system://system"
+    ];
+
     $scope.serviceUrl = serviceUrl;
 
     $scope.showhelp = false;
