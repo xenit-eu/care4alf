@@ -1,9 +1,13 @@
 package eu.xenit.care4alf;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.AbstractResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import com.github.dynamicextensionsalfresco.webscripts.resolutions.StatusResolution;
+import java.io.Writer;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +20,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Created by willem on 6/6/16.
@@ -30,24 +35,30 @@ public class Sql {
     @Autowired
     private DataSource dataSource;
 
-    @Uri("/xenit/care4alf/sql")
-    public Resolution searchQuery(@RequestParam String query,  WebScriptResponse res) throws IOException, SQLException {
-        logger.debug("running query: "+query);
-        final List<List<String>> results = this.query(query);
-        return new JsonWriterResolution() {
-            @Override
-            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-                jsonWriter.array();
-                for(List<String> row : results){
+    @Uri(value = "/xenit/care4alf/sql", method = HttpMethod.POST)
+    public Resolution searchQuery(JSONObject params,  WebScriptResponse res)
+            throws IOException, SQLException, JSONException {
+        String sqlQuery = params.getString("query");
+        logger.debug("running query: {}", sqlQuery);
+        try {
+            final List<List<String>> results = this.query(sqlQuery);
+            return new JsonWriterResolution() {
+                @Override
+                protected void writeJson(JSONWriter jsonWriter) throws JSONException {
                     jsonWriter.array();
-                    for(String el : row){
-                        jsonWriter.value(el);
+                    for (List<String> row : results) {
+                        jsonWriter.array();
+                        for (String el : row) {
+                            jsonWriter.value(el);
+                        }
+                        jsonWriter.endArray();
                     }
                     jsonWriter.endArray();
                 }
-                jsonWriter.endArray();
-            }
-        };
+            };
+        } catch (Exception e) {
+            return new StatusResolution(500, e.getMessage());
+        }
     }
 
     public List<List<String>> query(String query) throws SQLException {

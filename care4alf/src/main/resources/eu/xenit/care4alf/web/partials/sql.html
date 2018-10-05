@@ -11,10 +11,10 @@
 <table class="table">
     <thead>
     <tr>
-        <th>Results <span ng-if="results.length != null">({{results.length-1}} lines)</span></th>
+        <th>Results <span ng-if="results.success">({{results.length-1}} lines)</span></th>
     </tr>
     </thead>
-    <tbody>
+    <tbody ng-if="results.success">
     <tr ng-repeat-start="rows in results" ng-if="$first">
         <td class="font-bold" ng-repeat="el in rows track by $index">{{el}}</td>
     </tr>
@@ -23,3 +23,5 @@
     </tr>
     </tbody>
 </table>
+
+<div ng-if="results.success == false" class="alert alert-danger">{{results.error}}</div>
