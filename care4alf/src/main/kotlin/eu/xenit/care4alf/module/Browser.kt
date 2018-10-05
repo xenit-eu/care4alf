@@ -69,20 +69,20 @@ public class Browser @Autowired constructor(
     }
 
     @Uri(value = "/find", method = HttpMethod.POST)
-    fun find(request: WebScriptRequest) = json {
-        val requestBody = request.getContent()?.getContent()
-        logger.debug("Request body: {}", requestBody)
-        if (requestBody!!.matches("-?\\d+(\\.\\d+)?".toRegex())) {
-            val dbid = requestBody?.toLong()
+    fun find(j: JSONObject) = json {
+        val query: String = j.getString("query")
+        logger.debug("Request body: {}", query)
+        if (query.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+            val dbid = query.toLong()
             val nodeRef = nodeService.getNodeRef(dbid)
             obj {
                 key("nodes") {
             iterable(listOf(nodeRef), nodesToBasicJson())
                 }
             }
-        } else if (requestBody!!.toLowerCase().startsWith("workspace://")) {
+        } else if (query.toLowerCase().startsWith("workspace://")) {
             logger.debug("Noderef requested directly")
-            val nodeRefs = NodeRef.getNodeRefs(requestBody)
+            val nodeRefs = NodeRef.getNodeRefs(query)
             logger.debug(nodeRefs[0].toString())
             obj {
                 key("nodes") {
@@ -91,14 +91,19 @@ public class Browser @Autowired constructor(
             }
         } else {
             val sp = SearchParameters()
-            sp.addStore(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)
+            sp.addStore(StoreRef(j.optString("storeref", "workspace://SpacesStore")))
             sp.language = SearchService.LANGUAGE_FTS_ALFRESCO
-            sp.query = requestBody
-            sp.queryConsistency = QueryConsistency.EVENTUAL //for counting total
+            sp.query = query
+            sp.queryConsistency = if (j.optString("consistency") == "transactional") {
+                QueryConsistency.TRANSACTIONAL
+            } else {
+                QueryConsistency.EVENTUAL // Default, for counting total
+            }
             val rs = searchService.query(sp)
+
             obj {
                 key("nodes") {
-                    iterable(rs.getNodeRefs(), nodesToBasicJson())
+                    iterable(rs.nodeRefs, nodesToBasicJson())
                 }
                 entry("total", rs.numberFound)
             }
