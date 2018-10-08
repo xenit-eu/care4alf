@@ -1,7 +1,9 @@
 <h3>Node browser</h3>
 
 <div ng-if="!node">
-    <p><a href="javascript:void(0);" ng-click="toggleHelp();">Node browser syntax [click to <span ng-if="showhelp">collapse</span><span ng-if="!showhelp">expand</span>]</a></p>
+    <p>
+        <a href="javascript:void(0);" ng-click="toggleHelp();">Node browser syntax [click to <span ng-if="showhelp">collapse</span><span ng-if="!showhelp">expand</span>]</a>
+    </p>
     <div ng-show="showhelp" class="form-info">
         <div class="form-info-icon"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></div>
         <div class="form-info-text"><p>You can search for one or more nodes in the following ways:</p>
@@ -20,7 +22,32 @@
         </div>
     </div>
     <form ng-submit="search()">
-        <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control text-monospace" name="query"/>
+        <div class="input-group">
+            <div class="input-group-btn btn-group dropdown" uib-dropdown>
+                <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle aria-haspopup="true" aria-expanded="false">
+                    <span class="glyphicon glyphicon-cog" aria-hidden="true"></span></span>
+                </button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                    <li ng-class="searchModel.consistency == 'eventual' ? 'selected' : ''">
+                        <a href="" ng-click="searchModel.consistency = 'eventual'">
+                            <i class="checkmark glyphicon glyphicon-ok"></i> Eventual Consistency
+                        </a></li>
+                    <li ng-class="searchModel.consistency == 'transactional' ? 'selected' : ''">
+                        <a href="" ng-click="searchModel.consistency = 'transactional'">
+                            <i class="checkmark glyphicon glyphicon-ok"></i> Transactional Consistency
+                        </a>
+                    </li>
+                    <li role="separator" class="divider"></li>
+                    <li ng-repeat-start="store in storeRefs" ng-class="searchModel.storeref == store ? 'selected' : ''">
+                        <a href="" ng-click="searchModel.storeref = store">
+                            <i class="checkmark glyphicon glyphicon-ok"></i> {{store}}
+                        </a>
+                    </li>
+                    <li ng-repeat-end style="display: none;"></li>
+                </ul>
+            </div>
+            <input type="text" placeholder="lucene searchquery" ng-model="searchModel.query" class="form-control text-monospace" name="query"/>
+        </div>
     </form>
     <div class="small alert alert-secondary" role="alert" ng-if="results.success">
         Showing {{results.nodes.length | number}} of {{results.total | number}} results. Execution started at

@@ -191,3 +191,14 @@ code, kbd, pre, samp, .text-monospace {
    * Firefox doesn't have this problem :^) */
   height: inherit;
 }
+
+/* For pseudo-checkboxes in bootstrap's dropdowns */
+.dropdown-menu .checkmark {
+    width: 1em;
+    left: -.4em;
+    visibility: hidden;
+}
+
+.dropdown-menu .selected .checkmark {
+    visibility: visible;
+}
