@@ -25,7 +25,7 @@ services:
 
 
   solr:
-    image: hub.xenit.eu/alfresco-solr4:5.1
+    image: hub.xenit.eu/alfresco-solr4:build-201809071427-19
     volumes:
     - solr:/opt/alfresco/alf_data
     restart: unless-stopped
