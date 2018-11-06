@@ -1,6 +1,6 @@
 /// <reference path="care4alf.ts" />
 
-care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
+care4alf.controller('audit', function($scope, $http, $routeParams, $window: Window, $location) {
     $scope.sortType     = 'time';
     $scope.sortReverse  = false;
     $scope.showClear = false;
@@ -14,7 +14,10 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
         $scope.showClear = true;
         $scope.showBack = false;
         console.log("loading app: " + app);
-        $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=1000&forward=true").success(function(data){
+        let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
+        let fromTimeBit = $scope.fromTime == "" ? "" : "&fromTime=" + $scope.fromTime;
+        $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
+                + fromIdBit + fromTimeBit + "&forward=true").success(function(data){
             $scope.entries = data.entries;
         });
     };
@@ -105,4 +108,16 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     $scope.switchBool = function (value) {
         $scope[value] = !$scope[value];
     };
+
+    $scope.deleteEntry = function(app, entry) {
+        if ($window.confirm("Are you sure you want to delete entry " + entry.id + " ?")) {
+            $http.delete("/alfresco/s/xenit/care4alf/audit" + app + "/" + entry.id).success(() => {
+                $scope.entries = _.without($scope.entries, entry)
+            })
+        }
+    }
+
+    $scope.limit = 1000;
+    $scope.fromId = "";
+    $scope.fromTime = "";
 });
