@@ -69,6 +69,10 @@ care4alf.controller('workflowinstances', function($scope, $resource: ng.resource
         $http.get('workflow/instances/active').success(instanceResultHandler);
     };
 
+    $scope.findAllCompleted = () => {
+        $http.get('workflow/instances/completed').success(instanceResultHandler);
+    };
+
     $scope.deleteAllActive = () => {
         if ($window.confirm('Are you sure you want to delete all active workflows ?')) {
             $http.delete('workflow/instances/active');
