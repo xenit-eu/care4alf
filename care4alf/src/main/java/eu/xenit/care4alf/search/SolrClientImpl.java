@@ -2,10 +2,10 @@ package eu.xenit.care4alf.search;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import eu.xenit.care4alf.Config;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
@@ -26,18 +26,41 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Laurent Van der Linden
- */
+
 @Component
 public class SolrClientImpl implements SolrClient {
+
     private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
 
     @Autowired
-    @Resource(name = "solr")
-    SolrChildApplicationContextFactory solrhttpClientFactory;
+    private Config config;
+
+    @Autowired
+    @Qualifier("solr")
+    SolrChildApplicationContextFactory solr1HttpClientFactory;
+
+    @Autowired
+    @Qualifier("solr4")
+    SolrChildApplicationContextFactory solr4HttpClientFactory;
+
+    private HttpClient getHttpClient() {
+        String searchSubsystemKey = "index.subsystem.name";
+        String searchSubSystemValue = config.getProperty(searchSubsystemKey).toLowerCase();
+
+        // Default factory is Solr (meaning Solr 1), which means it is also used when 'solr6' is configured.
+        SolrChildApplicationContextFactory clientFactory = solr1HttpClientFactory;
+        if (searchSubSystemValue.equals("solr4")) {
+            clientFactory = solr4HttpClientFactory;
+        }
+        logger.info("Configured '{}'='{}' -> solrHttpClientFactory.typeName='{}'.",
+                searchSubsystemKey, searchSubSystemValue, clientFactory.getTypeName());
+
+        Object httpClientFactory = clientFactory.getApplicationContext().getBean("solrHttpClientFactory");
+        return ((HttpClientFactory) httpClientFactory).getHttpClient();
+    }
 
     @Override
     public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
@@ -70,8 +93,7 @@ public class SolrClientImpl implements SolrClient {
     }
 
     private String basePost(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
-        HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
-        final HttpClient httpClient = httpClientFactory.getHttpClient();
+        final HttpClient httpClient = getHttpClient();
         HttpClientParams params = httpClient.getParams();
         params.setBooleanParameter(HttpClientParams.PREEMPTIVE_AUTHENTICATION, true);
         httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), new UsernamePasswordCredentials("admin", "admin"));
@@ -119,7 +141,6 @@ public class SolrClientImpl implements SolrClient {
                 }
             }
 
-
             if (post.getStatusCode() != HttpServletResponse.SC_OK) {
                 logger.error("HTTP error: " + post.getResponseBodyAsString());
                 throw new IOException("Request failed " + post.getStatusCode());
@@ -132,8 +153,7 @@ public class SolrClientImpl implements SolrClient {
     }
 
     private String baseGET(String url, Multimap<String, String> parameters) throws IOException, EncoderException {
-        HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
-        final HttpClient httpClient = httpClientFactory.getHttpClient();
+        final HttpClient httpClient = getHttpClient();
         HttpClientParams params = httpClient.getParams();
         params.setBooleanParameter(HttpClientParams.PREEMPTIVE_AUTHENTICATION, true);
         httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), new UsernamePasswordCredentials("admin", "admin"));
@@ -176,7 +196,6 @@ public class SolrClientImpl implements SolrClient {
                     httpClient.executeMethod(get);
                 }
             }
-
 
             if (get.getStatusCode() != HttpServletResponse.SC_OK) {
                 logger.error("HTTP error: " + get.getResponseBodyAsString());

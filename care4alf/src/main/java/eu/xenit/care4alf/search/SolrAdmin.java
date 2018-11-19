@@ -30,9 +30,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by willem on 3/1/16.
- */
+
 @Component
 @WebScript(baseUri = "/xenit/care4alf/solr", families = {"care4alf"}, description = "Solr administration")
 @Authentication(AuthenticationType.ADMIN)
@@ -48,6 +46,24 @@ public class SolrAdmin {
 
     @Autowired
     private Config config;
+
+    @Autowired
+    Solr1AdminClientImpl solr1AdminClient;
+
+    @Autowired
+    Solr4AdminClientImpl solr4AdminClient;
+
+    @Autowired
+    Solr6AdminClientImpl solr6AdminClient;
+
+    public AbstractSolrAdminClient getSolrAdminClient() {
+        String searchSubSystem = getSearchSubSystemName().toLowerCase();
+        if(searchSubSystem.equals("solr4"))
+            return solr4AdminClient;
+        if(searchSubSystem.equals("solr6"))
+            return solr6AdminClient;
+        return solr1AdminClient;
+    }
 
     @Uri("errors")
     public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
@@ -164,23 +180,6 @@ public class SolrAdmin {
         return o == null ? "" : o.toString();
     }
 
-    @Autowired
-    Solr1AdminClientImpl solr1AdminClient;
-
-    @Autowired
-    Solr4AdminClientImpl solr4AdminClient;
-
-    @Autowired
-    Solr6AdminClientImpl solr6AdminClient;
-
-    public AbstractSolrAdminClient getSolrAdminClient() {
-        String searchSubSystem = getSearchSubSystemName().toLowerCase();
-        if(searchSubSystem.equals("solr4"))
-            return solr4AdminClient;
-        if(searchSubSystem.equals("solr6"))
-            return solr6AdminClient;
-        return solr1AdminClient;
-    }
 
     public long getSolrLag() {
         JSONObject summary = null;
