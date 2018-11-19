@@ -2,11 +2,20 @@ package eu.xenit.care4alf.search;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.Map;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
-import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -19,12 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.util.Map;
-
 /**
  * @author Laurent Van der Linden
  */
@@ -32,14 +35,14 @@ import java.util.Map;
 public class SolrClientImpl implements SolrClient {
     private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
 
-    @Autowired()
+    @Autowired
     @Resource(name = "solr")
     SolrChildApplicationContextFactory solrhttpClientFactory;
 
     @Override
     public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
         try {
-            return new JSONObject(this.basePost(url, parameters, body == null ? null : body.toString()));
+            return new JSONObject(basePost(url, parameters, body == null ? null : body.toString()));
         } catch (ConnectException ce){
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return new JSONObject("{\"Summary\": {\"Error\": -2}}");
@@ -49,7 +52,7 @@ public class SolrClientImpl implements SolrClient {
     @Override
     public String postMessage(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
         try {
-            return this.basePost(url, parameters, body);
+            return basePost(url, parameters, body);
         } catch (ConnectException ce){
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return "No Solr connected";
@@ -59,7 +62,7 @@ public class SolrClientImpl implements SolrClient {
     @Override
     public String get(String url, Multimap<String, String> parameters) throws IOException, EncoderException {
         try {
-            return this.baseGET(url, parameters);
+            return baseGET(url, parameters);
         } catch (ConnectException ce){
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return "No Solr connected";
