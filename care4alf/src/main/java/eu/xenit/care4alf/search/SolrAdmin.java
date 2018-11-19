@@ -2,10 +2,22 @@ package eu.xenit.care4alf.search;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import eu.xenit.care4alf.Config;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -23,18 +35,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
-
 
 @Component
 @WebScript(baseUri = "/xenit/care4alf/solr", families = {"care4alf"}, description = "Solr administration")
 @Authentication(AuthenticationType.ADMIN)
 public class SolrAdmin {
+
     private final Logger logger = LoggerFactory.getLogger(SolrAdmin.class);
 
     @Autowired
@@ -58,21 +64,24 @@ public class SolrAdmin {
 
     public AbstractSolrAdminClient getSolrAdminClient() {
         String searchSubSystem = getSearchSubSystemName().toLowerCase();
-        if(searchSubSystem.equals("solr4"))
+        if (searchSubSystem.equals("solr4")) {
             return solr4AdminClient;
-        if(searchSubSystem.equals("solr6"))
+        }
+        if (searchSubSystem.equals("solr6")) {
             return solr6AdminClient;
+        }
         return solr1AdminClient;
     }
 
     @Uri("errors")
-    public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start, @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
+    public void errors(final WebScriptResponse response, @RequestParam(defaultValue = "0") String start,
+            @RequestParam(defaultValue = "100") String rows) throws JSONException, EncoderException, IOException {
         JSONObject json = this.getSolrAdminClient().getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
     }
 
-    private String getSearchSubSystemName(){
+    private String getSearchSubSystemName() {
         return config.getProperty("index.subsystem.name");
     }
 
@@ -94,19 +103,22 @@ public class SolrAdmin {
     }
 
     @Uri("proxy/{uri}")
-    public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri) throws JSONException, EncoderException, IOException {
+    public void proxy(final WebScriptRequest request, final WebScriptResponse response, @UriVariable("uri") String uri)
+            throws JSONException, EncoderException, IOException {
         String[] names = request.getParameterNames();
         Multimap<String, String> parameters = ArrayListMultimap.create();
         for (String name : names) {
             parameters.put(name, request.getParameter(name));
         }
-        String result = this.getSolrAdminClient().getSolrClient().get("/" + this.getSolrAdminClient().getSolrTypeUrl() + "/" + uri, parameters);
+        String result = this.getSolrAdminClient().getSolrClient()
+                .get("/" + this.getSolrAdminClient().getSolrTypeUrl() + "/" + uri, parameters);
         response.setContentType("application/json");
         response.getWriter().write(result);
     }
 
     @Uri("errors/nodes")
-    public void getRESTSolrErrorNodes(final WebScriptResponse response, @RequestParam(defaultValue = "100") int rows) throws IOException, JSONException, EncoderException {
+    public void getRESTSolrErrorNodes(final WebScriptResponse response, @RequestParam(defaultValue = "100") int rows)
+            throws IOException, JSONException, EncoderException {
         response.getWriter().write(this.getSolrErrorNodes(rows));
     }
 
@@ -115,21 +127,24 @@ public class SolrAdmin {
             final WebScriptResponse res,
             @UriVariable() String filter,
             @RequestParam(defaultValue = "10000") final int rows,
-            @RequestParam(defaultValue = "nocontent") final String action) throws IOException, JSONException, EncoderException {
+            @RequestParam(defaultValue = "nocontent") final String action)
+            throws IOException, JSONException, EncoderException {
         List<SolrErrorDoc> docs = this.getSolrAdminClient().getSolrErrorDocs(rows);
         int count = 0;
-        if(filter == null) filter="all";
+        if (filter == null) {
+            filter = "all";
+        }
         logger.debug("filter: '{}'", filter);
         for (SolrErrorDoc doc : docs) {
-            logger.debug("Processing document with id={}, Exception: '{}', Action={}", doc.getDbid(), doc.getException(), action);
+            logger.debug("Processing document with id={}, Exception: '{}', Action={}", doc.getDbid(),
+                    doc.getException(), action);
             if ((filter.equals("all") || doc.getException().equals(filter))) {
-                if(action.equals("nocontentindexing")){
+                if (action.equals("nocontentindexing")) {
                     logger.debug("Setting content-indexing to false");
                     NodeRef nodeRef = nodeService.getNodeRef(doc.getDbid());
                     nodeService.setProperty(nodeRef, ContentModel.PROP_IS_CONTENT_INDEXED, false);
                     count++;
-                }
-                else if(action.equals("reindex")){
+                } else if (action.equals("reindex")) {
                     logger.debug("Reindexing node");
                     this.getSolrAdminClient().reindex(doc.getDbid());
                     count++;
@@ -138,8 +153,7 @@ public class SolrAdmin {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-                else{
+                } else {
                     logger.debug("Ignoring document");
                 }
             }
@@ -155,8 +169,9 @@ public class SolrAdmin {
             NodeRef nodeRef = this.nodeService.getNodeRef(doc.getDbid());
             ContentData content = (ContentData) this.nodeService.getProperty(nodeRef, ContentModel.PROP_CONTENT);
             long size = -1;
-            if (content != null)
+            if (content != null) {
                 size = content.getSize();
+            }
             String[] fields = new String[]{
                     doc.getException(),
                     Long.toString(doc.getTxid()),
@@ -207,13 +222,16 @@ public class SolrAdmin {
     }
 
     @Uri("transactions")
-    public void getTransactionsToIndex(WebScriptResponse response, @RequestParam(required = false) Long txId) throws IOException {
-        new ObjectMapper().writeValue(response.getWriter(), this.getTransactionsToIndex(txId == null ? this.geLastTxInIndex() : txId));
+    public void getTransactionsToIndex(WebScriptResponse response, @RequestParam(required = false) Long txId)
+            throws IOException {
+        new ObjectMapper().writeValue(response.getWriter(),
+                this.getTransactionsToIndex(txId == null ? this.geLastTxInIndex() : txId));
     }
 
     public List<Transaction> getTransactionsToIndex(long fromTxId) {
         return new JdbcTemplate(dataSource).query(
-                "select TRANSACTION_ID, count(*) as n from alf_node where transaction_id >= " + Long.toString(fromTxId) + " group by TRANSACTION_ID order by n desc",
+                "select TRANSACTION_ID, count(*) as n from alf_node where transaction_id >= " + Long.toString(fromTxId)
+                        + " group by TRANSACTION_ID order by n desc",
                 new Object[]{},
                 new RowMapper<Transaction>() {
                     @Override
@@ -239,7 +257,8 @@ public class SolrAdmin {
     }
 
     public long getNodesToIndex() {
-        return new JdbcTemplate(dataSource).queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
+        return new JdbcTemplate(dataSource)
+                .queryForLong("select count(*) as n from alf_node where transaction_id > " + this.geLastTxInIndex());
     }
 
     public void clearCache() {
@@ -247,6 +266,7 @@ public class SolrAdmin {
     }
 
     public class Transaction {
+
         private long txId;
         private int count;
 
@@ -264,7 +284,7 @@ public class SolrAdmin {
         }
     }
 
-    public long getModelErrors(){
+    public long getModelErrors() {
         try {
             long count = 0;
             JSONObject json = this.getSolrAdminClient().getSolrSummaryJson();
@@ -276,14 +296,18 @@ public class SolrAdmin {
             Object alfrescoerror = null;
             Object archiveerror = null;
             try {
-                alfrescoerror = json.getJSONObject("alfresco").get("Model changes are not compatible with the existing data model and have not been applied");
+                alfrescoerror = json.getJSONObject("alfresco")
+                        .get("Model changes are not compatible with the existing data model and have not been applied");
                 //check archive null
                 archiveerror = (json.getJSONObject("archive") == null) ?
-                        null : json.getJSONObject("archive").get("Model changes are not compatible with the existing data model and have not been applied");
+                        null : json.getJSONObject("archive")
+                        .get("Model changes are not compatible with the existing data model and have not been applied");
             } catch (JSONException e) {
                 logger.debug("no model errors found.");
             }
-            if (alfrescoerror == null && archiveerror == null) return 0;
+            if (alfrescoerror == null && archiveerror == null) {
+                return 0;
+            }
             if (alfrescoerror != null) {
                 count += geterrors(alfrescoerror);
             }
@@ -292,8 +316,7 @@ public class SolrAdmin {
             }
             logger.debug("count: " + count);
             return count;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             logger.warn("Can't determine if there are Solr model errors");
         }
         return -1;
