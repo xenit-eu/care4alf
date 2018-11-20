@@ -2,11 +2,20 @@ package eu.xenit.care4alf.search;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import eu.xenit.care4alf.Config;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
-import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -17,40 +26,60 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.util.Map;
 
-/**
- * @author Laurent Van der Linden
- */
 @Component
 public class SolrClientImpl implements SolrClient {
+
     private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
 
-    @Autowired()
-    @Resource(name = "solr")
-    SolrChildApplicationContextFactory solrhttpClientFactory;
+    @Autowired
+    private Config config;
+
+    @Autowired
+    @Qualifier("solr")
+    SolrChildApplicationContextFactory solr1HttpClientFactory;
+
+    @Autowired
+    @Qualifier("solr4")
+    SolrChildApplicationContextFactory solr4HttpClientFactory;
+
+    private HttpClient getHttpClient() {
+        String searchSubsystemKey = "index.subsystem.name";
+        String searchSubSystemValue = config.getProperty(searchSubsystemKey).toLowerCase();
+
+        // Default factory is Solr (meaning Solr 1), which means it is also used when 'solr6' is configured.
+        SolrChildApplicationContextFactory clientFactory = solr1HttpClientFactory;
+        if (searchSubSystemValue.equals("solr4")) {
+            clientFactory = solr4HttpClientFactory;
+        }
+        logger.info("Configured '{}'='{}' -> solrHttpClientFactory.typeName='{}'.",
+                searchSubsystemKey, searchSubSystemValue, clientFactory.getTypeName());
+
+
+        Object httpClientFactory = clientFactory.getApplicationContext().getBean("solrHttpClientFactory");
+        return ((HttpClientFactory) httpClientFactory).getHttpClient();
+    }
 
     @Override
-    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body) throws IOException, EncoderException, JSONException {
+    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body)
+            throws IOException, EncoderException, JSONException {
         try {
-            return new JSONObject(this.basePost(url, parameters, body == null ? null : body.toString()));
-        } catch (ConnectException ce){
+            return new JSONObject(basePost(url, parameters, body == null ? null : body.toString()));
+        } catch (ConnectException ce) {
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return new JSONObject("{\"Summary\": {\"Error\": -2}}");
         }
     }
 
     @Override
-    public String postMessage(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
+    public String postMessage(String url, Multimap<String, String> parameters, String body)
+            throws IOException, EncoderException {
         try {
-            return this.basePost(url, parameters, body);
-        } catch (ConnectException ce){
+            return basePost(url, parameters, body);
+        } catch (ConnectException ce) {
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return "No Solr connected";
         }
@@ -59,19 +88,20 @@ public class SolrClientImpl implements SolrClient {
     @Override
     public String get(String url, Multimap<String, String> parameters) throws IOException, EncoderException {
         try {
-            return this.baseGET(url, parameters);
-        } catch (ConnectException ce){
+            return baseGET(url, parameters);
+        } catch (ConnectException ce) {
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
             return "No Solr connected";
         }
     }
 
-    private String basePost(String url, Multimap<String, String> parameters, String body) throws IOException, EncoderException {
-        HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
-        final HttpClient httpClient = httpClientFactory.getHttpClient();
+    private String basePost(String url, Multimap<String, String> parameters, String body)
+            throws IOException, EncoderException {
+        final HttpClient httpClient = getHttpClient();
         HttpClientParams params = httpClient.getParams();
         params.setBooleanParameter(HttpClientParams.PREEMPTIVE_AUTHENTICATION, true);
-        httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), new UsernamePasswordCredentials("admin", "admin"));
+        httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
+                new UsernamePasswordCredentials("admin", "admin"));
 
         final URLCodec encoder = new URLCodec();
         StringBuilder urlBuilder = new StringBuilder();
@@ -99,15 +129,17 @@ public class SolrClientImpl implements SolrClient {
         logger.info("solr query: {}", uri);
 
         PostMethod post = new PostMethod(uri);
-        if(body == null){
+        if (body == null) {
             body = "{}";
         }
-        post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"), body.startsWith("{")?"application/json":"text/xml"));
+        post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"),
+                body.startsWith("{") ? "application/json" : "text/xml"));
 
         try {
             httpClient.executeMethod(post);
 
-            if (post.getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY || post.getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
+            if (post.getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY
+                    || post.getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
                 Header locationHeader = post.getResponseHeader("location");
                 if (locationHeader != null) {
                     String redirectLocation = locationHeader.getValue();
@@ -115,7 +147,6 @@ public class SolrClientImpl implements SolrClient {
                     httpClient.executeMethod(post);
                 }
             }
-
 
             if (post.getStatusCode() != HttpServletResponse.SC_OK) {
                 logger.error("HTTP error: " + post.getResponseBodyAsString());
@@ -129,11 +160,11 @@ public class SolrClientImpl implements SolrClient {
     }
 
     private String baseGET(String url, Multimap<String, String> parameters) throws IOException, EncoderException {
-        HttpClientFactory httpClientFactory = (HttpClientFactory) (solrhttpClientFactory).getApplicationContext().getBean("solrHttpClientFactory");
-        final HttpClient httpClient = httpClientFactory.getHttpClient();
+        final HttpClient httpClient = getHttpClient();
         HttpClientParams params = httpClient.getParams();
         params.setBooleanParameter(HttpClientParams.PREEMPTIVE_AUTHENTICATION, true);
-        httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT), new UsernamePasswordCredentials("admin", "admin"));
+        httpClient.getState().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
+                new UsernamePasswordCredentials("admin", "admin"));
 
         final URLCodec encoder = new URLCodec();
         StringBuilder urlBuilder = new StringBuilder();
@@ -165,7 +196,8 @@ public class SolrClientImpl implements SolrClient {
         try {
             httpClient.executeMethod(get);
 
-            if (get.getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY || get.getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
+            if (get.getStatusCode() == HttpStatus.SC_MOVED_PERMANENTLY
+                    || get.getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
                 Header locationHeader = get.getResponseHeader("location");
                 if (locationHeader != null) {
                     String redirectLocation = locationHeader.getValue();
@@ -173,7 +205,6 @@ public class SolrClientImpl implements SolrClient {
                     httpClient.executeMethod(get);
                 }
             }
-
 
             if (get.getStatusCode() != HttpServletResponse.SC_OK) {
                 logger.error("HTTP error: " + get.getResponseBodyAsString());
