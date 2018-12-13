@@ -1,3 +1,7 @@
+allprojects {
+    version = '1.6.0-SNAPSHOT'
+    group = 'eu.xenit'
+}
 
 buildscript {
     ext.kotlin_version = '1.0.3'
@@ -58,10 +62,6 @@ ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber')?project.getProperty('buildNumber'):"SNAPSHOT";
 
-allprojects {
-    version = '1.5.0'
-    group = 'eu.xenit'
-}
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.dm.bundle'
