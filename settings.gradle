@@ -2,3 +2,4 @@ rootProject.name='care4alf'
 
 include ':care4alf'
 include ':c4a-integration-testing'
+include ':c4a-42-integration-testing'

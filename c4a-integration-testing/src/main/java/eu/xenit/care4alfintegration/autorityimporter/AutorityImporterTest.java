@@ -24,15 +24,11 @@ public class AutorityImporterTest {
     @BeforeClass
     public static void setup() throws InterruptedException {
         String port = System.getProperty("port");
-        if (port == null) {
-            RestAssured.port = 443;
-        } else {
-            RestAssured.port = Integer.valueOf(port);
-        }
+        RestAssured.port = port == null ? 8080 : Integer.valueOf(port);
 
         String protocol = System.getProperty("protocol");
-        if(protocol == null){
-            protocol = "https";
+        if (protocol == null) {
+            protocol = "http";
         }
 
         String basePath = "/alfresco/s";
