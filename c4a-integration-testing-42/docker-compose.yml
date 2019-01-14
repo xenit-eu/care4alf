@@ -52,16 +52,7 @@ services:
     - PGCONF_log_autovacuum_min_duration=0
     - PGCONF_log_error_verbosity=default
     - PGCONF_log_min_duration_statement=100
-#     - PGCONF_log_duration=on
     restart: unless-stopped
-#   authentication-proxy:
-#     build:
-#         context: nginx-proxy
-#     ports:
-#       - ${DOCKER_IP}::80
-#     restart: unless-stopped
-#     command: 'nginx'
-
 
   jodconverter:
     image: hub.xenit.eu/jodconverter-ws

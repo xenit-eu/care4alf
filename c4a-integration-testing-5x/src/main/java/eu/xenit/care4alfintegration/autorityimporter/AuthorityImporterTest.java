@@ -23,21 +23,15 @@ public class AuthorityImporterTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        String port = System.getProperty("port");
-        RestAssured.port = port == null ? 8080 : Integer.valueOf(port);
+        RestAssured.port = Integer.valueOf(System.getProperty("port", "8080"));
 
-        String protocol = System.getProperty("protocol");
-        if (protocol == null) {
-            protocol = "http";
-        }
+        String protocol = System.getProperty("protocol", "http");
 
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
         RestAssured.useRelaxedHTTPSValidation();
-        String host = System.getProperty("host");
-        if (host == null) {
-            host = "localhost";
-        }
+        String host = System.getProperty("host", "localhost");
+
         String baseUri = protocol+"://"+host;
         System.out.println("Integration test host: " + baseUri);
         RestAssured.baseURI = baseUri;
