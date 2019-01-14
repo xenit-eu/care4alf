@@ -5,6 +5,8 @@ import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import org.apache.commons.codec.EncoderException;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,11 @@ public class SolrAdminTest {
 
     @Test
     public void testSolrErrors() throws Exception {
+        // The 4.2 integration test runs against Solr 1, which always has a few errors. Skip this test for 4.2.
+        String version = System.getenv().get("ALFRESCO_VERSION");
+        if (version != null && version.startsWith("4.2")) {
+            return;
+        }
         Assert.assertEquals(0, this.solrAdmin.getSolrErrors());
     }
 

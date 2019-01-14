@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-public class AutorityImporterTest {
+public class AuthorityImporterTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
