@@ -45,6 +45,7 @@ allprojects {
 
     project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
 
+    // This can be replaced by the healthcheck once we upgrade to the latest images and docker-compose plugin 
     composeUp {
         doLast {
             def serviceInfo = servicesInfos.get("alfresco-core")
