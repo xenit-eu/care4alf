@@ -19,29 +19,19 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-public class AutorityImporterTest {
+public class AuthorityImporterTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        String port = System.getProperty("port");
-        if (port == null) {
-            RestAssured.port = 443;
-        } else {
-            RestAssured.port = Integer.valueOf(port);
-        }
+        RestAssured.port = Integer.valueOf(System.getProperty("port", "8080"));
 
-        String protocol = System.getProperty("protocol");
-        if(protocol == null){
-            protocol = "https";
-        }
+        String protocol = System.getProperty("protocol", "http");
 
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
         RestAssured.useRelaxedHTTPSValidation();
-        String host = System.getProperty("host");
-        if (host == null) {
-            host = "localhost";
-        }
+        String host = System.getProperty("host", "localhost");
+
         String baseUri = protocol+"://"+host;
         System.out.println("Integration test host: " + baseUri);
         RestAssured.baseURI = baseUri;

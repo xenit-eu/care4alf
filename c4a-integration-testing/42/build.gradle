@@ -1,0 +1,25 @@
+archivesBaseName = 'c4a-integration-testing-42'
+
+// Docker dependencies
+dependencies {
+    baseAlfrescoWar 'org.alfresco:alfresco:4.2.8@war'
+    alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo:${deVersion}@amp"
+    alfrescoAmp project(path: ':care4alf', configuration: 'ampArtifact')
+}
+
+dockerAlfresco {
+    baseImage = 'hub.xenit.eu/alfresco-enterprise:4.2.8'
+    leanImage = true
+    dockerBuild {
+        repository = 'hub.xenit.eu/care4alf-alfresco-42'
+    }
+}
+
+jar {
+    // Make a symlink at configuration time so the jar task finds the sources where it expects to find them
+    ant.symlink(resource: project(':c4a-integration-testing').file("src/main/java"),
+            link: project.file("src/main/java"), overwrite: true)
+    doLast {
+        project.delete("src/main/java")
+    }
+}
