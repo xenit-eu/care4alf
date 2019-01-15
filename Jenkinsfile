@@ -18,11 +18,11 @@ node {
 
     try {
          stage('Testing 4.2') {
-            sh "./gradlew clean :c4a-integration-testing-42:integrationTest -PbuildNumber=${buildNr} -i"
+            sh "./gradlew clean :c4a-integration-testing:42:integrationTest -PbuildNumber=${buildNr} -i"
         }
 
         stage('Testing 5.x') {
-            sh "./gradlew clean :c4a-integration-testing-5x:integrationTest -PbuildNumber=${buildNr} -i"
+            sh "./gradlew clean :c4a-integration-testing:5x:integrationTest -PbuildNumber=${buildNr} -i"
         }
 
         stage('Building AMP') {
