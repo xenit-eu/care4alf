@@ -1,5 +1,5 @@
 allprojects {
-    version = '1.5.1-SNAPSHOT'
+    version = '1.5.1' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
     group = 'eu.xenit'
 }
 buildscript {
@@ -72,4 +72,13 @@ nexusStaging {
     username = project.hasProperty('publish_username') ? project.publish_username : ''
     password = project.hasProperty('publish_password') ? project.publish_password : ''
     packageGroup = "eu.xenit"
+}
+
+def String getVersionQualifier(String branch_name) {
+    // Not XEP-6 compliant yet
+    if (branch_name == 'master') {
+        return ''
+    } else {
+        return '-SNAPSHOT'
+    }
 }
