@@ -1,4 +1,8 @@
 # Changelog
+## Release 1.5.1 (2019-01-16)
+### ALFREDOPS
+- [165](https://xenitsupport.jira.com/browse/ALFREDOPS-165): Care4Alf tries to load Solr4 bean on Alfresco 4.2 that supports only Solr1
+
 ## Release 1.5.0 (2018-12-13)
 ### ALFREDOPS
 - [152](https://xenitsupport.jira.com/browse/ALFREDOPS-152): Nodebrowser improvement: You can now choose the storeref to search in, as well as the transactional consistency of the query

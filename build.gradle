@@ -1,4 +1,7 @@
-
+allprojects {
+    version = '1.5.1' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
+    group = 'eu.xenit'
+}
 buildscript {
     ext.kotlin_version = '1.0.3'
     repositories {
@@ -58,10 +61,6 @@ ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber')?project.getProperty('buildNumber'):"SNAPSHOT";
 
-allprojects {
-    version = '1.5.0'
-    group = 'eu.xenit'
-}
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.dm.bundle'
@@ -73,4 +72,13 @@ nexusStaging {
     username = project.hasProperty('publish_username') ? project.publish_username : ''
     password = project.hasProperty('publish_password') ? project.publish_password : ''
     packageGroup = "eu.xenit"
+}
+
+def String getVersionQualifier(String branch_name) {
+    // Not XEP-6 compliant yet
+    if (branch_name == 'master') {
+        return ''
+    } else {
+        return '-SNAPSHOT'
+    }
 }

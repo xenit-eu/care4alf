@@ -38,11 +38,11 @@ public class SolrClientImpl implements SolrClient {
     @Autowired
     private Config config;
 
-    @Autowired
+    @Autowired(required = false)
     @Qualifier("solr")
     SolrChildApplicationContextFactory solr1HttpClientFactory;
 
-    @Autowired
+    @Autowired(required = false)
     @Qualifier("solr4")
     SolrChildApplicationContextFactory solr4HttpClientFactory;
 
