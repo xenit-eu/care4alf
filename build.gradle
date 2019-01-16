@@ -75,8 +75,7 @@ nexusStaging {
 }
 
 def String getVersionQualifier(String branch_name) {
-    // Not XEP-6 compliant yet
-    if (branch_name == 'master') {
+    if (branch_name == 'release') {
         return ''
     } else {
         return '-SNAPSHOT'
