@@ -8,7 +8,7 @@ node {
     stage('Checkout') {
         checkout scm
 
-        if (env.BRANCH_NAME == "master") {
+        if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
             publishAmpTask = "publishAmpPublicationToReleaseRepository"
             publishJarTask = "publishMavenJavaPublicationToReleaseRepository"
