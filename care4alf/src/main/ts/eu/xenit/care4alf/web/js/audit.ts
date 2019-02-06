@@ -16,13 +16,14 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
         console.log("loading app: " + app);
         let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
         let fromTimeBit = $scope.fromTime == "" ? "" : "&fromTime=" + $scope.fromTime;
+        let userFilterBit = $scope.userFilter == "" ? "" : "&user=" + $scope.userFilter
         $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
-                + fromIdBit + fromTimeBit + "&forward=" + $scope.forward).success(function(data){
+                + fromIdBit + fromTimeBit + "&forward=" + $scope.forward + userFilterBit).success(function(data) {
             $scope.entries = data.entries;
         });
     };
 
-    $scope.query = function(app,key, value){
+    $scope.query = function(app: string, key: string, value: string){
         lastFunc = "query?"+key+"?"+value;
         $scope.showClear = true;
         $scope.showBack = true;
@@ -121,4 +122,5 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
     $scope.fromId = "";
     $scope.fromTime = "";
     $scope.forward = true;
+    $scope.valueFilter = "";
 });
