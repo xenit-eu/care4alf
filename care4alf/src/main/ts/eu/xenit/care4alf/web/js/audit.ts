@@ -3,7 +3,6 @@
 care4alf.controller('audit', function($scope, $http, $routeParams, $window: Window, $location) {
     $scope.sortType     = 'time';
     $scope.sortReverse  = false;
-    $scope.showClear = false;
     $scope.showBack = false;
     let lastFunc = "";
     console.log("found route params: "+$routeParams.subtoken+" and "+$routeParams.subtoken2);
@@ -11,7 +10,6 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
     $scope.load = function(app){
         lastFunc = "load";
         //$location.url('/audit'+app);
-        $scope.showClear = true;
         $scope.showBack = false;
         console.log("loading app: " + app);
         let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
@@ -25,7 +23,6 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
 
     $scope.query = function(app: string, key: string, value: string){
         lastFunc = "query?"+key+"?"+value;
-        $scope.showClear = true;
         $scope.showBack = true;
         console.log("Query: " + value);
         console.log("key: "+key);
@@ -95,16 +92,6 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
         $scope.queryUser(app,user);
     };
 
-    $scope.clear = function (app) {
-        console.log("Clearing:" +app);
-        $http.post("/alfresco/s/api/audit/clear"+app).success(function(){
-            $scope.showSuccessAlert = true;
-        });
-    };
-
-    $scope.successTextAlert = "The audit for this application has been successfully cleared";
-    $scope.showSuccessAlert = false;
-
     // switch flag
     $scope.switchBool = function (value) {
         $scope[value] = !$scope[value];
@@ -122,5 +109,5 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
     $scope.fromId = "";
     $scope.fromTime = "";
     $scope.forward = true;
-    $scope.valueFilter = "";
+    $scope.userFilter = "";
 });

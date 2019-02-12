@@ -4,11 +4,23 @@
             ng-model="application"
             ng-options="app.path as app.name for app in control.applications"
             ng-change="setRouteLoad(application)"></select>
-    <input type="button" ng-show="showClear" class="btn btn-danger" ng-click="clear(application)" value="Clear"/>
     <input type="button" class="btn btn-primary" ng-click="reload()" value="Refresh"/>
     <input type="button" ng-show="showBack" class="btn btn-info" ng-click="setRouteLoad(application)" value="Back"/>
 </div>
-<form class="form-inline">
+<style type="text/css">
+.form-flex{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.form-group {
+    margin-right: 2em;
+}
+.form-group label {
+    display: block;
+}
+</style>
+<form class="form-flex">
     <div class="form-group">
         <label for="limit">Limit</label>
         <input type="text" class="form-control" id="limit" ng-model="limit" placeholder="1000"/>
@@ -22,7 +34,8 @@
         <input type="text" class="form-control" id="fromTime" ng-model="fromTime" placeholder="2012-12-21T21:12:22.000+00:00"/>
     </div>
     <div class="form-group">
-        <select ng-model="forward">
+        <label for="timeDirection">Temporal Direction</label>
+        <select id="timeDirection" ng-model="forward">
             <option value="true">Forwards in time</option>
             <option value="false">Backwards in time</option>
         </select>
