@@ -27,14 +27,16 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
 
     @Uri(value = "/", defaultFormat = "html")
     fun index(): Map<String, Any> {
-        val lastModified = bundleContext.getBundle().getHeaders().get("Bnd-LastModified")
+        val lastModified = bundleContext.bundle.headers.get("Bnd-LastModified")
+        val version = bundleContext.bundle.version
 
         return mapOf(
-                "modules" to getModuleWebScripts().toSortedMap().map({ entry ->
+                "modules" to getModuleWebScripts().toSortedMap().map { entry ->
                     val description = entry.value.javaClass.getAnnotation(WebScript::class.java).description
                     mapOf("id" to entry.key.toLowerCase(), "description" to description)
-                }),
-                "version" to lastModified.toLong()
+                },
+                "versionDate" to lastModified.toLong(),
+                "version" to version.toString()
         )
     }
 
