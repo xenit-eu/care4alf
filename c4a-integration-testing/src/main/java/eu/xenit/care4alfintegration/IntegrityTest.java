@@ -25,9 +25,8 @@ public class IntegrityTest {
 
     @Test
     public void testGetNodeReport() {
-        integrity.startScan();
-        integrity.busyWait();
-        IntegrityReport report = integrity.getLastReport();
+        integrity.scanAll();
+        IntegrityReport report = integrity.getLastReport().get();
 
         NodeRef abeecher = new NodeRef("workspace://SpacesStore/dc103838-645f-43c1-8a2a-bc187e13c343");
         NodeRef mjackson = new NodeRef("workspace://SpacesStore/b6d80d49-21cc-4f04-9c92-e7063037543f");
@@ -38,9 +37,8 @@ public class IntegrityTest {
 
     @Test
     public void testGetFileReport() {
-        integrity.startScan();
-        integrity.busyWait();
-        IntegrityReport report = integrity.getLastReport();
+        integrity.scanAll();
+        IntegrityReport report = integrity.getLastReport().get();
 
         // generate file problems
 
