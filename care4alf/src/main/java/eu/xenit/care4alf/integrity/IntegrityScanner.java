@@ -4,6 +4,8 @@ import com.github.dynamicextensionsalfresco.actions.annotations.ActionMethod;
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import com.google.common.base.Optional;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,7 +80,7 @@ public class IntegrityScanner {
             NodeRef noderef = node.getNodeRef();
             Map<QName, Serializable> props = nodeService.getProperties(noderef);
             for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
-                verifyProperty(noderef, entry, inProgressReport);
+                verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
             }
 
             List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
@@ -92,8 +94,7 @@ public class IntegrityScanner {
         }
     }
 
-    private void verifyProperty(NodeRef noderef, Entry<QName, Serializable> entry, IntegrityReport report) {
-        QName property = entry.getKey();
+    private void verifyProperty(NodeRef noderef, QName property, Serializable value, IntegrityReport report) {
         // Check for empty property/null property
         PropertyDefinition definition = dictionaryService.getProperty(property);
         if (definition == null) {
@@ -101,34 +102,61 @@ public class IntegrityScanner {
             report.addNodeProblem(new UnknownPropertyProblem(noderef, property));
             return;
         }
-        if (entry.getValue() == null && definition.isMandatory()) {
-            logger.error("{} is null for {}", property, noderef);
-            if (ContentModel.PROP_HOMEFOLDER.equals(property)) {
-                Serializable username = nodeService.getProperty(noderef, ContentModel.PROP_USERNAME);
-                if (username.equals("mjackson") ||username.equals("abeecher")) {
-                    logger.info("Above node is {}, this is normal", username);
+        if (value == null) {
+            if (definition.isMandatory()) {
+                logger.error("{} is null for {}", property, noderef);
+                if (ContentModel.PROP_HOMEFOLDER.equals(property)) {
+                    Serializable username = nodeService.getProperty(noderef, ContentModel.PROP_USERNAME);
+                    if (username.equals("mjackson") || username.equals("abeecher")) {
+                        logger.info("Above node is {}, this is normal", username);
+                    }
                 }
+                report.addNodeProblem(new MissingPropertyProblem(noderef, property));
             }
-            report.addNodeProblem(new MissingPropertyProblem(noderef, property));
             return;
         }
 
         // Check for invalid deserialization
         DataTypeDefinition dataType = definition.getDataType();
-        String className = dataType.getJavaClassName();
+        String className = getDeserializingClassName(dataType);
         try {
             Class clazz = Class.forName(className);
-            if (clazz.isInstance(entry.getValue())) {
-                // bait out potential classCastException
-                clazz.cast(entry.getValue());
+            if (!definition.isMultiValued()) {
+                // single-valued test
+                if (clazz.isInstance(value)) {
+                    // bait out potential classCastException
+                    clazz.cast(value);
+                } else {
+                    logger.error(value + " not instanceof " + className);
+                    report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
+                }
             } else {
-                report.addNodeProblem(new IncorrectDataTypeProblem(noderef, entry.getKey(), dataType, className));
+                // multi-valued test
+                if (value instanceof Collection) {
+                    // bait out potential classCastException
+                    Iterator iterator = ((Collection)value).iterator();
+                    if (iterator.hasNext()) {
+                        clazz.cast(((Collection)value).iterator().next());
+                    } else if (definition.isMandatory()) {
+                        report.addNodeProblem(new MissingPropertyProblem(noderef, property));
+                    }
+                } else {
+                    logger.error(value + " not instanceof Collection");
+                    report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
+                }
             }
         } catch (ClassNotFoundException e) {
-            report.addNodeProblem(new NondeserializableDataTypeProblem(noderef, entry.getKey(), className));
+            report.addNodeProblem(new NondeserializableDataTypeProblem(noderef, property, className));
         } catch (ClassCastException e) {
-            report.addNodeProblem(new IncorrectDataTypeProblem(noderef, entry.getKey(), dataType, className));
+            report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
         }
 
+    }
+
+    private String getDeserializingClassName(DataTypeDefinition dataType) {
+        if (dataType.getName().getPrefixString().equals("d:mltext")) {
+            return "java.lang.String";
+        }
+        return dataType.getJavaClassName();
     }
 }

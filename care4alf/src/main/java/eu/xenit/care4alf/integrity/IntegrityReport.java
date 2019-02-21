@@ -2,8 +2,10 @@ package eu.xenit.care4alf.integrity;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -11,7 +13,7 @@ import org.joda.time.Interval;
 
 public class IntegrityReport {
     private int scannedNodes;
-    private ConcurrentHashMap<NodeRef, NodeProblem> nodeProblems;
+    private ConcurrentHashMap<NodeRef, List<NodeProblem>> nodeProblems;
     private Date startTime;
     private Date endTime;
 
@@ -25,11 +27,19 @@ public class IntegrityReport {
     }
 
     public void addNodeProblem(NodeProblem problem) {
-        nodeProblems.put(problem.getNoderef(), problem);
+        NodeRef ref = problem.getNoderef();
+        List<NodeProblem> problems;
+        if (nodeProblems.containsKey(ref)) {
+            problems = nodeProblems.get(ref);
+        } else {
+            problems = new ArrayList<>();
+        }
+        problems.add(problem);
+        nodeProblems.put(ref, problems);
     }
 
     @JsonSerialize(keyUsing = NoderefFieldSerializer.class)
-    public Map<NodeRef, NodeProblem> getNodeProblems() {
+    public Map<NodeRef, List<NodeProblem>> getNodeProblems() {
         return nodeProblems;
     }
 
