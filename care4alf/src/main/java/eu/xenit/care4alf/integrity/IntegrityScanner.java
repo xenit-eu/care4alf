@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
@@ -24,13 +23,18 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+// Run at 3 am every saturday
 @Component
-public class IntegrityScanner {
+@ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "0 0 3 ? * SAT", cronProp = "c4a.integrity.cron")
+public class IntegrityScanner implements Job {
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
     @Autowired
@@ -67,6 +71,12 @@ public class IntegrityScanner {
 
     public Optional<IntegrityReport> getLastReport() {
         return Optional.fromNullable(lastReport);
+    }
+
+    @Override
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        scanAll();
+        // TODO send email
     }
 
     private class CallbackHandler implements NodeQueryCallback {
@@ -134,9 +144,9 @@ public class IntegrityScanner {
                 // multi-valued test
                 if (value instanceof Collection) {
                     // bait out potential classCastException
-                    Iterator iterator = ((Collection)value).iterator();
+                    Iterator iterator = ((Collection) value).iterator();
                     if (iterator.hasNext()) {
-                        clazz.cast(((Collection)value).iterator().next());
+                        clazz.cast(((Collection) value).iterator().next());
                     } else if (definition.isMandatory()) {
                         report.addNodeProblem(new MissingPropertyProblem(noderef, property));
                     }
@@ -154,6 +164,16 @@ public class IntegrityScanner {
     }
 
     private String getDeserializingClassName(DataTypeDefinition dataType) {
+        /*  d:mltext is a generally awful-to-debug type. There is a Java class MLText in Alfresco,
+         *  and if you ask the dataTypeDefinition what the associated Java class of d:mltext is,
+         *  it will happily inform you that this is the MLText class. Yet if you have a d:mltext
+         *  property and you get its value from the database, the Serializable you end up with
+         *  will NOT be an instance of MLText. It will be an instance of String. _Which_ string
+         *  that is depends on the locale of the user that executes the code.
+         *
+         *  So in here, we sidestep that entire issue by ignoring the datatype definition and
+         *  pretending the associated class for d:mltext is simply String.
+         */
         if (dataType.getName().getPrefixString().equals("d:mltext")) {
             return "java.lang.String";
         }
