@@ -1,10 +1,12 @@
 package eu.xenit.care4alf.integrity;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.alfresco.service.cmr.repository.NodeRef;
-import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.Interval;
 
 public class IntegrityReport {
@@ -26,12 +28,13 @@ public class IntegrityReport {
         nodeProblems.put(problem.getNoderef(), problem);
     }
 
+    @JsonSerialize(keyUsing = NoderefFieldSerializer.class)
     public Map<NodeRef, NodeProblem> getNodeProblems() {
         return nodeProblems;
     }
 
     public Map<String, Problem> getFileProblems() {
-        throw new NotImplementedException();
+        return Collections.emptyMap();
     }
 
     public int getScannedNodes() {
@@ -50,7 +53,8 @@ public class IntegrityReport {
         return endTime;
     }
 
-    public Interval getRuntime() {
-        return new Interval(getStartTime().getTime(), getEndTime().getTime());
+    @JsonGetter("runtime (ms)")
+    public long getRuntime() {
+        return new Interval(getStartTime().getTime(), getEndTime().getTime()).toDurationMillis();
     }
 }
