@@ -31,9 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-// Run at 3 am every saturday
 @Component
-@ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "0 0 3 ? * SAT", cronProp = "c4a.integrity.cron")
+@ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
@@ -46,12 +45,10 @@ public class IntegrityScanner implements Job {
     @Autowired
     private QNameDAOImpl qNameDAO;
 
-    private static final String SCAN_ALL_ACTION = "scan-all";
     private AtomicInteger counter;
     private IntegrityReport lastReport;
     private IntegrityReport inProgressReport;
 
-    @ActionMethod(SCAN_ALL_ACTION)
     public int scanAll() {
         counter = new AtomicInteger(0);
 
