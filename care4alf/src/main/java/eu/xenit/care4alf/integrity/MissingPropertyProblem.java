@@ -16,8 +16,8 @@ public class MissingPropertyProblem extends NodeProblem {
         return "Mandatory property not present on node";
     }
 
-    public QName getProperty() {
-        return property;
+    public String getProperty() {
+        return property.toString();
     }
 
     @Override

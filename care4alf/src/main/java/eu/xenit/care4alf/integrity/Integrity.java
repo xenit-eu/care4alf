@@ -22,13 +22,19 @@ public class Integrity {
     IntegrityScanner integrityScanner;
 
     @Uri(value = "/report", method = HttpMethod.GET)
-    public void report(WebScriptRequest req, WebScriptResponse response) throws IOException {
-        response.setContentType("application/json");
+    public void report(WebScriptRequest req, final WebScriptResponse response) throws IOException {
         response.setContentEncoding("utf-8");
         response.setHeader("Cache-Control", "no-cache");
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.setDateFormat(new ISO8601DateFormat());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.writeValue(response.getWriter(), integrityScanner.getLastReport().get());
+        if (integrityScanner.getLastReport().isPresent()) {
+            response.setContentType("application/json");
+            mapper.writeValue(response.getWriter(), integrityScanner.getLastReport().get());
+        } else {
+            response.setContentType("text/plain");
+            response.setStatus(404);
+            response.getWriter().write("No scan report exists yet. Run the scan-all Action.");
+        }
     }
 }

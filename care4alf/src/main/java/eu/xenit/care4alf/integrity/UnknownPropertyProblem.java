@@ -16,8 +16,8 @@ public class UnknownPropertyProblem extends NodeProblem {
         return "Unknown property found on node";
     }
 
-    public QName getProperty() {
-        return property;
+    public String getProperty() {
+        return property.toString();
     }
 
     @Override
