@@ -7,6 +7,7 @@ import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import java.util.Map;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class IntegrityTest {
         Assert.assertTrue("mjackson in nodes", nodeProblems.containsKey(mjackson));
     }
 
+    @Ignore
     @Test
     public void testGetFileReport() {
         integrityScanner.scanAll();
