@@ -1,8 +1,10 @@
 package eu.xenit.care4alf.integrity;
 
-import com.github.dynamicextensionsalfresco.actions.annotations.ActionMethod;
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import eu.xenit.care4alf.Config;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +14,8 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
 import org.alfresco.repo.solr.SOLRTrackingComponent;
 import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
@@ -19,13 +23,13 @@ import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,8 @@ public class IntegrityScanner implements Job {
     private NodeService nodeService;
     @Autowired
     private QNameDAOImpl qNameDAO;
+    @Autowired
+    private Config config;
 
     private AtomicInteger counter;
     private IntegrityReport lastReport;
@@ -71,8 +77,13 @@ public class IntegrityScanner implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        scanAll();
+    public void execute(JobExecutionContext jobExecutionContext) {
+        AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
+            @Override
+            public Object doWork() throws Exception {
+                return IntegrityScanner.this.scanAll();
+            }
+        });
         // TODO send email
     }
 
@@ -103,6 +114,8 @@ public class IntegrityScanner implements Job {
             if (refList.isEmpty()) {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
+
+            verifyFilePresent(noderef, inProgressReport);
 
             counter.incrementAndGet();
             inProgressReport.finish();
@@ -168,6 +181,18 @@ public class IntegrityScanner implements Job {
             report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
             logger.error("{}: prop {} could not be cast to {}", noderef, property, className);
         }
+    }
 
+    private void verifyFilePresent(NodeRef noderef, IntegrityReport report) {
+        ContentData contentData = (ContentData) nodeService.getProperty(noderef, ContentModel.PROP_CONTENT);
+        if (contentData == null) {
+            return;
+        }
+        String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
+        String url = contentData.getContentUrl().replace("store:/", location);
+        if (!Files.exists(Paths.get(url))) {
+            logger.error("{} does not exist", url);
+            report.addFileProblem(new FileNotFoundProblem(url, noderef));
+        }
     }
 }

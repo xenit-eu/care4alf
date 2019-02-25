@@ -14,12 +14,14 @@ import org.joda.time.Interval;
 public class IntegrityReport {
     private int scannedNodes;
     private ConcurrentHashMap<NodeRef, List<NodeProblem>> nodeProblems;
+    private ConcurrentHashMap<String, List<FileProblem>> fileProblems;
     private Date startTime;
     private Date endTime;
 
     public IntegrityReport() {
         startTime = new Date();
         nodeProblems = new ConcurrentHashMap<>();
+        fileProblems = new ConcurrentHashMap<>();
     }
 
     public void finish() {
@@ -38,13 +40,25 @@ public class IntegrityReport {
         nodeProblems.put(ref, problems);
     }
 
+    public void addFileProblem(FileProblem problem) {
+        String path = problem.getPath();
+        List<FileProblem> problems;
+        if (fileProblems.containsKey(path)) {
+            problems = fileProblems.get(path);
+        } else {
+            problems = new ArrayList<>();
+        }
+        problems.add(problem);
+        fileProblems.put(path, problems);
+    }
+
     @JsonSerialize(keyUsing = NoderefFieldSerializer.class)
     public Map<NodeRef, List<NodeProblem>> getNodeProblems() {
         return nodeProblems;
     }
 
-    public Map<String, Problem> getFileProblems() {
-        return Collections.emptyMap();
+    public Map<String, List<FileProblem>> getFileProblems() {
+        return fileProblems;
     }
 
     public int getScannedNodes() {
