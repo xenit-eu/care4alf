@@ -2,7 +2,6 @@ package eu.xenit.care4alf.integrity;
 
 import com.github.dynamicextensionsalfresco.actions.annotations.ActionMethod;
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
-import com.google.common.base.Optional;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
@@ -12,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
+import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.solr.NodeParameters;
 import org.alfresco.repo.solr.SOLRTrackingComponent;
 import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
@@ -69,8 +69,8 @@ public class IntegrityScanner implements Job {
         return counter.get();
     }
 
-    public Optional<IntegrityReport> getLastReport() {
-        return Optional.fromNullable(lastReport);
+    public IntegrityReport getLastReport() {
+        return lastReport;
     }
 
     @Override
@@ -88,9 +88,18 @@ public class IntegrityScanner implements Job {
             }
 
             NodeRef noderef = node.getNodeRef();
-            Map<QName, Serializable> props = nodeService.getProperties(noderef);
-            for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
-                verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+            // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
+            // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
+            boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
+            MLPropertyInterceptor.setMLAware(true);
+            try {
+                Map<QName, Serializable> props = nodeService.getProperties(noderef);
+                for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
+                    verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+                }
+            } finally {
+                // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
+                MLPropertyInterceptor.setMLAware(wasMultiLangAware);
             }
 
             List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
@@ -128,7 +137,7 @@ public class IntegrityScanner implements Job {
 
         // Check for invalid deserialization
         DataTypeDefinition dataType = definition.getDataType();
-        String className = getDeserializingClassName(dataType);
+        String className = dataType.getJavaClassName();
         try {
             Class clazz = Class.forName(className);
             if (!definition.isMultiValued()) {
@@ -161,22 +170,5 @@ public class IntegrityScanner implements Job {
             report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
         }
 
-    }
-
-    private String getDeserializingClassName(DataTypeDefinition dataType) {
-        /*  d:mltext is a generally awful-to-debug type. There is a Java class MLText in Alfresco,
-         *  and if you ask the dataTypeDefinition what the associated Java class of d:mltext is,
-         *  it will happily inform you that this is the MLText class. Yet if you have a d:mltext
-         *  property and you get its value from the database, the Serializable you end up with
-         *  will NOT be an instance of MLText. It will be an instance of String. _Which_ string
-         *  that is depends on the locale of the user that executes the code.
-         *
-         *  So in here, we sidestep that entire issue by ignoring the datatype definition and
-         *  pretending the associated class for d:mltext is simply String.
-         */
-        if (dataType.getName().getPrefixString().equals("d:mltext")) {
-            return "java.lang.String";
-        }
-        return dataType.getJavaClassName();
     }
 }

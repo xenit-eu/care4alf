@@ -28,9 +28,9 @@ public class Integrity {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setDateFormat(new ISO8601DateFormat());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        if (integrityScanner.getLastReport().isPresent()) {
+        if (integrityScanner.getLastReport() != null) {
             response.setContentType("application/json");
-            mapper.writeValue(response.getWriter(), integrityScanner.getLastReport().get());
+            mapper.writeValue(response.getWriter(), integrityScanner.getLastReport());
         } else {
             response.setContentType("text/plain");
             response.setStatus(404);

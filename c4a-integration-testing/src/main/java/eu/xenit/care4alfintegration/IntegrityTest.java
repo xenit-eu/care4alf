@@ -27,7 +27,8 @@ public class IntegrityTest {
     @Test
     public void testGetNodeReport() {
         integrityScanner.scanAll();
-        IntegrityReport report = integrityScanner.getLastReport().get();
+        Assert.assertNotNull("Report present after scan", integrityScanner.getLastReport());
+        IntegrityReport report = integrityScanner.getLastReport();
 
         NodeRef abeecher = new NodeRef("workspace://SpacesStore/dc103838-645f-43c1-8a2a-bc187e13c343");
         NodeRef mjackson = new NodeRef("workspace://SpacesStore/b6d80d49-21cc-4f04-9c92-e7063037543f");
@@ -40,7 +41,8 @@ public class IntegrityTest {
     @Test
     public void testGetFileReport() {
         integrityScanner.scanAll();
-        IntegrityReport report = integrityScanner.getLastReport().get();
+        Assert.assertNotNull("Report present after scan", integrityScanner.getLastReport());
+        IntegrityReport report = integrityScanner.getLastReport();
 
         // generate file problems
 
