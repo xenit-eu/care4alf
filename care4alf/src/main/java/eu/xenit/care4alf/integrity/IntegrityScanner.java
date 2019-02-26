@@ -2,7 +2,14 @@ package eu.xenit.care4alf.integrity;
 
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Config;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -24,6 +31,8 @@ import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
@@ -38,10 +47,13 @@ import org.springframework.stereotype.Component;
 @Component
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
+    public static final int BUFFER_SIZE = 8192;
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
     @Autowired
     private DictionaryService dictionaryService;
+    @Autowired
+    private ContentService contentService;
     @Autowired
     private SOLRTrackingComponent solrTrackingComponent;
     @Autowired
@@ -115,7 +127,7 @@ public class IntegrityScanner implements Job {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
 
-            verifyFilePresent(noderef, inProgressReport);
+            verifyContentData(noderef, inProgressReport);
 
             counter.incrementAndGet();
             inProgressReport.finish();
@@ -183,16 +195,53 @@ public class IntegrityScanner implements Job {
         }
     }
 
-    private void verifyFilePresent(NodeRef noderef, IntegrityReport report) {
+    private void verifyContentData(NodeRef noderef, IntegrityReport report) {
         ContentData contentData = (ContentData) nodeService.getProperty(noderef, ContentModel.PROP_CONTENT);
         if (contentData == null) {
             return;
         }
-        String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
-        String url = contentData.getContentUrl().replace("store:/", location);
-        if (!Files.exists(Paths.get(url))) {
-            logger.error("{} does not exist", url);
-            report.addFileProblem(new FileNotFoundProblem(url, noderef));
+        verifyFilePresent(noderef, contentData, report);
+        verifyEncoding(noderef, contentData, report);
+    }
+
+    private void verifyFilePresent(NodeRef noderef, ContentData contentData, IntegrityReport report) {
+        String location = absolutePath(contentData);
+        if (!Files.exists(Paths.get(location))) {
+            logger.error("{} does not exist", location);
+            report.addFileProblem(new FileNotFoundProblem(location, noderef));
         }
+    }
+
+    private void verifyEncoding(NodeRef noderef, ContentData contentData, IntegrityReport report) {
+        String encoding = contentData.getEncoding();
+        if (contentData.getMimetype().startsWith("text/") && encoding != null) {
+            ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
+            if (reader.exists()) {
+                ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+                int hasRead = -1;
+                try {
+                    hasRead = reader.getReadableChannel().read(buffer);
+                } catch (IOException e) {
+                    report.addFileProblem(new FileEncodingProblem(absolutePath(contentData), encoding, noderef));
+                }
+                if (hasRead > 0) {
+                    buffer.rewind();
+                    CharsetDecoder decoder = Charset.forName(encoding).newDecoder()
+                            .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
+                    CharBuffer uselessBuffer = CharBuffer.allocate(BUFFER_SIZE);
+                    // Try decoding. If there were >8192 bytes in the file, the last bytes may form an invalid char
+                    CoderResult res = decoder.decode(buffer, uselessBuffer, hasRead < BUFFER_SIZE);
+                    if (res.isUnmappable() || res.isMalformed()) {
+                        logger.warn("Can't decode {} as {}", noderef, encoding);
+                        report.addFileProblem(new FileEncodingProblem(absolutePath(contentData), encoding, noderef));
+                    }
+                }
+            }
+        }
+    }
+
+    private String absolutePath(ContentData contentData) {
+        String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
+        return contentData.getContentUrl().replace("store:/", location);
     }
 }
