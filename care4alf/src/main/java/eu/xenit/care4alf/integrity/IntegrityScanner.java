@@ -146,7 +146,7 @@ public class IntegrityScanner implements Job {
                     // bait out potential classCastException
                     clazz.cast(value);
                 } else {
-                    logger.error(value + " not instanceof " + className);
+                    logger.error("{}: Prop {} value {} not instance of {}", noderef, value, className);
                     report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
                 }
             } else {
@@ -160,14 +160,16 @@ public class IntegrityScanner implements Job {
                         report.addNodeProblem(new MissingPropertyProblem(noderef, property));
                     }
                 } else {
-                    logger.error(value + " not instanceof Collection");
+                    logger.error("{}: multivalued prop {} value {} not instance of Collection", noderef, value);
                     report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
                 }
             }
         } catch (ClassNotFoundException e) {
             report.addNodeProblem(new NondeserializableDataTypeProblem(noderef, property, className));
+            logger.error("{}: prop {} to be deserialized to unknown class {}", noderef, property, className);
         } catch (ClassCastException e) {
             report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
+            logger.error("{}: prop {} could not be cast to {}", noderef, property, className);
         }
 
     }

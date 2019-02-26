@@ -13,20 +13,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 
 public class NoderefFieldSerializer extends JsonSerializer<NodeRef> {
     private ObjectMapper objectMapper = new ObjectMapper();
-//    public NodeProblemsSerializer() {
-//        this(null);
-//    }
-
-//    @Override
-//    public void serialize(Class<Map<NodeRef, NodeProblem>> value, JsonGenerator jgen, SerializerProvider provider)
-//            throws IOException, JsonProcessingException {
-//
-//    }
-
-//    public NodeProblemsSerializer(Class<Map<NodeRef, NodeProblem>> t) {
-//        super(t);
-//    }
-
 
     @Override
     public void serialize(NodeRef value, JsonGenerator generator, SerializerProvider provider)
