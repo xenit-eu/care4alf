@@ -228,7 +228,7 @@ dependencies {
 
     compile('com.fasterxml.jackson.core:jackson-databind:2.3.2')
     compile('org.apache.commons:commons-lang3:3.7')
-    compile('com.google.guava:guava:19.0')
+    compile('com.google.guava:guava:19.0') // I believe Alfresco comes bundled with v11. Conflicts?
 
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
 
