@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
-    public static final int BUFFER_SIZE = 8192;
+    private static final int BUFFER_SIZE = 8192;
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
     @Autowired
