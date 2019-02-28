@@ -14,28 +14,42 @@ import org.joda.time.Interval;
 public class IntegrityReport {
     private int scannedNodes;
     private ConcurrentHashMap<NodeRef, List<NodeProblem>> nodeProblems;
+    private ConcurrentHashMap<String, List<FileProblem>> fileProblems;
     private Date startTime;
     private Date endTime;
 
     public IntegrityReport() {
         startTime = new Date();
         nodeProblems = new ConcurrentHashMap<>();
+        fileProblems = new ConcurrentHashMap<>();
     }
 
     public void finish() {
         endTime = new Date();
     }
 
-    public void addNodeProblem(NodeProblem problem) {
-        NodeRef ref = problem.getNoderef();
-        List<NodeProblem> problems;
+    public void addNodeProblem(NodeProblem newNodeProblem) {
+        NodeRef ref = newNodeProblem.getNoderef();
+        List<NodeProblem> nodeProblemList;
         if (nodeProblems.containsKey(ref)) {
-            problems = nodeProblems.get(ref);
+            nodeProblemList = nodeProblems.get(ref);
         } else {
-            problems = new ArrayList<>();
+            nodeProblemList = new ArrayList<>();
         }
-        problems.add(problem);
-        nodeProblems.put(ref, problems);
+        nodeProblemList.add(newNodeProblem);
+        nodeProblems.put(ref, nodeProblemList);
+    }
+
+    public void addFileProblem(FileProblem newFileProblem) {
+        String path = newFileProblem.getPath();
+        List<FileProblem> fileProblemList;
+        if (fileProblems.containsKey(path)) {
+            fileProblemList = fileProblems.get(path);
+        } else {
+            fileProblemList = new ArrayList<>();
+        }
+        fileProblemList.add(newFileProblem);
+        fileProblems.put(path, fileProblemList);
     }
 
     @JsonSerialize(keyUsing = NoderefFieldSerializer.class)
@@ -43,8 +57,8 @@ public class IntegrityReport {
         return nodeProblems;
     }
 
-    public Map<String, Problem> getFileProblems() {
-        return Collections.emptyMap();
+    public Map<String, List<FileProblem>> getFileProblems() {
+        return fileProblems;
     }
 
     public int getScannedNodes() {

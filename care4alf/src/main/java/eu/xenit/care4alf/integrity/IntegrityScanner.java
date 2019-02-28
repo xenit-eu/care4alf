@@ -1,8 +1,17 @@
 package eu.xenit.care4alf.integrity;
 
-import com.github.dynamicextensionsalfresco.actions.annotations.ActionMethod;
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import eu.xenit.care4alf.Config;
+import java.io.IOException;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +21,8 @@ import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
+import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
 import org.alfresco.repo.solr.SOLRTrackingComponent;
 import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
@@ -19,39 +30,43 @@ import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
+import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentReader;
+import org.alfresco.service.cmr.repository.ContentService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-// Run at 3 am every saturday
 @Component
-@ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "0 0 3 ? * SAT", cronProp = "c4a.integrity.cron")
+@ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
+    private static final int BUFFER_SIZE = 8192;
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
     @Autowired
     private DictionaryService dictionaryService;
+    @Autowired
+    private ContentService contentService;
     @Autowired
     private SOLRTrackingComponent solrTrackingComponent;
     @Autowired
     private NodeService nodeService;
     @Autowired
     private QNameDAOImpl qNameDAO;
+    @Autowired
+    private Config config;
 
-    private static final String SCAN_ALL_ACTION = "scan-all";
     private AtomicInteger counter;
     private IntegrityReport lastReport;
     private IntegrityReport inProgressReport;
 
-    @ActionMethod(SCAN_ALL_ACTION)
     public int scanAll() {
         counter = new AtomicInteger(0);
 
@@ -74,8 +89,13 @@ public class IntegrityScanner implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        scanAll();
+    public void execute(JobExecutionContext jobExecutionContext) {
+        AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
+            @Override
+            public Object doWork() throws Exception {
+                return IntegrityScanner.this.scanAll();
+            }
+        });
         // TODO send email
     }
 
@@ -106,6 +126,8 @@ public class IntegrityScanner implements Job {
             if (refList.isEmpty()) {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
+
+            verifyContentData(noderef, inProgressReport);
 
             counter.incrementAndGet();
             inProgressReport.finish();
@@ -171,6 +193,55 @@ public class IntegrityScanner implements Job {
             report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
             logger.error("{}: prop {} could not be cast to {}", noderef, property, className);
         }
+    }
 
+    private void verifyContentData(NodeRef noderef, IntegrityReport report) {
+        ContentData contentData = (ContentData) nodeService.getProperty(noderef, ContentModel.PROP_CONTENT);
+        if (contentData == null) {
+            return;
+        }
+        verifyFilePresent(noderef, contentData, report);
+        verifyEncoding(noderef, contentData, report);
+    }
+
+    private void verifyFilePresent(NodeRef noderef, ContentData contentData, IntegrityReport report) {
+        String location = absolutePath(contentData);
+        if (!Files.exists(Paths.get(location))) {
+            logger.error("{} does not exist", location);
+            report.addFileProblem(new FileNotFoundProblem(location, noderef));
+        }
+    }
+
+    private void verifyEncoding(NodeRef noderef, ContentData contentData, IntegrityReport report) {
+        String encoding = contentData.getEncoding();
+        if (contentData.getMimetype().startsWith("text/") && encoding != null) {
+            ContentReader reader = contentService.getRawReader(contentData.getContentUrl());
+            if (reader.exists()) {
+                ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+                int hasRead = -1;
+                try {
+                    hasRead = reader.getReadableChannel().read(buffer);
+                } catch (IOException e) {
+                    report.addFileProblem(new FileEncodingProblem(absolutePath(contentData), encoding, noderef));
+                }
+                if (hasRead > 0) {
+                    buffer.rewind();
+                    CharsetDecoder decoder = Charset.forName(encoding).newDecoder()
+                            .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
+                    CharBuffer uselessBuffer = CharBuffer.allocate(BUFFER_SIZE);
+                    // Try decoding. If there were >8192 bytes in the file, the last bytes may form an invalid char
+                    CoderResult res = decoder.decode(buffer, uselessBuffer, hasRead < BUFFER_SIZE);
+                    if (res.isUnmappable() || res.isMalformed()) {
+                        logger.warn("Can't decode {} as {}", noderef, encoding);
+                        report.addFileProblem(new FileEncodingProblem(absolutePath(contentData), encoding, noderef));
+                    }
+                }
+            }
+        }
+    }
+
+    public String absolutePath(ContentData contentData) {
+        String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
+        return contentData.getContentUrl().replace("store:/", location);
     }
 }
