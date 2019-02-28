@@ -240,7 +240,7 @@ public class IntegrityScanner implements Job {
         }
     }
 
-    private String absolutePath(ContentData contentData) {
+    public String absolutePath(ContentData contentData) {
         String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
         return contentData.getContentUrl().replace("store:/", location);
     }
