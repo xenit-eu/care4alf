@@ -28,28 +28,28 @@ public class IntegrityReport {
         endTime = new Date();
     }
 
-    public void addNodeProblem(NodeProblem problem) {
-        NodeRef ref = problem.getNoderef();
-        List<NodeProblem> problems;
+    public void addNodeProblem(NodeProblem newNodeProblem) {
+        NodeRef ref = newNodeProblem.getNoderef();
+        List<NodeProblem> nodeProblemList;
         if (nodeProblems.containsKey(ref)) {
-            problems = nodeProblems.get(ref);
+            nodeProblemList = nodeProblems.get(ref);
         } else {
-            problems = new ArrayList<>();
+            nodeProblemList = new ArrayList<>();
         }
-        problems.add(problem);
-        nodeProblems.put(ref, problems);
+        nodeProblemList.add(newNodeProblem);
+        nodeProblems.put(ref, nodeProblemList);
     }
 
-    public void addFileProblem(FileProblem problem) {
-        String path = problem.getPath();
-        List<FileProblem> problems;
+    public void addFileProblem(FileProblem newFileProblem) {
+        String path = newFileProblem.getPath();
+        List<FileProblem> fileProblemList;
         if (fileProblems.containsKey(path)) {
-            problems = fileProblems.get(path);
+            fileProblemList = fileProblems.get(path);
         } else {
-            problems = new ArrayList<>();
+            fileProblemList = new ArrayList<>();
         }
-        problems.add(problem);
-        fileProblems.put(path, problems);
+        fileProblemList.add(newFileProblem);
+        fileProblems.put(path, fileProblemList);
     }
 
     @JsonSerialize(keyUsing = NoderefFieldSerializer.class)
