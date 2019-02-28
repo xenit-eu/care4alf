@@ -1,5 +1,5 @@
 <h3>Metadata Integrity Report</h3>
-<p ng-if="!hasReport">No scan report exists yet. <a href="#/actions">Run the scan-all Action.</a></p>
+<p ng-if="!hasReport">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
 <div ng-if="hasReport">
     <p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
         <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
