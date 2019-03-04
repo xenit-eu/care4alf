@@ -313,10 +313,23 @@ public class IntegrityScanner implements Job {
     }
 
     private void mailReport(IntegrityReport report) {
+        if (config.getProperty("c4a.integrity.recipients") == null) {
+            logger.info("No recipients configured for integrity report (c4a.integrity.recipients)");
+            return;
+        }
+        // If you feel like being pedantic, this parsing of email addresses is insufficient because commas can be valid
+        // in an email address, if quoted. E.g. "john,doe"@example.com is a syntactically valid email address.
+        // But if we're being realistic, no one uses quoted email addresses, and I don't feel like writing a parser.
+        String[] recipientsArray = config.getProperty("c4a.integrity.recipients").split(",");
+        // List isn't serializable, but the MailActionExecutor tries casting to List<String> anyway. So, ArrayList...?
+        ArrayList<String> recipients = new ArrayList<>();
+        for (String recipient : recipientsArray) {
+            recipients.add(recipient.trim());
+        }
         Action mail = actionService.createAction(MailActionExecuter.NAME);
         mail.setParameterValue(MailActionExecuter.PARAM_SUBJECT, "Repository Integrity Report");
         mail.setParameterValue(MailActionExecuter.PARAM_FROM, "noreply@localhost");
-        mail.setParameterValue(MailActionExecuter.PARAM_TO, "roel.schevenels+c4atest@xenit.eu");
+        mail.setParameterValue(MailActionExecuter.PARAM_TO_MANY, recipients);
         mail.setParameterValue(MailActionExecuter.PARAM_TEXT, report.toString());
         actionService.executeAction(mail, null);
     }
