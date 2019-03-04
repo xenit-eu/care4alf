@@ -3,7 +3,7 @@
 <div ng-if="hasReport">
     <p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
         <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
-        to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}).</span>
+        to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
     </p>
     <p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
         <ul ng-repeat="(noderef, problems) in report.nodeProblems">
