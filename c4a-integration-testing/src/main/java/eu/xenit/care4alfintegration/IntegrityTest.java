@@ -4,6 +4,7 @@ import eu.xenit.care4alf.helpers.NodeHelper;
 import eu.xenit.care4alf.integrity.FileProblem;
 import eu.xenit.care4alf.integrity.IntegrityReport;
 import eu.xenit.care4alf.integrity.IntegrityScanner;
+import eu.xenit.care4alf.integrity.OrphanFileProblem;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import java.io.IOException;
@@ -14,6 +15,8 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.alfresco.model.ContentModel;
@@ -121,5 +124,41 @@ public class IntegrityTest {
         }
 
         Assert.assertTrue("Expected node with missing file in FileProblems", foundOurNode);
+
+        // Delete the node to not interfere with other tests
+        nodeService.deleteNode(node);
+    }
+
+    @Test
+    public void testOrphanFile() throws IOException {
+        // Make the first orphan file
+        Path path = Paths.get(integrityScanner.getContentStoreDir());
+        makeFile(path, "I must not fear", "Fear is the mind-killer");
+        // Make the second orphan file (alfresco files are 3 levels deep)
+        Path nestedPath = path.resolve("Fear is the little-death that brings total obliteration")
+                .resolve("I will face my fear")
+                .resolve("I will permit it to pass over me and through me");
+        makeFile(nestedPath, "And when it has gone past I will turn the inner eye to see its path",
+                "Where the fear has gone there will be nothing. Only I will remain.");
+
+        // Run the scan
+        integrityScanner.scanAll();
+        IntegrityReport report = integrityScanner.getLastReport();
+
+        // Count the number of orphan files
+        int orphans = 0;
+        for (List<FileProblem> list : report.getFileProblems().values()) {
+            for (FileProblem p : list) {
+                if (p instanceof OrphanFileProblem) {
+                    orphans++;
+                }
+            }
+        }
+        Assert.assertEquals("Expected exactly 2 orphan files", 2, orphans);
+    }
+
+    private void makeFile(Path dir, String filename, String content) throws IOException {
+        Files.createDirectories(dir);
+        Files.write(dir.resolve(filename), Collections.singletonList(content), Charset.forName("UTF-8"));
     }
 }

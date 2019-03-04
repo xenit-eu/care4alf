@@ -10,13 +10,22 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
@@ -42,6 +51,7 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -62,13 +72,17 @@ public class IntegrityScanner implements Job {
     private QNameDAOImpl qNameDAO;
     @Autowired
     private Config config;
+    @Autowired
+    private DataSource dataSource;
 
     private AtomicInteger counter;
     private IntegrityReport lastReport;
     private IntegrityReport inProgressReport;
+    private Set<String> knownFileNames;
 
     public int scanAll() {
         counter = new AtomicInteger(0);
+        knownFileNames = new HashSet<>();
 
         NodeParameters nodeParameters = new NodeParameters();
         nodeParameters.setFromTxnId(0L);
@@ -80,6 +94,14 @@ public class IntegrityScanner implements Job {
         solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler());
         logger.debug("getNodes(…) executed, {} nodes", counter.get());
         inProgressReport.setScannedNodes(counter.get());
+
+        try {
+            // Scan all files in alf_data, see if we find any that didn't get turned up during our node scan
+            verifyNoOrphans(knownFileNames, inProgressReport);
+        } catch (IOException e) {
+            inProgressReport.addFileProblem(new FileExceptionProblem(e));
+        }
+
         lastReport = inProgressReport;
         return counter.get();
     }
@@ -127,7 +149,7 @@ public class IntegrityScanner implements Job {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
 
-            verifyContentData(noderef, inProgressReport);
+            verifyContentData(noderef, inProgressReport, knownFileNames);
 
             counter.incrementAndGet();
             inProgressReport.finish();
@@ -195,13 +217,16 @@ public class IntegrityScanner implements Job {
         }
     }
 
-    private void verifyContentData(NodeRef noderef, IntegrityReport report) {
+    private void verifyContentData(NodeRef noderef, IntegrityReport report, Set<String> fileNames) {
         ContentData contentData = (ContentData) nodeService.getProperty(noderef, ContentModel.PROP_CONTENT);
         if (contentData == null) {
             return;
         }
         verifyFilePresent(noderef, contentData, report);
         verifyEncoding(noderef, contentData, report);
+
+        String contentUrl = contentData.getContentUrl();
+        fileNames.add(fileNameFromPath(contentUrl));
     }
 
     private void verifyFilePresent(NodeRef noderef, ContentData contentData, IntegrityReport report) {
@@ -240,8 +265,63 @@ public class IntegrityScanner implements Job {
         }
     }
 
+    private void verifyNoOrphans(final Set<String> known, final IntegrityReport report) throws IOException {
+        // This function finds orphaned files in alf_data, i.e. files that have no trace in the db of why they're there.
+        // `Set<String> known` is a set of filenames (<guid>.bin) that we found when scanning through the nodes.
+        // Any files we find in alf_data that aren't in this set are candidates for being an orphan.
+        // They can also be nodes that have been deleted and have an orphan_time in the db,
+        // this is a normal consequence of the node being deleted, so we don't include it in the report
+        // (although we log it).
+        final Set<String> potentialOrphans = new HashSet<>();
+        Files.walkFileTree(Paths.get(getContentStoreDir()), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+                if (attr.isRegularFile() && !known.contains(file.getFileName().toString())) {
+                    // We don't know if it's a problem yet, might be a recently deleted file
+                    // Investigate this one further by looking in the db (also convert path to store://, like db uses)
+                    potentialOrphans.add(relativePath(file.toString()));
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        Map<String, ? extends List<String>> queryParams = Collections.singletonMap("urls",
+                new ArrayList<>(potentialOrphans));
+
+        // Query the db to see if they're in there and have an orphan_time
+        List<Map<String, Object>> results = new NamedParameterJdbcTemplate(this.dataSource).queryForList(
+                "SELECT cu.content_url, cu.orphan_time FROM alf_content_url cu WHERE cu.content_url IN (:urls)",
+                queryParams);
+
+        for (Map<String, Object> line : results) {
+            if (line.get("orphan_time") == null) {
+                logger.info("Found {} in db, turned out not to be an orphan ", line.get("content_url"));
+            } else {
+                logger.info("Found {} in db, orphan since {}", line.get("content_url"), line.get("orphan_time"));
+            }
+            potentialOrphans.remove(line.get("content_url"));
+        }
+        for (String remaining : potentialOrphans) {
+            report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
+        }
+    }
+
     public String absolutePath(ContentData contentData) {
-        String location = config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
-        return contentData.getContentUrl().replace("store:/", location);
+        return absolutePath(contentData.getContentUrl());
+    }
+
+    public String absolutePath(String path) {
+        return path.replace("store:/", getContentStoreDir());
+    }
+
+    public String relativePath(String path) {
+        return path.replace(getContentStoreDir(), "store:/");
+    }
+
+    public String fileNameFromPath(String path) {
+        return path.substring(path.lastIndexOf('/') + 1);
+    }
+    public String getContentStoreDir() {
+        return config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
     }
 }
