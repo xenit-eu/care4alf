@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
+import org.alfresco.repo.action.executer.MailActionExecuter;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
@@ -35,6 +36,8 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
 import org.alfresco.repo.solr.SOLRTrackingComponent;
 import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
+import org.alfresco.service.cmr.action.Action;
+import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -74,6 +77,8 @@ public class IntegrityScanner implements Job {
     private Config config;
     @Autowired
     private DataSource dataSource;
+    @Autowired
+    private ActionService actionService;
 
     private AtomicInteger counter;
     private IntegrityReport lastReport;
@@ -119,6 +124,7 @@ public class IntegrityScanner implements Job {
             }
         });
         // TODO send email
+        mailReport(lastReport);
     }
 
     private class CallbackHandler implements NodeQueryCallback {
@@ -304,6 +310,15 @@ public class IntegrityScanner implements Job {
         for (String remaining : potentialOrphans) {
             report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
         }
+    }
+
+    private void mailReport(IntegrityReport report) {
+        Action mail = actionService.createAction(MailActionExecuter.NAME);
+        mail.setParameterValue(MailActionExecuter.PARAM_SUBJECT, "Repository Integrity Report");
+        mail.setParameterValue(MailActionExecuter.PARAM_FROM, "noreply@localhost");
+        mail.setParameterValue(MailActionExecuter.PARAM_TO, "roel.schevenels+c4atest@xenit.eu");
+        mail.setParameterValue(MailActionExecuter.PARAM_TEXT, report.toString());
+        actionService.executeAction(mail, null);
     }
 
     public String absolutePath(ContentData contentData) {
