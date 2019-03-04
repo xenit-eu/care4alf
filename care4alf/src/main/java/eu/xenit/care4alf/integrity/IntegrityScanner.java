@@ -266,13 +266,19 @@ public class IntegrityScanner implements Job {
     }
 
     private void verifyNoOrphans(final Set<String> known, final IntegrityReport report) throws IOException {
+        // This function finds orphaned files in alf_data, i.e. files that have no trace in the db of why they're there.
+        // `Set<String> known` is a set of filenames (<guid>.bin) that we found when scanning through the nodes.
+        // Any files we find in alf_data that aren't in this set are candidates for being an orphan.
+        // They can also be nodes that have been deleted and have an orphan_time in the db,
+        // this is a normal consequence of the node being deleted, so we don't include it in the report
+        // (although we log it).
         final Set<String> potentialOrphans = new HashSet<>();
         Files.walkFileTree(Paths.get(getContentStoreDir()), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
                 if (attr.isRegularFile() && !known.contains(file.getFileName().toString())) {
                     // We don't know if it's a problem yet, might be a recently deleted file
-                    // Investigate this one further by looking in the db
+                    // Investigate this one further by looking in the db (also convert path to store://, like db uses)
                     potentialOrphans.add(relativePath(file.toString()));
                 }
                 return FileVisitResult.CONTINUE;
