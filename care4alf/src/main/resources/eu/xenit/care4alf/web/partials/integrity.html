@@ -33,3 +33,12 @@
     </p>
     <p ng-if="isEmpty(report.fileProblems)">No problems found relating to files.</p>
 </div>
+<hr />
+<p>
+    You can configure the report in the alfresco-global.properties or in the <a href="#/config">config</a>.
+    Make sure <code>mail.host</code> and <code>mail.port</code> are set to your mailserver, and
+    <code>c4a.integrity.recipients</code> is a comma-separated list of email addresses.
+    The cron expression can be configured in alfresco-global.properties (but not the config module) with the expression
+    <code>c4a.integrity.cron</code> (proposed value: <code>0 0 3 ? * SAT</code>) or start it manually via the
+    <a href="#/scheduledjobs">ScheduledJobs module</a> (choose integrityscan in the dropdown).
+</p>

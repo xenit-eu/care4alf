@@ -1,5 +1,7 @@
 package eu.xenit.care4alf.integrity;
 
+import static org.alfresco.repo.action.executer.MailActionExecuter.*;
+
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Config;
 import java.io.IOException;
@@ -300,12 +302,14 @@ public class IntegrityScanner implements Job {
                 queryParams);
 
         for (Map<String, Object> line : results) {
-            if (line.get("orphan_time") == null) {
-                logger.info("Found {} in db, turned out not to be an orphan ", line.get("content_url"));
+            String contentUrl = (String) line.get("content_url");
+            Long orphanTime = (Long) line.get("orphan_time");
+            if (orphanTime == null) {
+                logger.info("Found {} in db, turned out not to be an orphan ", contentUrl);
             } else {
-                logger.info("Found {} in db, orphan since {}", line.get("content_url"), line.get("orphan_time"));
+                logger.info("Found {} in db, orphan since {}", contentUrl, orphanTime);
             }
-            potentialOrphans.remove(line.get("content_url"));
+            potentialOrphans.remove(contentUrl);
         }
         for (String remaining : potentialOrphans) {
             report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
@@ -313,7 +317,8 @@ public class IntegrityScanner implements Job {
     }
 
     private void mailReport(IntegrityReport report) {
-        if (config.getProperty("c4a.integrity.recipients") == null) {
+        String recipientString = config.getProperty("c4a.integrity.recipients");
+        if (recipientString == null || recipientString.equals("")) {
             logger.info("No recipients configured for integrity report (c4a.integrity.recipients)");
             return;
         }
@@ -327,10 +332,10 @@ public class IntegrityScanner implements Job {
             recipients.add(recipient.trim());
         }
         Action mail = actionService.createAction(MailActionExecuter.NAME);
-        mail.setParameterValue(MailActionExecuter.PARAM_SUBJECT, "Repository Integrity Report");
-        mail.setParameterValue(MailActionExecuter.PARAM_FROM, "noreply@localhost");
-        mail.setParameterValue(MailActionExecuter.PARAM_TO_MANY, recipients);
-        mail.setParameterValue(MailActionExecuter.PARAM_TEXT, report.toString());
+        mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");
+        mail.setParameterValue(PARAM_FROM, config.getProperty("c4a.integrity.mailfrom", "noreply@localhost"));
+        mail.setParameterValue(PARAM_TO_MANY, recipients);
+        mail.setParameterValue(PARAM_TEXT, report.toString());
         actionService.executeAction(mail, null);
     }
 

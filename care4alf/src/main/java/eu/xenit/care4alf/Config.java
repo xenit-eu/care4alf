@@ -40,6 +40,10 @@ public class Config {
         return this.properties.getProperty(name);
     }
 
+    public String getProperty(String name, String defaultValue) {
+        return this.properties.getProperty(name, defaultValue);
+    }
+
     public void addProperty(String key, String value){
         this.properties.setProperty(key, value);
     }
