@@ -1,5 +1,7 @@
 package eu.xenit.care4alf.integrity;
 
+import static org.alfresco.repo.action.executer.MailActionExecuter.*;
+
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import eu.xenit.care4alf.Config;
 import java.io.IOException;
@@ -35,6 +37,8 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
 import org.alfresco.repo.solr.SOLRTrackingComponent;
 import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
+import org.alfresco.service.cmr.action.Action;
+import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
@@ -53,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
@@ -74,6 +79,8 @@ public class IntegrityScanner implements Job {
     private Config config;
     @Autowired
     private DataSource dataSource;
+    @Autowired
+    private ActionService actionService;
 
     private AtomicInteger counter;
     private IntegrityReport lastReport;
@@ -114,11 +121,11 @@ public class IntegrityScanner implements Job {
     public void execute(JobExecutionContext jobExecutionContext) {
         AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
             @Override
-            public Object doWork() throws Exception {
+            public Object doWork() {
                 return IntegrityScanner.this.scanAll();
             }
         });
-        // TODO send email
+        mailReport(lastReport);
     }
 
     private class CallbackHandler implements NodeQueryCallback {
@@ -145,7 +152,8 @@ public class IntegrityScanner implements Job {
             }
 
             List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-            if (refList.isEmpty()) {
+            // sys:store_root doesn't have a parent, this is normal and should not be reported
+            if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
 
@@ -158,23 +166,33 @@ public class IntegrityScanner implements Job {
     }
 
     private void verifyProperty(NodeRef noderef, QName property, Serializable value, IntegrityReport report) {
-        // Check for empty property/null property
         PropertyDefinition definition = dictionaryService.getProperty(property);
-        if (definition == null) {
-            logger.warn("Unknown property {} found on noderef {}", property, noderef);
-            report.addNodeProblem(new UnknownPropertyProblem(noderef, property));
-            return;
-        }
+        // Check for empty property/null property
         if (value == null) {
-            if (definition.isMandatory()) {
+            if (definition != null && definition.isMandatory()) {
                 logger.error("{} is null for {}", property, noderef);
+                String note = null; // if it stays null it won't be included by jackson when it serializes Problem
                 if (ContentModel.PROP_HOMEFOLDER.equals(property)) {
                     Serializable username = nodeService.getProperty(noderef, ContentModel.PROP_USERNAME);
                     if (username.equals("mjackson") || username.equals("abeecher")) {
                         logger.info("Above node is {}, this is normal", username);
+                        note = "This is one of the default users (" + username + "), in a default install they aren't"
+                                + " given a homefolder (despite it being mandatory)";
                     }
                 }
-                report.addNodeProblem(new MissingPropertyProblem(noderef, property));
+                MissingPropertyProblem problem = new MissingPropertyProblem(noderef, property);
+                problem.setExtraMessage(note);
+                report.addNodeProblem(problem);
+            }
+            return;
+        }
+
+        if (definition == null) {
+            if (!property.toString().equals("{http://www.alfresco.org/model/content/1.0}authorizationStatus")) {
+                // authorizationStatus isn't part of the content model, but is added on logged-in users
+                // this is just an alfresco quirk and not "abnormal"
+                logger.warn("Unknown property {} found on noderef {}", property, noderef);
+                report.addNodeProblem(new UnknownPropertyProblem(noderef, property));
             }
             return;
         }
@@ -294,16 +312,47 @@ public class IntegrityScanner implements Job {
                 queryParams);
 
         for (Map<String, Object> line : results) {
-            if (line.get("orphan_time") == null) {
-                logger.info("Found {} in db, turned out not to be an orphan ", line.get("content_url"));
+            String contentUrl = (String) line.get("content_url");
+            Long orphanTime = (Long) line.get("orphan_time");
+            if (orphanTime == null) {
+                logger.debug("Found {} in db, turned out not to be an orphan ", contentUrl);
             } else {
-                logger.info("Found {} in db, orphan since {}", line.get("content_url"), line.get("orphan_time"));
+                logger.debug("Found {} in db, orphan since {}", contentUrl, orphanTime);
             }
-            potentialOrphans.remove(line.get("content_url"));
+            potentialOrphans.remove(contentUrl);
         }
         for (String remaining : potentialOrphans) {
             report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
         }
+    }
+
+    private void mailReport(IntegrityReport report) {
+        String recipientString = config.getProperty("c4a.integrity.recipients");
+        if (recipientString == null || recipientString.equals("")) {
+            logger.info("No recipients configured for integrity report (c4a.integrity.recipients)");
+            return;
+        }
+        // If you feel like being pedantic, this parsing of email addresses is insufficient because commas can be valid
+        // in an email address, if quoted. E.g. "john,doe"@example.com is a syntactically valid email address.
+        // But if we're being realistic, no one uses quoted email addresses, and I don't feel like writing a parser.
+        String[] recipientsArray = config.getProperty("c4a.integrity.recipients").split(",");
+        // List isn't serializable, but the MailActionExecutor tries casting to List<String> anyway. So, ArrayList...?
+        ArrayList<String> recipients = new ArrayList<>();
+        for (String recipient : recipientsArray) {
+            recipient = recipient.trim();
+            if (EmailValidator.getInstance(true).isValid(recipient)) {
+                recipients.add(recipient);
+                logger.info("Sending integrity report email to {}", recipient);
+            } else {
+                logger.error("Configured as recipient but invalid email address: '{}'", recipient);
+            }
+        }
+        Action mail = actionService.createAction(NAME);
+        mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");
+        mail.setParameterValue(PARAM_FROM, config.getProperty("c4a.integrity.mailfrom", "noreply@localhost"));
+        mail.setParameterValue(PARAM_TO_MANY, recipients);
+        mail.setParameterValue(PARAM_TEXT, report.toString());
+        actionService.executeAction(mail, null);
     }
 
     public String absolutePath(ContentData contentData) {
