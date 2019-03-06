@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
-import org.alfresco.repo.action.executer.MailActionExecuter;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
@@ -58,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
@@ -339,10 +339,15 @@ public class IntegrityScanner implements Job {
         // List isn't serializable, but the MailActionExecutor tries casting to List<String> anyway. So, ArrayList...?
         ArrayList<String> recipients = new ArrayList<>();
         for (String recipient : recipientsArray) {
-            recipients.add(recipient.trim());
-            logger.info("Sending integrity report email to {}", recipient);
+            recipient = recipient.trim();
+            if (EmailValidator.getInstance(true).isValid(recipient)) {
+                recipients.add(recipient);
+                logger.info("Sending integrity report email to {}", recipient);
+            } else {
+                logger.error("Configured as recipient but invalid email address: '{}'", recipient);
+            }
         }
-        Action mail = actionService.createAction(MailActionExecuter.NAME);
+        Action mail = actionService.createAction(NAME);
         mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");
         mail.setParameterValue(PARAM_FROM, config.getProperty("c4a.integrity.mailfrom", "noreply@localhost"));
         mail.setParameterValue(PARAM_TO_MANY, recipients);
