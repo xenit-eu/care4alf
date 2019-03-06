@@ -121,11 +121,10 @@ public class IntegrityScanner implements Job {
     public void execute(JobExecutionContext jobExecutionContext) {
         AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
             @Override
-            public Object doWork() throws Exception {
+            public Object doWork() {
                 return IntegrityScanner.this.scanAll();
             }
         });
-        // TODO send email
         mailReport(lastReport);
     }
 
@@ -153,7 +152,8 @@ public class IntegrityScanner implements Job {
             }
 
             List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-            if (refList.isEmpty()) {
+            // sys:store_root doesn't have a parent, this is normal and should not be reported
+            if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
                 inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
             }
 
@@ -166,23 +166,33 @@ public class IntegrityScanner implements Job {
     }
 
     private void verifyProperty(NodeRef noderef, QName property, Serializable value, IntegrityReport report) {
-        // Check for empty property/null property
         PropertyDefinition definition = dictionaryService.getProperty(property);
-        if (definition == null) {
-            logger.warn("Unknown property {} found on noderef {}", property, noderef);
-            report.addNodeProblem(new UnknownPropertyProblem(noderef, property));
-            return;
-        }
+        // Check for empty property/null property
         if (value == null) {
-            if (definition.isMandatory()) {
+            if (definition != null && definition.isMandatory()) {
                 logger.error("{} is null for {}", property, noderef);
+                String note = null; // if it stays null it won't be included by jackson when it serializes Problem
                 if (ContentModel.PROP_HOMEFOLDER.equals(property)) {
                     Serializable username = nodeService.getProperty(noderef, ContentModel.PROP_USERNAME);
                     if (username.equals("mjackson") || username.equals("abeecher")) {
                         logger.info("Above node is {}, this is normal", username);
+                        note = "This is one of the default users (" + username + "), in a default install they aren't"
+                                + " given a homefolder (despite it being mandatory)";
                     }
                 }
-                report.addNodeProblem(new MissingPropertyProblem(noderef, property));
+                MissingPropertyProblem problem = new MissingPropertyProblem(noderef, property);
+                problem.setExtraMessage(note);
+                report.addNodeProblem(problem);
+            }
+            return;
+        }
+
+        if (definition == null) {
+            if (!property.toString().equals("{http://www.alfresco.org/model/content/1.0}authorizationStatus")) {
+                // authorizationStatus isn't part of the content model, but is added on logged-in users
+                // this is just an alfresco quirk and not "abnormal"
+                logger.warn("Unknown property {} found on noderef {}", property, noderef);
+                report.addNodeProblem(new UnknownPropertyProblem(noderef, property));
             }
             return;
         }
@@ -305,9 +315,9 @@ public class IntegrityScanner implements Job {
             String contentUrl = (String) line.get("content_url");
             Long orphanTime = (Long) line.get("orphan_time");
             if (orphanTime == null) {
-                logger.info("Found {} in db, turned out not to be an orphan ", contentUrl);
+                logger.debug("Found {} in db, turned out not to be an orphan ", contentUrl);
             } else {
-                logger.info("Found {} in db, orphan since {}", contentUrl, orphanTime);
+                logger.debug("Found {} in db, orphan since {}", contentUrl, orphanTime);
             }
             potentialOrphans.remove(contentUrl);
         }
@@ -330,6 +340,7 @@ public class IntegrityScanner implements Job {
         ArrayList<String> recipients = new ArrayList<>();
         for (String recipient : recipientsArray) {
             recipients.add(recipient.trim());
+            logger.info("Sending integrity report email to {}", recipient);
         }
         Action mail = actionService.createAction(MailActionExecuter.NAME);
         mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");

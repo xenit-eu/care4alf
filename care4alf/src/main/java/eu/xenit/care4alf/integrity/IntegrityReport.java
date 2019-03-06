@@ -99,6 +99,9 @@ public class IntegrityReport {
                     if (np instanceof NodePropertyProblem) {
                         builder.append("\t\t\t• ").append(((NodePropertyProblem) np).getProperty()).append("\n");
                     }
+                    if (np.getExtraMessage() != null) {
+                        builder.append("\t\t\t• ").append(np.getExtraMessage()).append("\n");
+                    }
                 }
             }
         }
