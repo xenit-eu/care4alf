@@ -249,7 +249,11 @@ public class Browser @Autowired constructor(
     fun saveProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName, body: JSONObject) {
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         try {
-            nodeService.setProperty(noderef, qname, body.getString("value") as? Serializable)
+            if (body.has("multi") && body.getBoolean("multi")) {
+                nodeService.setProperty(noderef, qname, body.getString("value").split(",") as? ArrayList<String>)
+            } else {
+                nodeService.setProperty(noderef, qname, body.getString("value") as? Serializable)
+            }
         } finally {
             policyBehaviourFilter.enableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         }
