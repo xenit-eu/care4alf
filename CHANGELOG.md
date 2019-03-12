@@ -1,4 +1,12 @@
 # Changelog
+## Release 1.6.0 (2019-03-12)
+### ALFREDOPS
+- [129](https://xenitsupport.jira.com/browse/ALFREDOPS-129): Comply with XEP-6 Git flow
+- [171](https://xenitsupport.jira.com/browse/ALFREDOPS-171): Add the ability to correctly set the value of a multivalue property
+
+### DSNYMETQUA
+- [5](https://xenitsupport.jira.com/browse/DSNYMETQUA-5), [6](https://xenitsupport.jira.com/browse/DSNYMETQUA-6), [7](https://xenitsupport.jira.com/browse/DSNYMETQUA-7), [8](https://xenitsupport.jira.com/browse/DSNYMETQUA-8): Add integrity scan scheduled job that verifies the integrity of the metadata and sends an email notification
+
 ## Release 1.5.1 (2019-01-16)
 ### ALFREDOPS
 - [165](https://xenitsupport.jira.com/browse/ALFREDOPS-165): Care4Alf tries to load Solr4 bean on Alfresco 4.2 that supports only Solr1
