@@ -250,7 +250,7 @@ public class Browser @Autowired constructor(
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         try {
             if (body.has("multi") && body.getBoolean("multi")) {
-                nodeService.setProperty(noderef, qname, body.getString("value").split(",") as? ArrayList<String>)
+                nodeService.setProperty(noderef, qname, body.getString("value").split(",") as? ArrayList<*>)
             } else {
                 nodeService.setProperty(noderef, qname, body.getString("value") as? Serializable)
             }
