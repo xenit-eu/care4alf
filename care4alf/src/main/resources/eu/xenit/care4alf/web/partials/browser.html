@@ -114,7 +114,7 @@
 
     <fieldset>
         <legend>Properties</legend>
-        <form class="form-horizontal">
+        <form class="form-horizontal" name="propertiesForm">
             <div ng-repeat="(qname,value) in node.properties" class="form-group form-group-sm has-feedback">
                 <label class="col-sm-2 control-label">{{qname}}</label>
                 <div class="col-sm-6">
@@ -124,9 +124,12 @@
                         <span ng-if="node.hyperlinkedFields.indexOf(qname) !== -1" ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                     </div>
                     <div ng-if="node.immutableFields.indexOf(qname) === -1">
-                        <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" />
+                        <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" name="{{ 'prop' + qname }}" />
                         <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
                     </div>
+                </div>
+                <div ng-if="node.immutableFields.indexOf(qname) === -1 && propertiesForm['prop'+qname].$dirty && node.properties[qname].includes(',')" class="col-sm-2 checkbox">
+                    <label><input type="checkbox" ng-model="multivalueFields[qname]"/> Multivalue on comma</label>
                 </div>
             </div>
             <div>
@@ -134,7 +137,10 @@
                     <input type="text" ng-model="newQName" class="form-control" />
                 </div>
                 <div class="col-sm-6">
-                    <input type="text" ng-model="newValue" class="form-control" ng-enter="addProperty(newQName, newValue)"/>
+                    <input type="text" ng-model="newValue" class="form-control" ng-enter="addProperty(newQName, newValue, newMultivalue)"/>
+                </div>
+                <div ng-show="newValue.includes(',')" class="col-sm-2 checkbox">
+                    <label><input type="checkbox" ng-model="newMultivalue" /> Multivalue on comma</label>
                 </div>
             </div>
         </form>

@@ -32,8 +32,8 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         }
     };
 
-    $scope.addProperty = (qname, value) => {
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + qname, {value: value}).success(() => {
+    $scope.addProperty = (qname, value, multi) => {
+        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + qname, {value: value, multi: multi}).success(() => {
             //$scope.node.properties[qname]=value;
         });
     };
@@ -47,7 +47,11 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     };
 
     $scope.saveProperty = (property) => {
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property]});
+        if ($scope.multivalueFields[property]) {
+            $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property], multi: true});
+        } else {
+            $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property]});
+        }
     };
 
     $scope.addAspect = (aspect) => {
@@ -154,6 +158,8 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
 
     $scope.showhelp = false;
     $scope.toggleHelp = () => $scope.showhelp = !$scope.showhelp;
+
+    $scope.multivalueFields = {};
 
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
