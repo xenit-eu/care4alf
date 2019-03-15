@@ -125,11 +125,15 @@
                     </div>
                     <div ng-if="node.immutableFields.indexOf(qname) === -1">
                         <input type="text" ng-model="node.properties[qname]" class="form-control" ng-enter="saveProperty(qname)" name="{{ 'prop' + qname }}" />
-                        <span ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
+                        <!-- see browser.ts for semantic meaning of these ints -->
+                        <span ng-if="fieldInfo[qname].updateState == 0" ng-click="deleteProperty(qname)" class="glyphicon glyphicon-trash form-control-feedback" aria-hidden="true"></span>
+                        <span ng-if="fieldInfo[qname].updateState == 1" class="glyphicon glyphicon-time form-control-feedback" aria-hidden="true"></span>
+                        <span ng-if="fieldInfo[qname].updateState == 2" class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>
+                        <span ng-if="fieldInfo[qname].updateState == 3" class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
                     </div>
                 </div>
                 <div ng-if="node.immutableFields.indexOf(qname) === -1 && propertiesForm['prop'+qname].$dirty && node.properties[qname].includes(',')" class="col-sm-2 checkbox">
-                    <label><input type="checkbox" ng-model="multivalueFields[qname]"/> Multivalue on comma</label>
+                    <label><input type="checkbox" ng-model="fieldInfo[qname].multiValue"/> Multivalue on comma</label>
                 </div>
             </div>
             <div>

@@ -1,5 +1,7 @@
 /// <reference path="care4alf.ts" />
 
+enum UpdateState { Idle = 0, Loading = 1, Success = 2, Failure = 3 }; // including numeric values for use in html template
+
 care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Window, DataLists) => {
     $scope.onFileSelect = function($files) {
         //$files: an array of files selected, each file has name, size, and type.
@@ -47,11 +49,11 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     };
 
     $scope.saveProperty = (property) => {
-        if ($scope.multivalueFields[property]) {
-            $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property], multi: true});
-        } else {
-            $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property]});
-        }
+        let multi = $scope.fieldInfo[property].multiValue
+        $scope.fieldInfo[property].updateState = UpdateState.Loading
+        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property], multi: multi})
+            .success(() => { $scope.fieldInfo[property].updateState = UpdateState.Success })
+            .error(() => { $scope.fieldInfo[property].updateState = UpdateState.Failure })
     };
 
     $scope.addAspect = (aspect) => {
@@ -159,12 +161,15 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     $scope.showhelp = false;
     $scope.toggleHelp = () => $scope.showhelp = !$scope.showhelp;
 
-    $scope.multivalueFields = {};
+    $scope.fieldInfo = {};
 
     if (angular.isDefined($routeParams.subtoken)) {
         var noderef = $routeParams.subtoken.replace(/^(\w+)\+(\w+)\+(.+)$/, "$1://$2/$3");
         $http.get(serviceUrl + "/xenit/care4alf/browser/details", {params: {noderef: noderef}}).success((result) => {
             $scope.node = result;
+            Object.keys($scope.node.properties).forEach(qname => {
+                $scope.fieldInfo[qname] = { multiValue: false, updateState: UpdateState.Idle }
+            });
         });
 
         DataLists.getAspects().then((aspects) => {
