@@ -1,23 +1,48 @@
 <h3>Scheduled jobs</h3>
-<select name="groupSelect" id="groupSelect" ng-options="group.name for group in groups track by group.name" ng-model="selectedGroup"
-        ng-change="update()"></select>
-<table class="table">
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Cron expression</th>
-        <th>Previous fire time</th>
-        <th>Next fire time</th>
-        <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr ng-repeat="job in jobs | orderBy:orderByField:reverseSort">
-        <td>{{job.Name}}</td>
-        <td>{{job.CronExpression}}</td>
-        <td>{{job.PreviousFireTime}}</td>
-        <td>{{job.NextFireTime}}</td>
-        <td><button class="btn btn-info" ng-click="execute(job.Name, selectedGroup)" ng-disabled="loading">execute</button></td>
-    </tr>
-    </tbody>
-</table>
+<button type="button" class="btn btn-default" ng-class="{'active': jobcategory == 'available'}"
+        ng-click="switchCategory('available')">
+    Available jobs
+</button>
+<button type="button" class="btn btn-default" ng-class="{'active': jobcategory == 'executing'}"
+        ng-click="switchCategory('executing')">
+    Currently executing jobs
+</button>
+
+<div ng-show="jobcategory == 'available'">
+    <select name="groupSelect" id="groupSelect" ng-options="group.name for group in groups track by group.name" ng-model="selectedGroup"
+            ng-change="update()"></select>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Cron expression</th>
+            <th>Previous fire time</th>
+            <th>Next fire time</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="job in jobs | orderBy:orderByField:reverseSort">
+            <td>{{job.Name}}</td>
+            <td>{{job.CronExpression}}</td>
+            <td>{{job.PreviousFireTime}}</td>
+            <td>{{job.NextFireTime}}</td>
+            <td><button class="btn btn-info" ng-click="execute(job.Name, selectedGroup)" ng-disabled="loading">execute</button></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div ng-show="jobcategory == 'executing'">
+    <table class="table">
+        <thead>
+        <tr><th>Group</th><th>Name</th><th>Fire time</th></tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="job in executing">
+                <td>{{job.group}}</td>
+                <td>{{job.name}}</td>
+                <td>{{job.firetime}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

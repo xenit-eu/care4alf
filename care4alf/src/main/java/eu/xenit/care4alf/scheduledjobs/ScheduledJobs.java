@@ -5,6 +5,7 @@ import org.alfresco.repo.domain.schema.SchemaBootstrap;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.quartz.CronTrigger;
+import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
@@ -73,6 +74,26 @@ public class ScheduledJobs {
             json.value(job.getNextFireTime());
             json.key("CronExpression");
             json.value(job.getCronExpression());
+            json.endObject();
+        }
+        json.endArray();
+    }
+
+    @Uri(value = "executing")
+    public void getCurrentlyExecutingJobs(final WebScriptResponse response)
+            throws IOException, JSONException, SchedulerException {
+        final JSONWriter json = new JSONWriter(response.getWriter());
+        Scheduler scheduler = schedulerFactory.getScheduler();
+        json.array();
+        List<JobExecutionContext> jobContexts = scheduler.getCurrentlyExecutingJobs();
+        for (JobExecutionContext jobContext : jobContexts) {
+            json.object();
+            json.key("group");
+            json.value(jobContext.getJobDetail().getGroup());
+            json.key("name");
+            json.value(jobContext.getJobDetail().getName());
+            json.key("firetime");
+            json.value(jobContext.getFireTime());
             json.endObject();
         }
         json.endArray();
