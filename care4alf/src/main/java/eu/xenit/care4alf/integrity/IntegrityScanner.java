@@ -60,6 +60,7 @@ import org.springframework.stereotype.Component;
 import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
+// !! Beware changing this group and name !! It's used in scheduledjobs.ts in the check in the callback of the REST call
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
     private static final int BUFFER_SIZE = 8192;

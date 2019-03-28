@@ -23,6 +23,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         });
         $http.get("/alfresco/s/xenit/care4alf/scheduled/executing").then((resp) => {
             resp.data.forEach(job => {
+                // These strings are define in the @ScheduledJob annotation in IntegrityScanner.java
                 if (job.group == 'integrityscan' && job.name == 'IntegrityScan') {
                     $scope.scanRunning = true;
                     $scope.scanRunningSince = job.firetime;
