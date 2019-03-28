@@ -83,25 +83,28 @@ public class IntegrityScanner implements Job {
     @Autowired
     private ActionService actionService;
 
-    private AtomicInteger counter;
+    private AtomicInteger nodeCounter;
+    private AtomicInteger fileCounter;
     private IntegrityReport lastReport;
     private IntegrityReport inProgressReport;
     private Set<String> knownFileNames;
 
     public int scanAll() {
-        counter = new AtomicInteger(0);
+        nodeCounter = new AtomicInteger(0);
+        fileCounter = new AtomicInteger(0);
         knownFileNames = new HashSet<>();
 
         NodeParameters nodeParameters = new NodeParameters();
         nodeParameters.setFromTxnId(0L);
-        nodeParameters.setToTxnId(99999L);
+        nodeParameters.setToTxnId(Long.MAX_VALUE);
         logger.debug("node params created");
         inProgressReport = new IntegrityReport();
 
         // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
+        logger.info("Beginning Metadata Integrity Scan");
         solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler());
-        logger.debug("getNodes(…) executed, {} nodes", counter.get());
-        inProgressReport.setScannedNodes(counter.get());
+        logger.info("Integrity Scan executed on {} nodes. Scanning filesystem next...", nodeCounter.get());
+        inProgressReport.setScannedNodes(nodeCounter.get());
 
         try {
             // Scan all files in alf_data, see if we find any that didn't get turned up during our node scan
@@ -110,8 +113,10 @@ public class IntegrityScanner implements Job {
             inProgressReport.addFileProblem(new FileExceptionProblem(e));
         }
 
+        logger.info("Ended Metadata Integrity Scan");
+        inProgressReport.finish();
         lastReport = inProgressReport;
-        return counter.get();
+        return nodeCounter.get();
     }
 
     public IntegrityReport getLastReport() {
@@ -160,8 +165,10 @@ public class IntegrityScanner implements Job {
 
             verifyContentData(noderef, inProgressReport, knownFileNames);
 
-            counter.incrementAndGet();
-            inProgressReport.finish();
+            int count = nodeCounter.incrementAndGet();
+            if (count % 10000 == 0) {
+                logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
+            }
             return true;
         }
     }
@@ -209,7 +216,7 @@ public class IntegrityScanner implements Job {
                     // bait out potential classCastException
                     clazz.cast(value);
                 } else {
-                    logger.error("{}: Prop {} value {} not instance of {}", noderef, value, className);
+                    logger.error("{}: Prop {} value {} not instance of {}", noderef, property, value, className);
                     report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
                 }
             } else {
@@ -223,7 +230,7 @@ public class IntegrityScanner implements Job {
                         report.addNodeProblem(new MissingPropertyProblem(noderef, property));
                     }
                 } else {
-                    logger.error("{}: multivalued prop {} value {} not instance of Collection", noderef, value);
+                    logger.error("{}: multival prop {} value {} not instance of Collection", noderef, property, value);
                     report.addNodeProblem(new IncorrectDataTypeProblem(noderef, property, dataType, className));
                 }
             }
@@ -251,7 +258,7 @@ public class IntegrityScanner implements Job {
     private void verifyFilePresent(NodeRef noderef, ContentData contentData, IntegrityReport report) {
         String location = absolutePath(contentData);
         if (!Files.exists(Paths.get(location))) {
-            logger.error("{} does not exist", location);
+            logger.error("{} does not exist ({})", location, noderef);
             report.addFileProblem(new FileNotFoundProblem(location, noderef));
         }
     }
@@ -299,6 +306,10 @@ public class IntegrityScanner implements Job {
                     // We don't know if it's a problem yet, might be a recently deleted file
                     // Investigate this one further by looking in the db (also convert path to store://, like db uses)
                     potentialOrphans.add(relativePath(file.toString()));
+                }
+                int count = fileCounter.incrementAndGet();
+                if (count % 10000 == 0) {
+                    logger.debug("Scanned {} files so far", count);
                 }
                 return FileVisitResult.CONTINUE;
             }
