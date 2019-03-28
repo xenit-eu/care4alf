@@ -372,6 +372,6 @@ public class IntegrityScanner implements Job {
         return path.substring(path.lastIndexOf('/') + 1);
     }
     public String getContentStoreDir() {
-        return config.getProperty("dir.contentstore").replace("${dir.root}", config.getProperty("dir.root"));
+        return config.getFullyParsedProperty("dir.contentstore");
     }
 }

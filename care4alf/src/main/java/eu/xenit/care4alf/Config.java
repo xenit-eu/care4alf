@@ -1,5 +1,8 @@
 package eu.xenit.care4alf;
 
+import static org.springframework.beans.factory.config.PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX;
+import static org.springframework.beans.factory.config.PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX;
+
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import org.springframework.util.PropertyPlaceholderHelper;
 
 /**
  * Created by willem on 9/1/16.
@@ -42,6 +46,15 @@ public class Config {
 
     public String getProperty(String name, String defaultValue) {
         return this.properties.getProperty(name, defaultValue);
+    }
+
+    public String getFullyParsedProperty(String name, String defaultValue) {
+        return new PropertyPlaceholderHelper(DEFAULT_PLACEHOLDER_PREFIX, DEFAULT_PLACEHOLDER_SUFFIX)
+                .replacePlaceholders(this.properties.getProperty(name, defaultValue), this.properties);
+    }
+
+    public String getFullyParsedProperty(String name) {
+        return getFullyParsedProperty(name, null);
     }
 
     public void addProperty(String key, String value){
