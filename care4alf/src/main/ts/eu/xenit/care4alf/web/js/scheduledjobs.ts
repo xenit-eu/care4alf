@@ -2,6 +2,7 @@ care4alf.controller('scheduledjobs', ($scope,$http: ng.IHttpService) => {
     $scope.orderByField = 'NextFireTime';
     $scope.reverseSort = true;
     $scope.selectedGroup = {name:"DEFAULT"};
+    $scope.jobcategory = 'available';
 
     generateDropdown();
     getData();
@@ -17,9 +18,19 @@ care4alf.controller('scheduledjobs', ($scope,$http: ng.IHttpService) => {
         getData();
     };
 
+    $scope.switchCategory = (category) => {
+        getData();
+        if ($scope.jobcategory != category) {
+            $scope.jobcategory = category;
+        }
+    }
+
     function getData(){
         $http.get('scheduled/job?groupname='+$scope.selectedGroup.name).success((jobs) => {
             $scope.jobs = jobs;
+        });
+        $http.get('scheduled/executing').success((executing) => {
+            $scope.executing = executing;
         });
     }
 

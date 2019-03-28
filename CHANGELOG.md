@@ -1,4 +1,9 @@
 # Changelog
+
+## Release 1.6.1 (unreleased)
+### DSNYMETQUA
+- [12](https://xenitsupport.jira.com/browse/DSNYMETQUA-12): Indicate whether an integrity scan is currently running. Also allows listing all currently running quartz jobs.
+
 ## Release 1.6.0 (2019-03-12)
 ### ALFREDOPS
 - [129](https://xenitsupport.jira.com/browse/ALFREDOPS-129): Comply with XEP-6 Git flow
