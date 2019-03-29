@@ -1,6 +1,6 @@
 # Changelog
 
-## Release 1.6.1 (unreleased)
+## Release 1.6.1 (2019-03-29)
 ### DSNYMETQUA
 - [12](https://xenitsupport.jira.com/browse/DSNYMETQUA-12): Indicate whether an integrity scan is currently running. Also allows listing all currently running quartz jobs.
 - [13](https://xenitsupport.jira.com/browse/DSNYMETQUA-13): Fix bugs related to suboptimal config parsing, improve logging
