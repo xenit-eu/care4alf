@@ -14,10 +14,11 @@
         to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
     </p>
     <p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
-        <ul ng-repeat="(noderef, problems) in report.nodeProblems">
+        <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
+        <ul ng-repeat="noderef in report.nodeProblemKeys">
             <li>
                 <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>:
-                <ul ng-repeat="problem in problems">
+                <ul ng-repeat="problem in report.nodeProblems[noderef]">
                     <li>
                         {{problem.message}}
                         <ul ng-if="problem.property">
@@ -33,10 +34,11 @@
     </p>
     <p ng-if="isEmpty(report.nodeProblems)">No problems found relating to noderefs.</p>
     <p ng-if="!isEmpty(report.fileProblems)">Problems found relating to files:
-        <ul ng-repeat="(file, problems) in report.fileProblems">
+        <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
+        <ul ng-repeat="file in report.fileProblemKeys">
             <li>
                 <strong>{{file}}</strong>
-                <ul ng-repeat="problem in problems">
+                <ul ng-repeat="problem in report.fileProblems[file]">
                     <li>{{problem.message}}</li>
                 </ul>
             </li>

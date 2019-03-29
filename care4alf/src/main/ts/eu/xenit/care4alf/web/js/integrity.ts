@@ -14,8 +14,10 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $http.get("/alfresco/s/xenit/care4alf/integrity/report").then((resp) => {
             $scope.hasReport = true;
             $scope.report = resp.data;
-            $scope.hasNodeProblems = Object.keys(resp.data.nodeProblems).length !== 0;
-            $scope.hasFileProblems = Object.keys(resp.data.fileProblems).length !== 0;
+            $scope.report.nodeProblemKeys = Object.keys(resp.data.nodeProblems)
+            $scope.report.fileProblemKeys = Object.keys(resp.data.fileProblems)
+            $scope.hasNodeProblems = $scope.report.nodeProblemKeys.length !== 0;
+            $scope.hasFileProblems = $scope.report.fileProblemKeys.length !== 0;
             console.log(resp.data);
         }, (resp) => {
             $scope.hasReport = false;
