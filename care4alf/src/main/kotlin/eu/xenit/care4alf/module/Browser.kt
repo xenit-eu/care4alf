@@ -259,12 +259,22 @@ public class Browser @Autowired constructor(
     @Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
     fun saveProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName, body: JSONObject) {
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
+        val originalValue: Serializable = nodeService.getProperty(noderef, qname)
         try {
             if (body.has("multi") && body.getBoolean("multi")) {
                 nodeService.setProperty(noderef, qname, body.getString("value").split(",") as? ArrayList<*>)
             } else {
                 nodeService.setProperty(noderef, qname, body.getString("value") as? Serializable)
             }
+        } catch (e: Exception) {
+            // Something went wrong trying to set this property *and* we disabled the policy that protects integrity
+            // Try to undo the damage...
+            logger.warn("Failed to set property {} to new value, reverting back to its original value...")
+            transactionService.retryingTransactionHelper.doInTransaction {
+                nodeService.setProperty(noderef, qname, originalValue)
+            }
+            // Throw it again because it needs to make it to userspace
+            throw e
         } finally {
             policyBehaviourFilter.enableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         }
