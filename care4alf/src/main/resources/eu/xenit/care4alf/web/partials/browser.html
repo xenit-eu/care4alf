@@ -136,12 +136,16 @@
                     <label><input type="checkbox" ng-model="fieldInfo[qname].multiValue"/> Multivalue on comma</label>
                 </div>
             </div>
-            <div>
+            <div class="form-group form-group-sm has-feedback">
                 <div class="col-sm-2">
                     <input type="text" ng-model="newQName" class="form-control" />
                 </div>
                 <div class="col-sm-6">
                     <input type="text" ng-model="newValue" class="form-control" ng-enter="addProperty(newQName, newValue, newMultivalue)"/>
+                    <!-- see browser.ts for semantic meaning of these ints -->
+                    <span ng-if="fieldInfo[newQName].updateState == 1" class="glyphicon glyphicon-time form-control-feedback" aria-hidden="true"></span>
+                    <span ng-if="fieldInfo[newQName].updateState == 2" class="glyphicon glyphicon-ok form-control-feedback" aria-hidden="true"></span>
+                    <span ng-if="fieldInfo[newQName].updateState == 3" class="glyphicon glyphicon-remove form-control-feedback" aria-hidden="true"></span>
                 </div>
                 <div ng-show="newValue.includes(',')" class="col-sm-2 checkbox">
                     <label><input type="checkbox" ng-model="newMultivalue" /> Multivalue on comma</label>

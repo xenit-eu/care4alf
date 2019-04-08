@@ -259,7 +259,7 @@ public class Browser @Autowired constructor(
     @Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
     fun saveProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName, body: JSONObject) {
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
-        val originalValue: Serializable = nodeService.getProperty(noderef, qname)
+        val originalValue: Serializable? = nodeService.getProperty(noderef, qname)
         try {
             if (body.has("multi") && body.getBoolean("multi")) {
                 nodeService.setProperty(noderef, qname, body.getString("value").split(",") as? ArrayList<*>)
