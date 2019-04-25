@@ -31,7 +31,7 @@ public class RollingMailStore implements MailStore {
     }
 
     public MailMessage[] getMessages() {
-        return receivedMail.toArray(new MailMessage[receivedMail.size()]);
+        return receivedMail.toArray(new MailMessage[0]);
     }
 
     public MailMessage getMessage(int index) {
