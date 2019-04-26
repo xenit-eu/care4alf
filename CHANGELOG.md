@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 1.6.2 (Unreleased)
+### ALFREDOPS
+- [194](https://xenitsupport.jira.com/browse/ALFREDOPS-194): Fix compatibility issue with Dynamic Extensions 2.0. Care4Alf now no longer assumes Kotlin libraries will be provided.
+- [195](https://xenitsupport.jira.com/browse/ALFREDOPS-195): Fix Dummy Mail using unsafe angular binding
+
 ## Release 1.6.1 (2019-03-29)
 ### DSNYMETQUA
 - [12](https://xenitsupport.jira.com/browse/DSNYMETQUA-12): Indicate whether an integrity scan is currently running. Also allows listing all currently running quartz jobs.
