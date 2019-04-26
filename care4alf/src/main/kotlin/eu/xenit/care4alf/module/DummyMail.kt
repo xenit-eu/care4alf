@@ -25,7 +25,7 @@ class DummyMail : InitializingBean, DisposableBean {
 
     @Uri("list")
     fun list() = json {
-        iterable(smtpServer!!.getMessages().toList()) { message ->
+        iterable(smtpServer!!.messages.toList()) { message ->
             obj {
                 key("headers") {
                     obj {
@@ -34,6 +34,7 @@ class DummyMail : InitializingBean, DisposableBean {
                         }
                     }
                 }
+                entry("body", message.body)
             }
         }
     }
