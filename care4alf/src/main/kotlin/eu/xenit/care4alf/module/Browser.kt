@@ -94,6 +94,7 @@ public class Browser @Autowired constructor(
             sp.addStore(StoreRef(j.optString("storeref", "workspace://SpacesStore")))
             sp.language = SearchService.LANGUAGE_FTS_ALFRESCO
             sp.query = query
+            sp.addSort("sys:node-dbid", true)
             sp.queryConsistency = if (j.optString("consistency") == "transactional") {
                 QueryConsistency.TRANSACTIONAL
             } else {
