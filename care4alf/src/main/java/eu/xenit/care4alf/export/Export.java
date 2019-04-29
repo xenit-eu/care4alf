@@ -281,6 +281,7 @@ public class Export {
                     public Void doWork() throws Exception {
                         try {
                             do {
+                                sp.addSort("sys:node-dbid", true);
                                 sp.setSkipCount(start);
                                 if (nbDocuments == -1) {
                                     sp.setMaxItems(MAX_QUERY_SIZE);
