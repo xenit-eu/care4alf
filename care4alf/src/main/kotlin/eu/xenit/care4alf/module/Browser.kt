@@ -90,6 +90,16 @@ public class Browser @Autowired constructor(
                 }
             }
         } else {
+            //Adding sorting to guarantee order. This is required because paging does not work with
+            //cursors or cache, therefore any request with more results than the max returned items
+            //will result in a new query. This implies that the result of the second query may include
+            //results that were already returned by the first query. By ordering both queries, the
+            //skipcount will guarantee 'new' results for each.
+            //The property node-dbid has been chosen since it is semantically meaningless, but is
+            //present on every node in the system.
+            //FTS does not include sorting in the query language. Therefore there is no other source for
+            //determining sorting. This means we can hardcode sorting on node-dbid.
+            //this should only change if the browser were to start offering sorting options in the ui
             val sp = SearchParameters()
             sp.addStore(StoreRef(j.optString("storeref", "workspace://SpacesStore")))
             sp.language = SearchService.LANGUAGE_FTS_ALFRESCO

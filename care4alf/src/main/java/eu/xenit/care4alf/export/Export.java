@@ -281,6 +281,13 @@ public class Export {
                     public Void doWork() throws Exception {
                         try {
                             do {
+                                //Adding sorting to guarantee order. This is required because paging does not work with
+                                //cursors or cache, therefore any request with more results than the max returned items
+                                //will result in a new query. This implies that the result of the second query may include
+                                //results that were already returned by the first query. By ordering both queries, the
+                                //skipcount will guarantee 'new' results for each.
+                                //The property node-dbid has been chosen since it is semantically meaningless, but is
+                                //present on every node in the system.
                                 sp.addSort("sys:node-dbid", true);
                                 sp.setSkipCount(start);
                                 if (nbDocuments == -1) {
