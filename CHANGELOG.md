@@ -1,10 +1,13 @@
 # Changelog
 
-## Release 1.6.2 (Unreleased)
+## Release 1.6.2 (2019-05-02)
 ### ALFREDOPS
 - [194](https://xenitsupport.jira.com/browse/ALFREDOPS-194): Fix compatibility issue with Dynamic Extensions 2.0. Care4Alf now no longer assumes Kotlin libraries will be provided.
 - [195](https://xenitsupport.jira.com/browse/ALFREDOPS-195): Fix Dummy Mail using unsafe angular binding
 - [174](https://xenitsupport.jira.com/browse/ALFREDOPS-174): Fix unclear success/error reporting when changing/adding a property in the nodebrowser. Additionally, fix a bug where it was possible to get the alfresco in an inconsistent state which prevented the nodebrowser from working (and therefore from repairing the state).
+
+### USGSUPPORT
+- [699](https://xenitsupport.jira.com/browse/USGSUPPORT-699): Fix issue with browser and export returning duplicates due to Paging/Sorting bug
 
 ## Release 1.6.1 (2019-03-29)
 ### DSNYMETQUA
