@@ -1,5 +1,5 @@
 allprojects {
-    version = '1.6.2' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
+    version = '1.6.3' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
     group = 'eu.xenit'
 }
 buildscript {

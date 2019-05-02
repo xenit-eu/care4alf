@@ -1,5 +1,7 @@
 # Changelog
 
+## Release 1.6.3 (Unreleased)
+
 ## Release 1.6.2 (2019-05-02)
 ### ALFREDOPS
 - [194](https://xenitsupport.jira.com/browse/ALFREDOPS-194): Fix compatibility issue with Dynamic Extensions 2.0. Care4Alf now no longer assumes Kotlin libraries will be provided.
