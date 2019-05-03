@@ -80,7 +80,7 @@ public class Browser @Autowired constructor(
             iterable(listOf(nodeRef), nodesToBasicJson())
                 }
             }
-        } else if (query.toLowerCase().startsWith("workspace://")) {
+        } else if (query.toLowerCase().matches("^(workspace|archive|system|user)://.*".toRegex())) {
             logger.debug("Noderef requested directly")
             val nodeRefs = NodeRef.getNodeRefs(query)
             logger.debug(nodeRefs[0].toString())
