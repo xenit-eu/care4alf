@@ -21,6 +21,6 @@ care4alf.filter('checkmark',  () => {
     }
 }).filter("hash", function () {
     return function (input) {
-        return input.replace(/^workspace:\/\/SpacesStore\/(.+)$/, "workspace+SpacesStore+$1");
+        return input.replace(/^(workspace|archive|system|user):\/\/(\w+)\/(.+)$/, "$1+$2+$3");
     }
 });
