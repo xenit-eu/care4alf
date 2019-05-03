@@ -1,6 +1,8 @@
 # Changelog
 
 ## Release 1.6.3 (Unreleased)
+### ALFREDOPS
+- [202](https://xenitsupport.jira.com/browse/ALFREDOPS-202): ALFREDOPS-202 Fix links to the Details page in the node browser for archived nodes
 
 ## Release 1.6.2 (2019-05-02)
 ### ALFREDOPS
