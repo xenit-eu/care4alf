@@ -152,6 +152,10 @@ public class IntegrityScanner implements Job {
                 for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
                     verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
                 }
+            } catch (Exception e) {
+                logger.error("Error {} when retrieving + verifying properties for node {}",
+                        e.getClass().getSimpleName(), noderef);
+                throw e;
             } finally {
                 // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
                 MLPropertyInterceptor.setMLAware(wasMultiLangAware);
