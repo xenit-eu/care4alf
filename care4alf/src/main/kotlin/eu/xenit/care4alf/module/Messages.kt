@@ -24,7 +24,7 @@ class Messages () : LogHelper() {
 
     @Autowired @AlfrescoService(ServiceType.LOW_LEVEL) var messageService: MessageService? = null
 
-    @Uri(value = "/bundles")
+    @Uri("/bundles")
     fun list() = json {
         if (messageService is MessageServiceImpl) {
             iterable((messageService as MessageServiceImpl).getRegisteredBundles()) { bundle ->

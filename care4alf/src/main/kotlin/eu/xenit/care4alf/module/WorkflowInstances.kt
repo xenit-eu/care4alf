@@ -40,17 +40,17 @@ public class WorkflowInstances @Autowired constructor(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @Uri(value = "/active", defaultFormat = "json")
+    @Uri("/active", defaultFormat = "json")
     fun activeInstances() = json {
         iterable(workflowService.activeWorkflows, instanceToJson(false))
     }
 
-    @Uri(value = "/completed", defaultFormat = "json")
+    @Uri("/completed", defaultFormat = "json")
     fun completedInstances() = json {
         iterable(workflowService.completedWorkflows, instanceToJson(false))
     }
 
-    @Uri(value = "/find/task/{taskid}", defaultFormat = "json")
+    @Uri("/find/task/{taskid}", defaultFormat = "json")
     fun instanceByTask(@UriVariable taskid: String) = json {
         val workflowTask = AuthenticationUtil.runAsSystem {
             workflowService.getTaskById(taskid)
@@ -58,7 +58,7 @@ public class WorkflowInstances @Autowired constructor(
         iterable(listOf(workflowTask.getPath().getInstance()), instanceToJson(includeTasks = true))
     }
 
-    @Uri(value = "/find/instance/{instanceid}", defaultFormat = "json")
+    @Uri("/find/instance/{instanceid}", defaultFormat = "json")
     fun instanceById(@UriVariable instanceid: String) = json {
         iterable(listOf(workflowService.getWorkflowById(instanceid)), instanceToJson(includeTasks = true))
     }
@@ -129,7 +129,7 @@ public class WorkflowInstances @Autowired constructor(
 
     }
 
-    @Uri(value = "/{workflowid}/tasks", defaultFormat = "json")
+    @Uri("/{workflowid}/tasks", defaultFormat = "json")
     fun tasksForInstance(@UriVariable workflowid: String) = json {
         val tasks = AuthenticationUtil.runAsSystem {
             getTasksForInstance(workflowService.getWorkflowById(workflowid))
@@ -145,17 +145,17 @@ public class WorkflowInstances @Autowired constructor(
         return workflowService.queryTasks(query)
     }
 
-    @Uri(value = "/{id}/cancel", method = HttpMethod.DELETE)
+    @Uri("/{id}/cancel", method = HttpMethod.DELETE)
     fun cancelWorkflow(@UriVariable("id") id: String) {
         workflowService.cancelWorkflow(id)
     }
 
-    @Uri(value = "/{id}/delete", method = HttpMethod.DELETE)
+    @Uri("/{id}/delete", method = HttpMethod.DELETE)
     fun deleteWorkflow(@UriVariable("id") id: String) {
         workflowService.deleteWorkflow(id)
     }
 
-    @Uri(value = "/active", method = HttpMethod.DELETE)
+    @Uri("/active", method = HttpMethod.DELETE)
     fun deleteAllActive() {
         for (wf in workflowService.getActiveWorkflows()) {
             try {
@@ -168,7 +168,7 @@ public class WorkflowInstances @Autowired constructor(
         }
     }
 
-    @Uri(value = "/tasks/{id}/release", method = HttpMethod.POST, defaultFormat = "json")
+    @Uri("/tasks/{id}/release", method = HttpMethod.POST, defaultFormat = "json")
     fun releaseTask(@UriVariable("id") id: String) = json {
         logger.error("Id is {}", id);
         val props: MutableMap<QName, Serializable?> = hashMapOf(ContentModel.PROP_OWNER to null);
@@ -176,7 +176,7 @@ public class WorkflowInstances @Autowired constructor(
         taskToJson()(task);
     }
 
-    @Uri(value = "/tasks/{id}/setProperty", method = HttpMethod.POST, defaultFormat = "json")
+    @Uri("/tasks/{id}/setProperty", method = HttpMethod.POST, defaultFormat = "json")
     fun setTaskProperty(@UriVariable("id") id: String, payload: JSONObject) = json {
         logger.info("Setting property on {}", id);
         val type = payload.getString("type");

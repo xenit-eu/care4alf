@@ -58,17 +58,17 @@ public class Browser @Autowired constructor(
     override var logger: Logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
 
-    @Uri(value = "/upload", method = HttpMethod.POST)
+    @Uri("/upload", method = HttpMethod.POST)
     fun upload(request: WebScriptRequest) {
         logger.info(request.getContent().getContent())
     }
 
-    @Uri(value = "/rootNodes")
+    @Uri("/rootNodes")
     fun rootNodes() = json {
         iterable(nodeService.getAllRootNodes(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE), nodesToBasicJson())
     }
 
-    @Uri(value = "/find", method = HttpMethod.POST)
+    @Uri("/find", method = HttpMethod.POST)
     fun find(j: JSONObject) = json {
         val query: String = j.getString("query")
         logger.debug("Request body: {}", query)
@@ -324,7 +324,7 @@ public class Browser @Autowired constructor(
         }
     }
 
-    @Uri(value = "/{noderef}/aspects", method = HttpMethod.POST)
+    @Uri("/{noderef}/aspects", method = HttpMethod.POST)
     fun addAspect(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         // need a new transaction, so any on-commit handler can throw errors now and be properly intercepted
         transactionService.getRetryingTransactionHelper().doInTransaction({
@@ -333,38 +333,38 @@ public class Browser @Autowired constructor(
         }, false, true)
     }
 
-    @Uri(value = "{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
+    @Uri("{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
     fun removeAspect(@UriVariable noderef: NodeRef, @UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
     }
 
-    @Uri(value = "{noderef}/type", method = HttpMethod.PUT)
+    @Uri("{noderef}/type", method = HttpMethod.PUT)
     fun setType(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
         nodeService.setType(noderef, QName.createQName(jsonBody.getString("type")))
     }
 
-    @Uri(value = "{noderef}", method = HttpMethod.DELETE)
+    @Uri("{noderef}", method = HttpMethod.DELETE)
     fun deleteNode(@UriVariable noderef: NodeRef) {
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
     }
 
-    @Uri(value = "assoc/{id}", method = HttpMethod.DELETE)
+    @Uri("assoc/{id}", method = HttpMethod.DELETE)
     fun deleteAssoc(@UriVariable id: Long) {
         val associationRef = nodeService.getAssoc(id)
         nodeService.removeAssociation(associationRef.getSourceRef(), associationRef.getTargetRef(), associationRef.getTypeQName())
     }
 
-    @Uri(value = "/deletechild", method = HttpMethod.POST)
+    @Uri("/deletechild", method = HttpMethod.POST)
     fun deleteChild(json: JSONObject) {
         val parentRef = NodeRef(json.getString("parent"));
         val childRef = NodeRef(json.getString("child"));
         nodeService.removeChild(parentRef, childRef);
     }
 
-    @Uri(value = "/child", method = HttpMethod.POST)
+    @Uri("/child", method = HttpMethod.POST)
     public fun addChild(json: JSONObject, response: WebScriptResponse) {
         val parentRef = NodeRef(json.getString("parent"))
         val childRef = NodeRef(json.getString("child"))

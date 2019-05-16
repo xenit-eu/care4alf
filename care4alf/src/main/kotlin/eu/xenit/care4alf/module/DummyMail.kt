@@ -39,7 +39,7 @@ class DummyMail : InitializingBean, DisposableBean {
         }
     }
 
-    @Uri(value = "/list", method = HttpMethod.DELETE)
+    @Uri("/list", method = HttpMethod.DELETE)
     fun clearMails() {
         smtpServer?.clearMessages()
     }

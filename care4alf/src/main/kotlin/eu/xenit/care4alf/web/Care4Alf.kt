@@ -25,7 +25,7 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
         this.applicationContext = applicationContext
     }
 
-    @Uri(value = "/", defaultFormat = "html")
+    @Uri("/", defaultFormat = "html")
     fun index(): Map<String, Any> {
         val lastModified = bundleContext.bundle.headers.get("Bnd-LastModified")
         val version = bundleContext.bundle.version

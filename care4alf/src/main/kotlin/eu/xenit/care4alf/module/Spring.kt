@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component
 class Spring : ApplicationContextAware {
     private var applicationContext: ApplicationContext? = null
 
-    @Uri(value = "/beannames", defaultFormat = "json")
+    @Uri("/beannames", defaultFormat = "json")
     @Transaction(readOnly = true)
     fun list(): Resolution {
         return beansToJson(applicationContext?.getParent()?.getParent() as AbstractRefreshableApplicationContext)
     }
 
-    @Uri(value = "/beannames/{child}", defaultFormat = "json")
+    @Uri("/beannames/{child}", defaultFormat = "json")
     @Transaction(readOnly = true)
     fun listForChild(@UriVariable child: String): Resolution {
         val context = (applicationContext!!.getParent().getParent().getBean(child)

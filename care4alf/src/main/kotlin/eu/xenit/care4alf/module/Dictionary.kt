@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 @WebScript(baseUri = "/xenit/care4alf/dictionary", families = arrayOf("care4alf"), description = "Dictionary info")
 @Authentication(AuthenticationType.ADMIN)
 class Dictionary @Autowired constructor(val namespaceService: NamespaceService) {
-    @Uri(value = "namespaces", defaultFormat = "json")
+    @Uri("namespaces", defaultFormat = "json")
     fun namespaces() = json {
         obj {
             for (namespace in namespaceService.getURIs().filterNot({it.isEmpty()})) {

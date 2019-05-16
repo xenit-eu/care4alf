@@ -51,7 +51,7 @@ class DocumentModels @Autowired constructor(
 
     @Autowired @Resource(name = "policyBehaviourFilter") var behaviourFilter: BehaviourFilter? = null
 
-    @Uri(value = "/invalidtypes")
+    @Uri("/invalidtypes")
     @Transaction(readOnly = true)
     fun list() = json {
         val nodeIds = jdbcTemplate.queryForList("select id from alf_node", Long::class.java)
@@ -61,7 +61,7 @@ class DocumentModels @Autowired constructor(
         }
     }
 
-    @Uri(value = "/node/{id}", method = HttpMethod.DELETE)
+    @Uri("/node/{id}", method = HttpMethod.DELETE)
     @Transaction(TransactionType.NONE)
     fun deleteDocument(@UriVariable id: Long, response: WebScriptResponse) {
         val nodeRef = nodeService.getNodeRef(id)
@@ -96,7 +96,7 @@ class DocumentModels @Autowired constructor(
         }
     }
 
-    @Uri(value = "/models", defaultFormat = "json", method = HttpMethod.GET)
+    @Uri("/models", defaultFormat = "json", method = HttpMethod.GET)
     fun listModels() = json {
         // API change in 5.0 getModels() -> getModels(boolean)
         val getter = dictionaryDAO.javaClass.getMethods().filter({ it.getName() == "getModels"}).firstOrNull()
@@ -112,7 +112,7 @@ class DocumentModels @Autowired constructor(
         }
     }
 
-    @Uri(value = "/model", defaultFormat = "json", method = HttpMethod.DELETE)
+    @Uri("/model", defaultFormat = "json", method = HttpMethod.DELETE)
     fun removeModel(@RequestParam modelQName: String) {
         dictionaryDAO.removeModel(QName.createQName(modelQName))
     }
