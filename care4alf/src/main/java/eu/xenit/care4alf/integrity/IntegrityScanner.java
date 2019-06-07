@@ -30,6 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
+import org.alfresco.repo.domain.node.NodeEntity;
+import org.alfresco.repo.domain.node.StoreEntity;
+import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -55,12 +58,13 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
-// !! Beware changing this group and name !! It's used in scheduledjobs.ts in the check in the callback of the REST call
+// !! Beware changing this group and name !! It's used in integrity.ts in the check in the callback of the REST call
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
     private static final int BUFFER_SIZE = 8192;
@@ -86,23 +90,22 @@ public class IntegrityScanner implements Job {
     private AtomicInteger nodeCounter;
     private AtomicInteger fileCounter;
     private IntegrityReport lastReport;
-    private IntegrityReport inProgressReport;
     private Set<String> knownFileNames;
 
     public int scanAll() {
         nodeCounter = new AtomicInteger(0);
         fileCounter = new AtomicInteger(0);
         knownFileNames = new HashSet<>();
+        IntegrityReport inProgressReport = new IntegrityReport();
 
         NodeParameters nodeParameters = new NodeParameters();
         nodeParameters.setFromTxnId(0L);
         nodeParameters.setToTxnId(Long.MAX_VALUE);
         logger.debug("node params created");
-        inProgressReport = new IntegrityReport();
 
         // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
         logger.info("Beginning Metadata Integrity Scan");
-        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler());
+        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(nodeCounter, knownFileNames, inProgressReport));
         logger.info("Integrity Scan executed on {} nodes. Scanning filesystem next...", nodeCounter.get());
         inProgressReport.setScannedNodes(nodeCounter.get());
 
@@ -123,6 +126,17 @@ public class IntegrityScanner implements Job {
         return lastReport;
     }
 
+    public IntegrityReport scanSubset(Iterator<NodeRef> iter) {
+        IntegrityReport subsetReport = new IntegrityReport();
+        CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
+        while (iter.hasNext()) {
+            handler.handleNode(fakeNode(iter.next()));
+            subsetReport.setScannedNodes(subsetReport.getScannedNodes() + 1);
+        }
+        subsetReport.finish();
+        return subsetReport;
+    }
+
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
         AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
@@ -135,6 +149,16 @@ public class IntegrityScanner implements Job {
     }
 
     private class CallbackHandler implements NodeQueryCallback {
+        private AtomicInteger nodeCounter;
+        private Set<String> knownFileNames;
+        private IntegrityReport inProgressReport;
+
+        public CallbackHandler(AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+            this.inProgressReport = report;
+            this.nodeCounter = nodeCounter;
+            this.knownFileNames = knownFileNames;
+        }
+
         @Override
         public boolean handleNode(Node node) {
             if (node.getDeleted(qNameDAO)
@@ -152,6 +176,10 @@ public class IntegrityScanner implements Job {
                 for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
                     verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
                 }
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get properties for {} from database, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
             } catch (Exception e) {
                 logger.error("Error {} when retrieving + verifying properties for node {}",
                         e.getClass().getSimpleName(), noderef);
@@ -161,13 +189,25 @@ public class IntegrityScanner implements Job {
                 MLPropertyInterceptor.setMLAware(wasMultiLangAware);
             }
 
-            List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-            // sys:store_root doesn't have a parent, this is normal and should not be reported
-            if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
-                inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+            try {
+                List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
+                // sys:store_root doesn't have a parent, this is normal and should not be reported
+                if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
+                    inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                }
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
             }
 
-            verifyContentData(noderef, inProgressReport, knownFileNames);
+            try {
+                verifyContentData(noderef, inProgressReport, knownFileNames);
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
+            }
 
             int count = nodeCounter.incrementAndGet();
             if (count % 10000 == 0) {
@@ -371,6 +411,29 @@ public class IntegrityScanner implements Job {
         actionService.executeAction(mail, null);
     }
 
+    private Node fakeNode(final NodeRef noderef) {
+        // Create an anonymous subclass of NodeEntity that contains our node
+        // Basically a fake way to give nodes that need to be converted to noderefs anyway, because that's what the
+        // CallbackHandler requires
+        return new NodeEntity() {
+            @Override
+            public boolean getDeleted(QNameDAO dao) {
+                return false;
+            }
+            @Override
+            public StoreEntity getStore() {
+                final StoreEntity storeEntity = new StoreEntity();
+                storeEntity.setProtocol(noderef.getStoreRef().getProtocol());
+                storeEntity.setIdentifier(noderef.getStoreRef().getIdentifier());
+                return storeEntity;
+            }
+            @Override
+            public NodeRef getNodeRef() {
+                return noderef;
+            }
+        };
+    }
+
     public String absolutePath(ContentData contentData) {
         return absolutePath(contentData.getContentUrl());
     }
@@ -386,6 +449,7 @@ public class IntegrityScanner implements Job {
     public String fileNameFromPath(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
+
     public String getContentStoreDir() {
         return config.getFullyParsedProperty("dir.contentstore");
     }

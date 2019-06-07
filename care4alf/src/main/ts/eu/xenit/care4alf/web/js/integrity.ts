@@ -7,6 +7,10 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     $scope.hasFileProblems = false;
     $scope.report = "";
 
+    $scope.hasSubsetReport = false;
+    $scope.subsetReport = ""
+    $scope.subsetScanRunning = false;
+
 
     $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
 
@@ -37,6 +41,19 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $scope.scanRunning = false;
         $scope.scanRunningSince = null;
     };
+
+    $scope.scanSubset = function(noderefString:string) {
+        $scope.subsetScanRunning = true;
+        let noderefs = noderefString.split(",").map((x:string) => x.trim());
+        $http.post("integrity/subset", noderefs).then((resp) => {
+            $scope.subsetScanRunning = false;
+            $scope.hasSubsetReport = true;
+            $scope.subsetReport = resp.data;
+        }, (resp) => {
+            $scope.subsetScanRunning = false;
+            $scope.hasSubsetReport = false;
+        });
+    }
 
     load();
 }).filter('nodelink', () => (noderef:string) => noderef.replace('workspace://SpacesStore/',

@@ -55,3 +55,19 @@
     <code>c4a.integrity.cron</code> (proposed value: <code>0 0 3 ? * SAT</code>) or start it manually via the
     <a href="#/scheduledjobs">ScheduledJobs module</a> (choose integrityscan in the dropdown).
 </p>
+<hr />
+<form>
+    <h4>Scanning specific nodes</h4>
+    <p>You can test the scan on a specific subset of nodes by providing a comma-separated list of noderefs below.</p>
+
+    <div class="form-group">
+        <label for="subsetNoderefs">Noderefs</label>
+        <input type="text" ng-model="subsetNoderefs" class="form-control" id="subsetNoderefs" />
+    </div>
+    <div class="form-group">
+        <button type="submit" id="subsetSubmit" class="btn btn-primary" ng-click="scanSubset(subsetNoderefs)">
+            Scan Subset {{subsetScanRunning?"(scanning)":""}}
+        </button>
+    </div>
+    <p ng-if="hasSubsetReport" class="small text-monospace">{{subsetReport}}</p>
+</form>

@@ -9,10 +9,14 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Component
 @WebScript(baseUri = "/xenit/care4alf/integrity", families = "care4alf", description = "IntegrityScanner Verification")
@@ -22,15 +26,28 @@ public class Integrity {
     IntegrityScanner integrityScanner;
 
     @Uri(value = "/report", method = HttpMethod.GET)
-    public void report(WebScriptRequest req, final WebScriptResponse response) throws IOException {
+    public void report(final WebScriptResponse response) throws IOException {
+        writeReportAsResponse(integrityScanner.getLastReport(), response);
+    }
+
+    @Uri(value="/subset", method = HttpMethod.POST)
+    public void scanSubset(@RequestBody List<String> nodes, WebScriptResponse response) throws IOException {
+        List<NodeRef> convertedNodes = new ArrayList<>(nodes.size());
+        for (String node : nodes) {
+            convertedNodes.add(new NodeRef(node));
+        }
+        writeReportAsResponse(integrityScanner.scanSubset(convertedNodes.iterator()), response);
+    }
+
+    private void writeReportAsResponse(IntegrityReport report, WebScriptResponse response) throws IOException {
         response.setContentEncoding("utf-8");
         response.setHeader("Cache-Control", "no-cache");
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setDateFormat(new ISO8601DateFormat());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        if (integrityScanner.getLastReport() != null) {
+        if (report != null) {
             response.setContentType("application/json");
-            mapper.writeValue(response.getWriter(), integrityScanner.getLastReport());
+            mapper.writeValue(response.getWriter(), report);
         } else {
             response.setContentType("text/plain");
             response.setStatus(404);
