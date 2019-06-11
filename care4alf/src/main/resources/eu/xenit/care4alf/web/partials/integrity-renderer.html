@@ -1,0 +1,36 @@
+<p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
+    <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
+    to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
+</p>
+<p ng-if="report.nodeProblemKeys.length !== 0">Problems found relating to noderefs:
+    <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
+    <ul ng-repeat="noderef in report.nodeProblemKeys">
+        <li>
+            <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>:
+            <ul ng-repeat="problem in report.nodeProblems[noderef]">
+                <li>
+                    {{problem.message}}
+                    <ul ng-if="problem.property">
+                        <li>{{problem.property}}</li>
+                    </ul>
+                    <ul ng-if="problem.extraMessage">
+                        <li>{{problem.extraMessage}}</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</p>
+<p ng-if="report.nodeProblemKeys.length === 0">No problems found relating to noderefs.</p>
+<p ng-if="report.fileProblemKeys.length !== 0">Problems found relating to files:
+    <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
+    <ul ng-repeat="file in report.fileProblemKeys">
+        <li>
+            <strong>{{file}}</strong>
+            <ul ng-repeat="problem in report.fileProblems[file]">
+                <li>{{problem.message}}</li>
+            </ul>
+        </li>
+    </ul>
+</p>
+<p ng-if="report.fileProblemKeys.length === 0">No problems found relating to files.</p>

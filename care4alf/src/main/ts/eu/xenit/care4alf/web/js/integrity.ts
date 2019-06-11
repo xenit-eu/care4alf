@@ -3,8 +3,6 @@
 care4alf.controller('integrity', function($scope, $http, $routeParams, $location) {
     $scope.hasReport = false;
     $scope.scanRunning = false;
-    $scope.hasNodeProblems = false;
-    $scope.hasFileProblems = false;
     $scope.report = "";
 
     $scope.hasSubsetReport = false;
@@ -14,14 +12,17 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
 
     $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
 
+    let makeReport = function(data) {
+        let report:any = data;
+        report.nodeProblemKeys = Object.keys(data.nodeProblems);
+        report.fileProblemKeys = Object.keys(data.fileProblems);
+        return report;
+    }
+
     let load = function() {
         $http.get("/alfresco/s/xenit/care4alf/integrity/report").then((resp) => {
             $scope.hasReport = true;
-            $scope.report = resp.data;
-            $scope.report.nodeProblemKeys = Object.keys(resp.data.nodeProblems)
-            $scope.report.fileProblemKeys = Object.keys(resp.data.fileProblems)
-            $scope.hasNodeProblems = $scope.report.nodeProblemKeys.length !== 0;
-            $scope.hasFileProblems = $scope.report.fileProblemKeys.length !== 0;
+            $scope.report = makeReport(resp.data);
             console.log(resp.data);
         }, (resp) => {
             $scope.hasReport = false;
@@ -48,7 +49,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $http.post("integrity/subset", noderefs).then((resp) => {
             $scope.subsetScanRunning = false;
             $scope.hasSubsetReport = true;
-            $scope.subsetReport = resp.data;
+            $scope.subsetReport = makeReport(resp.data);
         }, (resp) => {
             $scope.subsetScanRunning = false;
             $scope.hasSubsetReport = false;
@@ -56,5 +57,13 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     }
 
     load();
+}).directive('reportRenderer', function() {
+    return {
+        restrict: 'E',
+        scope: {
+            report: '=report'
+        },
+        templateUrl: 'resources/partials/integrity-renderer.html'
+    }
 }).filter('nodelink', () => (noderef:string) => noderef.replace('workspace://SpacesStore/',
         '/alfresco/s/xenit/care4alf/#/browser/workspace+SpacesStore+'));
