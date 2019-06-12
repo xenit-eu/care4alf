@@ -122,6 +122,20 @@ public class IntegrityScanner implements Job {
         return nodeCounter.get();
     }
 
+    public int getNodeProgress() {
+        if (nodeCounter == null) {
+            return -1;
+        }
+        return nodeCounter.get();
+    }
+
+    public int getFileProgress() {
+        if (fileCounter == null) {
+            return -1;
+        }
+        return fileCounter.get();
+    }
+
     public IntegrityReport getLastReport() {
         return lastReport;
     }

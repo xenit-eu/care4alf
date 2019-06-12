@@ -9,6 +9,8 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     $scope.subsetReport = ""
     $scope.subsetScanRunning = false;
 
+    $scope.progress = {'nodeProgress': 0, 'fileProgress': 0}
+
 
     $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
 
@@ -20,7 +22,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     }
 
     let load = function() {
-        $http.get("/alfresco/s/xenit/care4alf/integrity/report").then((resp) => {
+        $http.get("integrity/report").then((resp) => {
             $scope.hasReport = true;
             $scope.report = makeReport(resp.data);
             console.log(resp.data);
@@ -28,6 +30,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
             $scope.hasReport = false;
             console.log(resp.data);
         });
+        $http.get("integrity/progress").then((resp) => $scope.progress = resp.data);
         $http.get("/alfresco/s/xenit/care4alf/scheduled/executing").then((resp) => {
             resp.data.forEach(job => {
                 // These strings are define in the @ScheduledJob annotation in IntegrityScanner.java

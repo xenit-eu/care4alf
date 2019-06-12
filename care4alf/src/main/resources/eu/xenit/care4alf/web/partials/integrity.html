@@ -4,10 +4,11 @@
         <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
     </div>
     <div class="form-info-text">
-        <p>An Integrity Scan is currently running (since {{ scanRunningSince }})</p>
+        <p>An Integrity Scan is currently running. Since {{ scanRunningSince }}, <strong>{{ progress.nodeProgress }}
+            nodes</strong> and <strong>{{ progress.fileProgress }}</strong> files have been scanned.</p>
     </div>
 </div>
-<p ng-if="!hasReport">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
+<p ng-if="!hasReport && !scanRunning">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
 <div ng-if="hasReport">
     <report-renderer report="report"></report-renderer>
 </div>

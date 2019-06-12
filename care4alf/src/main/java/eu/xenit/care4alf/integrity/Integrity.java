@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
@@ -37,6 +39,15 @@ public class Integrity {
             convertedNodes.add(new NodeRef(node));
         }
         writeReportAsResponse(integrityScanner.scanSubset(convertedNodes.iterator()), response);
+    }
+
+    @Uri(value="/progress", method = HttpMethod.GET)
+    public void progress(final WebScriptResponse response) throws IOException, JSONException {
+        final JSONWriter json = new JSONWriter(response.getWriter());
+        json.object();
+        json.key("nodeProgress").value(integrityScanner.getNodeProgress());
+        json.key("fileProgress").value(integrityScanner.getFileProgress());
+        json.endObject();
     }
 
     private void writeReportAsResponse(IntegrityReport report, WebScriptResponse response) throws IOException {
