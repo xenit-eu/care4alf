@@ -45,7 +45,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
 
     $scope.scanSubset = function(noderefString:string) {
         $scope.subsetScanRunning = true;
-        let noderefs = noderefString.split(",").map((x:string) => x.trim());
+        let noderefs = noderefString.split(",").map((x) => x.trim()).filter((x) => x != "");
         $http.post("integrity/subset", noderefs).then((resp) => {
             $scope.subsetScanRunning = false;
             $scope.hasSubsetReport = true;
@@ -66,4 +66,5 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         templateUrl: 'resources/partials/integrity-renderer.html'
     }
 }).filter('nodelink', () => (noderef:string) => noderef.replace('workspace://SpacesStore/',
-        '/alfresco/s/xenit/care4alf/#/browser/workspace+SpacesStore+'));
+        '/alfresco/s/xenit/care4alf/#/browser/workspace+SpacesStore+')
+).config(['$compileProvider', ($compileProvider) => $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|data)/)]);

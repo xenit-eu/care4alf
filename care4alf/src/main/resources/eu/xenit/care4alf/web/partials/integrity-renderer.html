@@ -1,6 +1,9 @@
 <p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
     <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
     to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
+    <a type="button" class="btn btn-default btn-xs" ng-href="data:application/json;base64,{{report|json|base64}}" download="report.json">
+        <i class="glyphicon glyphicon-circle-arrow-down"></i> Download report
+    </a>
 </p>
 <p ng-if="report.nodeProblemKeys.length !== 0">Problems found relating to noderefs:
     <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
