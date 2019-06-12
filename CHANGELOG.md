@@ -1,9 +1,12 @@
 # Changelog
 
-## Release 1.6.3 (Unreleased)
+## Release 1.7.0 (Unreleased)
 ### ALFREDOPS
 - [202](https://xenitsupport.jira.com/browse/ALFREDOPS-202): ALFREDOPS-202 Fix links to the Details page in the node browser for archived nodes
 - [203](https://xenitsupport.jira.com/browse/ALFREDOPS-203): ALFREDOPS-203 Fix accepting full noderefs for other stores in browser
+
+### BNPPARISBA
+- [27](https://xenitsupport.jira.com/browse/BNPPARISBA-27): BNPPARISBA-27 Improvements to UI of audit module
 
 ## Release 1.6.2 (2019-05-02)
 ### ALFREDOPS
