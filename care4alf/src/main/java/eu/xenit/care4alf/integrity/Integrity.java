@@ -41,13 +41,18 @@ public class Integrity {
         writeReportAsResponse(integrityScanner.scanSubset(convertedNodes.iterator()), response);
     }
 
-    @Uri(value="/progress", method = HttpMethod.GET)
+    @Uri(value = "/progress", method = HttpMethod.GET)
     public void progress(final WebScriptResponse response) throws IOException, JSONException {
         final JSONWriter json = new JSONWriter(response.getWriter());
         json.object();
         json.key("nodeProgress").value(integrityScanner.getNodeProgress());
         json.key("fileProgress").value(integrityScanner.getFileProgress());
         json.endObject();
+    }
+
+    @Uri(value = "/cancel", method = HttpMethod.POST)
+    public void cancel() {
+        integrityScanner.cancelScan();
     }
 
     private void writeReportAsResponse(IntegrityReport report, WebScriptResponse response) throws IOException {

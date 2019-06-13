@@ -87,12 +87,16 @@ public class IntegrityScanner implements Job {
     @Autowired
     private ActionService actionService;
 
+    private boolean shouldCancel;
+
     private AtomicInteger nodeCounter;
     private AtomicInteger fileCounter;
     private IntegrityReport lastReport;
     private Set<String> knownFileNames;
 
     public int scanAll() {
+        shouldCancel= false;
+
         nodeCounter = new AtomicInteger(0);
         fileCounter = new AtomicInteger(0);
         knownFileNames = new HashSet<>();
@@ -103,9 +107,13 @@ public class IntegrityScanner implements Job {
         nodeParameters.setToTxnId(Long.MAX_VALUE);
         logger.debug("node params created");
 
-        // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
         logger.info("Beginning Metadata Integrity Scan");
+        // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
+        // OR until one of the calls to handleNode returns with false — which it does in case of a cancel
         solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(nodeCounter, knownFileNames, inProgressReport));
+        if (shouldCancel) {
+            return nodeCounter.get();
+        }
         logger.info("Integrity Scan executed on {} nodes. Scanning filesystem next...", nodeCounter.get());
         inProgressReport.setScannedNodes(nodeCounter.get());
 
@@ -114,6 +122,12 @@ public class IntegrityScanner implements Job {
             verifyNoOrphans(knownFileNames, inProgressReport);
         } catch (IOException e) {
             inProgressReport.addFileProblem(new FileExceptionProblem(e));
+        }
+
+        // We may have returned from verifyNoOrphans due to a cancel
+        // In that case we should not finish the report and return early
+        if (shouldCancel) {
+            return nodeCounter.get();
         }
 
         logger.info("Ended Metadata Integrity Scan");
@@ -141,10 +155,17 @@ public class IntegrityScanner implements Job {
     }
 
     public IntegrityReport scanSubset(Iterator<NodeRef> iter) {
+        shouldCancel = false;
+
         IntegrityReport subsetReport = new IntegrityReport();
         CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
         while (iter.hasNext()) {
-            handler.handleNode(fakeNode(iter.next()));
+            // make a fake "node" out of the next noderef, pass it to the handler that does the actual verification
+            // if this returns false, the operation has been cancelled
+            boolean run = handler.handleNode(fakeNode(iter.next()));
+            if (!run) {
+                return null;
+            }
             subsetReport.setScannedNodes(subsetReport.getScannedNodes() + 1);
         }
         subsetReport.finish();
@@ -159,7 +180,14 @@ public class IntegrityScanner implements Job {
                 return IntegrityScanner.this.scanAll();
             }
         });
-        mailReport(lastReport);
+        if (!shouldCancel) {
+            mailReport(lastReport);
+        }
+    }
+
+    public void cancelScan() {
+        logger.warn("Cancelling integrity scan.");
+        shouldCancel = true;
     }
 
     private class CallbackHandler implements NodeQueryCallback {
@@ -175,6 +203,9 @@ public class IntegrityScanner implements Job {
 
         @Override
         public boolean handleNode(Node node) {
+            if (shouldCancel) {
+                return false;
+            }
             if (node.getDeleted(qNameDAO)
                     || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)) {
                 return true; // continue to next node
@@ -360,6 +391,9 @@ public class IntegrityScanner implements Job {
         Files.walkFileTree(Paths.get(getContentStoreDir()), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+                if (shouldCancel) {
+                    return FileVisitResult.TERMINATE;
+                }
                 if (attr.isRegularFile() && !known.contains(file.getFileName().toString())) {
                     // We don't know if it's a problem yet, might be a recently deleted file
                     // Investigate this one further by looking in the db (also convert path to store://, like db uses)
@@ -373,6 +407,9 @@ public class IntegrityScanner implements Job {
             }
         });
 
+        if (shouldCancel) {
+            return;
+        }
         Map<String, ? extends List<String>> queryParams = Collections.singletonMap("urls",
                 new ArrayList<>(potentialOrphans));
 
@@ -382,6 +419,9 @@ public class IntegrityScanner implements Job {
                 queryParams);
 
         for (Map<String, Object> line : results) {
+            if (shouldCancel) {
+                return;
+            }
             String contentUrl = (String) line.get("content_url");
             Long orphanTime = (Long) line.get("orphan_time");
             if (orphanTime == null) {

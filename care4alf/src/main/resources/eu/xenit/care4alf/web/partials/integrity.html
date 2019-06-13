@@ -39,3 +39,8 @@
         <report-renderer report="subsetReport"></report-renderer>
     </div>
 </form>
+<div ng-if="scanRunning || subsetScanRunning">
+    <hr />
+    <p>You can cancel all running scans here, but you will not get a report from them.</p>
+    <button type="button" class="btn btn-danger" ng-click="cancel()">Cancel All Scans</button>
+</div>

@@ -59,6 +59,10 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         });
     }
 
+    $scope.cancel = function() {
+        $http.post("integrity/cancel")
+    }
+
     load();
 }).directive('reportRenderer', function() {
     return {
