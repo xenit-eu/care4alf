@@ -46,10 +46,12 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $scope.scanRunningSince = null;
     };
 
-    $scope.scanSubset = function(noderefString:string) {
+    $scope.scanSubset = function(noderefString:string, fileString:string) {
         $scope.subsetScanRunning = true;
-        let noderefs = noderefString.split(",").map((x) => x.trim()).filter((x) => x != "");
-        $http.post("integrity/subset", noderefs).then((resp) => {
+        let clean = (s:string) => s.split(",").map((x) => x.trim()).filter((x) => x != "");
+        let noderefs = clean(noderefString || "");
+        let files = clean(fileString || "");
+        $http.post("integrity/subset", {'nodes': noderefs, 'files' : files}).then((resp) => {
             $scope.subsetScanRunning = false;
             $scope.hasSubsetReport = true;
             $scope.subsetReport = makeReport(resp.data);

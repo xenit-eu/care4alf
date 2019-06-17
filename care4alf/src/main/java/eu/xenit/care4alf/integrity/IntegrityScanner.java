@@ -20,7 +20,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -53,15 +52,15 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
 // !! Beware changing this group and name !! It's used in integrity.ts in the check in the callback of the REST call
@@ -95,7 +94,7 @@ public class IntegrityScanner implements Job {
     private Set<String> knownFileNames;
 
     public int scanAll() {
-        shouldCancel= false;
+        shouldCancel = false;
 
         nodeCounter = new AtomicInteger(0);
         fileCounter = new AtomicInteger(0);
@@ -154,20 +153,34 @@ public class IntegrityScanner implements Job {
         return lastReport;
     }
 
-    public IntegrityReport scanSubset(Iterator<NodeRef> iter) {
+
+    public IntegrityReport scanSubset(Iterator<NodeRef> nodeIter, Collection<String> fileCollection) {
         shouldCancel = false;
+
+        logger.info("Starting scan of subset...");
 
         IntegrityReport subsetReport = new IntegrityReport();
         CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
-        while (iter.hasNext()) {
+        while (nodeIter.hasNext()) {
             // make a fake "node" out of the next noderef, pass it to the handler that does the actual verification
             // if this returns false, the operation has been cancelled
-            boolean run = handler.handleNode(fakeNode(iter.next()));
+            boolean run = handler.handleNode(fakeNode(nodeIter.next()));
             if (!run) {
                 return null;
             }
             subsetReport.setScannedNodes(subsetReport.getScannedNodes() + 1);
         }
+
+        if (fileCollection.size() > 0) {
+            final HashSet<String> files = new HashSet<>(fileCollection);
+            new JdbcTemplate(this.dataSource).query("SELECT content_url FROM alf_content_url",
+                    new OrphanCallbackHandler(files));
+            for (String remaining : files) {
+                subsetReport.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
+            }
+        }
+        logger.info("Finished scan of subset");
+
         subsetReport.finish();
         return subsetReport;
     }
@@ -384,9 +397,8 @@ public class IntegrityScanner implements Job {
         // This function finds orphaned files in alf_data, i.e. files that have no trace in the db of why they're there.
         // `Set<String> known` is a set of filenames (<guid>.bin) that we found when scanning through the nodes.
         // Any files we find in alf_data that aren't in this set are candidates for being an orphan.
-        // They can also be nodes that have been deleted and have an orphan_time in the db,
-        // this is a normal consequence of the node being deleted, so we don't include it in the report
-        // (although we log it).
+        // They can also be nodes that have been deleted recently, or a file that's referenced via a property other than
+        // cm:contentData:contentUrl
         final Set<String> potentialOrphans = new HashSet<>();
         Files.walkFileTree(Paths.get(getContentStoreDir()), new SimpleFileVisitor<Path>() {
             @Override
@@ -410,27 +422,12 @@ public class IntegrityScanner implements Job {
         if (shouldCancel) {
             return;
         }
-        Map<String, ? extends List<String>> queryParams = Collections.singletonMap("urls",
-                new ArrayList<>(potentialOrphans));
 
-        // Query the db to see if they're in there and have an orphan_time
-        List<Map<String, Object>> results = new NamedParameterJdbcTemplate(this.dataSource).queryForList(
-                "SELECT cu.content_url, cu.orphan_time FROM alf_content_url cu WHERE cu.content_url IN (:urls)",
-                queryParams);
+        // Query the db to see if our potential orphans are in there. If not, they're a genuine orphan and should be
+        // reported in the scan.
+        new JdbcTemplate(this.dataSource).query("SELECT content_url FROM alf_content_url",
+                new OrphanCallbackHandler(potentialOrphans));
 
-        for (Map<String, Object> line : results) {
-            if (shouldCancel) {
-                return;
-            }
-            String contentUrl = (String) line.get("content_url");
-            Long orphanTime = (Long) line.get("orphan_time");
-            if (orphanTime == null) {
-                logger.debug("Found {} in db, turned out not to be an orphan ", contentUrl);
-            } else {
-                logger.debug("Found {} in db, orphan since {}", contentUrl, orphanTime);
-            }
-            potentialOrphans.remove(contentUrl);
-        }
         for (String remaining : potentialOrphans) {
             report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
         }
@@ -474,6 +471,7 @@ public class IntegrityScanner implements Job {
             public boolean getDeleted(QNameDAO dao) {
                 return false;
             }
+
             @Override
             public StoreEntity getStore() {
                 final StoreEntity storeEntity = new StoreEntity();
@@ -481,6 +479,7 @@ public class IntegrityScanner implements Job {
                 storeEntity.setIdentifier(noderef.getStoreRef().getIdentifier());
                 return storeEntity;
             }
+
             @Override
             public NodeRef getNodeRef() {
                 return noderef;

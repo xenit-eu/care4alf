@@ -15,7 +15,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,13 +31,15 @@ public class Integrity {
         writeReportAsResponse(integrityScanner.getLastReport(), response);
     }
 
+    private static class SubsetBody { public List<String> nodes; public List<String> files; public SubsetBody() {} }
+
     @Uri(value="/subset", method = HttpMethod.POST)
-    public void scanSubset(@RequestBody List<String> nodes, WebScriptResponse response) throws IOException {
-        List<NodeRef> convertedNodes = new ArrayList<>(nodes.size());
-        for (String node : nodes) {
+    public void scanSubset(@RequestBody SubsetBody body, WebScriptResponse response) throws IOException {
+        List<NodeRef> convertedNodes = new ArrayList<>(body.nodes.size());
+        for (String node : body.nodes) {
             convertedNodes.add(new NodeRef(node));
         }
-        writeReportAsResponse(integrityScanner.scanSubset(convertedNodes.iterator()), response);
+        writeReportAsResponse(integrityScanner.scanSubset(convertedNodes.iterator(), body.files), response);
     }
 
     @Uri(value = "/progress", method = HttpMethod.GET)
