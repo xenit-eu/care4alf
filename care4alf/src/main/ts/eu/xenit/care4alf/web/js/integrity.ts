@@ -1,5 +1,20 @@
 /// <reference path="care4alf.ts" />
 
+interface Report {
+    scannedNodes: number;
+    "runtime (ms)": number;
+    startTime: string;
+    endTime: string;
+    nodeProblems: { [node: string]:[{
+        message: string;
+        extraMessage?: string;
+        property?: string;
+    }]; };
+    fileProblems: { [file: string]:[{
+        message: string;
+    }]}
+}
+
 care4alf.controller('integrity', function($scope, $http, $routeParams, $location) {
     $scope.hasReport = false;
     $scope.scanRunning = false;
@@ -15,9 +30,15 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
 
     let makeReport = function(data) {
-        let report:any = data;
-        report.nodeProblemKeys = Object.keys(data.nodeProblems);
-        report.fileProblemKeys = Object.keys(data.fileProblems);
+        let report:Report = data;
+        // WONTFIX angular bug relating to keys starting with dollar signs https://github.com/angular/angular.js/issues/6266
+        // we clean the keys up first by prepending \0 to them.
+        let fixPrefixes = (obj) => Object.keys(obj).filter((key) => key != undefined && key[0] == '$').forEach((key) => {
+            Object.defineProperty(obj, '\0' + key, Object.getOwnPropertyDescriptor(obj, key));
+            delete obj[key];
+        });
+        fixPrefixes(report.nodeProblems);
+        fixPrefixes(report.fileProblems);
         return report;
     }
 
@@ -33,7 +54,7 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $http.get("integrity/progress").then((resp) => $scope.progress = resp.data);
         $http.get("/alfresco/s/xenit/care4alf/scheduled/executing").then((resp) => {
             resp.data.forEach(job => {
-                // These strings are define in the @ScheduledJob annotation in IntegrityScanner.java
+                // These strings are defined in the @ScheduledJob annotation in IntegrityScanner.java
                 if (job.group == 'integrityscan' && job.name == 'IntegrityScan') {
                     $scope.scanRunning = true;
                     $scope.scanRunningSince = job.firetime;

@@ -5,12 +5,11 @@
         <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
     </a>
 </p>
-<p ng-if="report.nodeProblemKeys.length !== 0">Problems found relating to noderefs:
-    <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
-    <ul ng-repeat="noderef in report.nodeProblemKeys">
+<p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
+    <ul ng-repeat="(noderef, problems) in report.nodeProblems">
         <li>
             <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>:
-            <ul ng-repeat="problem in report.nodeProblems[noderef]">
+            <ul ng-repeat="problem in problems">
                 <li>
                     {{problem.message}}
                     <ul ng-if="problem.property">
@@ -24,16 +23,15 @@
         </li>
     </ul>
 </p>
-<p ng-if="report.nodeProblemKeys.length === 0">No problems found relating to noderefs.</p>
-<p ng-if="report.fileProblemKeys.length !== 0">Problems found relating to files:
-    <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
-    <ul ng-repeat="file in report.fileProblemKeys">
+<p ng-if="isEmpty(report.nodeProblems)">No problems found relating to noderefs.</p>
+<p ng-if="!isEmpty(report.fileProblems)">Problems found relating to files:
+    <ul ng-repeat="(file, problems) in report.fileProblems">
         <li>
             <strong>{{file}}</strong>
-            <ul ng-repeat="problem in report.fileProblems[file]">
+            <ul ng-repeat="problem in problems">
                 <li>{{problem.message}}</li>
             </ul>
         </li>
     </ul>
 </p>
-<p ng-if="report.fileProblemKeys.length === 0">No problems found relating to files.</p>
+<p ng-if="isEmpty(report.fileProblems)">No problems found relating to files.</p>
