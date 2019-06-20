@@ -42,7 +42,12 @@ public class WorkflowInstances @Autowired constructor(
 
     @Uri(value = "/active", defaultFormat = "json")
     fun activeInstances() = json {
-        iterable(workflowService.getActiveWorkflows(), instanceToJson(false))
+        iterable(workflowService.activeWorkflows, instanceToJson(false))
+    }
+
+    @Uri(value = "/completed", defaultFormat = "json")
+    fun completedInstances() = json {
+        iterable(workflowService.completedWorkflows, instanceToJson(false))
     }
 
     @Uri(value = "/find/task/{taskid}", defaultFormat = "json")

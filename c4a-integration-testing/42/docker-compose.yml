@@ -23,6 +23,9 @@ services:
     - GLOBAL_ooo.enabled=false
     - GLOBAL_jodconverter.enabled=false
     - CATALINA_OPTS=-XX:MaxPermSize=256M
+    - GLOBAL_audit.enabled = true
+    - GLOBAL_audit.alfresco-access.enabled=true
+    - GLOBAL_audit.alfresco-access.sub-actions.enabled=true
 
   solr:
     image: hub.xenit.eu/alfresco-solr1:4.2.8

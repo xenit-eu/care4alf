@@ -7,6 +7,7 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
+import org.alfresco.service.cmr.admin.RepoAdminService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
 import org.json.JSONException;
@@ -23,19 +24,30 @@ import java.util.Map;
  */
 @Component
 @WebScript
-@ScheduledQuartzJob(name = "LicenseMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 2 * * ?", cronProp = "c4a.monitoring.license.cron")
+@ScheduledQuartzJob(name = "LicenseMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/10 * * * ?", cronProp = "c4a.monitoring.license.cron")
 public class LicenseMetric extends AbstractMonitoredSource {
 
     @Autowired
     public LicenseService licenseService;
+    @Autowired
+    public RepoAdminService repoAdminService;
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
         Map<String, Long> map = new HashMap<>();
         if(licenseService == null || licenseService.getLicense() == null)
             map.put("license.valid", -1L);
-        else
+        else {
             map.put("license.valid", Long.valueOf(licenseService.getLicense().getRemainingDays()));
+            if(licenseService.getLicense().getMaxUsers() == null)
+                map.put("license.users.max", -1L);
+            else
+                map.put("license.users.max", Long.valueOf(licenseService.getLicense().getMaxUsers()));
+        }
+        if(repoAdminService.getUsage().getUsers() == null)
+            map.put("license.users.authorized", -1L);
+        else
+            map.put("license.users.authorized", Long.valueOf(repoAdminService.getUsage().getUsers()));
         return map;
     }
 

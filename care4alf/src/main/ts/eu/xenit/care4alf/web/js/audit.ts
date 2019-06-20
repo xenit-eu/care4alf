@@ -1,9 +1,8 @@
 /// <reference path="care4alf.ts" />
 
-care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
+care4alf.controller('audit', function($scope, $http, $routeParams, $window: Window, $location) {
     $scope.sortType     = 'time';
     $scope.sortReverse  = false;
-    $scope.showClear = false;
     $scope.showBack = false;
     let lastFunc = "";
     console.log("found route params: "+$routeParams.subtoken+" and "+$routeParams.subtoken2);
@@ -11,17 +10,19 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
     $scope.load = function(app){
         lastFunc = "load";
         //$location.url('/audit'+app);
-        $scope.showClear = true;
         $scope.showBack = false;
         console.log("loading app: " + app);
-        $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=1000&forward=true").success(function(data){
+        let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
+        let fromTimeBit = $scope.fromTime == "" ? "" : "&fromTime=" + $scope.fromTime;
+        let userFilterBit = $scope.userFilter == "" ? "" : "&user=" + $scope.userFilter
+        $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
+                + fromIdBit + fromTimeBit + "&forward=" + $scope.forward + userFilterBit).success(function(data) {
             $scope.entries = data.entries;
         });
     };
 
-    $scope.query = function(app,key, value){
+    $scope.query = function(app: string, key: string, value: string){
         lastFunc = "query?"+key+"?"+value;
-        $scope.showClear = true;
         $scope.showBack = true;
         console.log("Query: " + value);
         console.log("key: "+key);
@@ -29,7 +30,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
             $scope.entries = data.entries;
         });
     };
-    
+
     $scope.queryUser = function (app, user) {
         lastFunc = "user?"+user;
         $scope.showBack = true;
@@ -91,18 +92,22 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $location) {
         $scope.queryUser(app,user);
     };
 
-    $scope.clear = function (app) {
-        console.log("Clearing:" +app);
-        $http.post("/alfresco/s/api/audit/clear"+app).success(function(){
-            $scope.showSuccessAlert = true;
-        });
-    };
-
-    $scope.successTextAlert = "The audit for this application has been successfully cleared";
-    $scope.showSuccessAlert = false;
-
     // switch flag
     $scope.switchBool = function (value) {
         $scope[value] = !$scope[value];
     };
+
+    $scope.deleteEntry = function(app, entry) {
+        if ($window.confirm("Are you sure you want to delete entry " + entry.id + " ?")) {
+            $http.delete("/alfresco/s/xenit/care4alf/audit" + app + "/" + entry.id).success(() => {
+                $scope.entries = _.without($scope.entries, entry)
+            })
+        }
+    }
+
+    $scope.limit = 1000;
+    $scope.fromId = "";
+    $scope.fromTime = "";
+    $scope.forward = true;
+    $scope.userFilter = "";
 });

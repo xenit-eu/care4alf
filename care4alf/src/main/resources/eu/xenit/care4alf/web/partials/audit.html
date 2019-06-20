@@ -4,10 +4,48 @@
             ng-model="application"
             ng-options="app.path as app.name for app in control.applications"
             ng-change="setRouteLoad(application)"></select>
-    <input type="button" ng-show="showClear" class="btn btn-danger" ng-click="clear(application)" value="Clear"/>
     <input type="button" class="btn btn-primary" ng-click="reload()" value="Refresh"/>
     <input type="button" ng-show="showBack" class="btn btn-info" ng-click="setRouteLoad(application)" value="Back"/>
 </div>
+<style type="text/css">
+.form-flex{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+.form-group {
+    margin-right: 2em;
+}
+.form-group label {
+    display: block;
+}
+</style>
+<form class="form-flex">
+    <div class="form-group">
+        <label for="limit">Limit</label>
+        <input type="text" class="form-control" id="limit" ng-model="limit" placeholder="1000"/>
+    </div>
+    <div class="form-group">
+        <label for="fromId">From ID</label>
+        <input type="text" class="form-control" id="fromId" ng-model="fromId" placeholder="1234"/>
+    </div>
+    <div class="form-group">
+        <label for="fromTime">From Time</label>
+        <input type="text" class="form-control" id="fromTime" ng-model="fromTime" placeholder="2012-12-21T21:12:22.000+00:00"/>
+    </div>
+    <div class="form-group">
+        <label for="timeDirection">Temporal Direction</label>
+        <select id="timeDirection" ng-model="forward">
+            <option value="true">Forwards in time</option>
+            <option value="false">Backwards in time</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="userFilter">Filter User</label>
+        <input type="text" class="form-control" id="userFilter" ng-model="userFilter" placeholder="admin" />
+    </div>
+</form>
+
 <div class="alert alert-success" ng-show="showSuccessAlert">
     <button type="button" class="close" data-ng-click="switchBool('showSuccessAlert')">×</button> <strong>Done!</strong> {{successTextAlert}}</div>
 <table class="table table-bordered table-striped">
@@ -32,6 +70,7 @@
             </a>
             </th>
             <th>Values</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -43,6 +82,9 @@
                 <ul>
                     <li ng-repeat="(key, value) in entry.values">{{::key}} <a ng-click="setRouteQuery(application,key,value)">{{value}}</a></li>
                 </ul>
+            </td>
+            <td>
+                <input type="button" class="btn btn-danger" ng-click="deleteEntry(application,entry)" value="Delete"/>
             </td>
         </tr>
     </tbody>

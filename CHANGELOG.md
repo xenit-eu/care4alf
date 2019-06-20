@@ -1,5 +1,16 @@
 # Changelog
 
+## Release 1.7.0 (2019-06-20)
+### USGSUPPORT
+- [698](https://xenitsupport.jira.com/browse/USGSUPPORT-698): USGSUPPORT-698 Add monitoring metrics license.users.max and license.users.authorized. Send License metrics every 10 minutes instead of once per day.
+
+### ALFREDOPS
+- [202](https://xenitsupport.jira.com/browse/ALFREDOPS-202): ALFREDOPS-202 Fix links to the Details page in the node browser for archived nodes
+- [203](https://xenitsupport.jira.com/browse/ALFREDOPS-203): ALFREDOPS-203 Fix accepting full noderefs for other stores in browser
+
+### BNPPARISBA
+- [27](https://xenitsupport.jira.com/browse/BNPPARISBA-27): BNPPARISBA-27 Improvements to UI of audit module
+
 ## Release 1.6.2 (2019-05-02)
 ### ALFREDOPS
 - [194](https://xenitsupport.jira.com/browse/ALFREDOPS-194): Fix compatibility issue with Dynamic Extensions 2.0. Care4Alf now no longer assumes Kotlin libraries will be provided.
