@@ -1,6 +1,6 @@
 # Changelog
 
-## Release 1.7.0 (Unreleased)
+## Release 1.7.0 (2019-06-20)
 ### USGSUPPORT
 - [698](https://xenitsupport.jira.com/browse/USGSUPPORT-698): USGSUPPORT-698 Add monitoring metrics license.users.max and license.users.authorized. Send License metrics every 10 minutes instead of once per day.
 
