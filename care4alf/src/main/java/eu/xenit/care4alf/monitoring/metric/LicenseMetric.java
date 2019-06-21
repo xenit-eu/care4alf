@@ -28,9 +28,9 @@ import java.util.Map;
 public class LicenseMetric extends AbstractMonitoredSource {
 
     @Autowired
-    public LicenseService licenseService;
+    private LicenseService licenseService;
     @Autowired
-    public RepoAdminService repoAdminService;
+    private RepoAdminService repoAdminService;
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
@@ -42,12 +42,12 @@ public class LicenseMetric extends AbstractMonitoredSource {
             if(licenseService.getLicense().getMaxUsers() == null)
                 map.put("license.users.max", -1L);
             else
-                map.put("license.users.max", Long.valueOf(licenseService.getLicense().getMaxUsers()));
+                map.put("license.users.max", licenseService.getLicense().getMaxUsers());
         }
-        if(repoAdminService.getUsage().getUsers() == null)
+        if(repoAdminService.getUsageStatus().getUsage().getUsers() == null)
             map.put("license.users.authorized", -1L);
         else
-            map.put("license.users.authorized", Long.valueOf(repoAdminService.getUsage().getUsers()));
+            map.put("license.users.authorized", repoAdminService.getUsageStatus().getUsage().getUsers());
         return map;
     }
 
