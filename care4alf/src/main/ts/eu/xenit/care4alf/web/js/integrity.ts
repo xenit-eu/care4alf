@@ -27,7 +27,6 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     $scope.progress = {'nodeProgress': 0, 'fileProgress': 0}
 
 
-    $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
 
     let makeReport = function(data) {
         let report:Report = data;
@@ -83,7 +82,9 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     }
 
     $scope.cancel = function() {
-        $http.post("integrity/cancel")
+        if ($window.confirm("Are you sure you want to cancel all scans? You will not get a report from them")) {
+            $http.post("integrity/cancel")
+        }
     }
 
     load();
@@ -91,9 +92,16 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     return {
         restrict: 'E',
         scope: {
-            report: '=report'
+            report: '=report',
+            inlineDownload: '=inlineDl'
         },
-        templateUrl: 'resources/partials/integrity-renderer.html'
+        templateUrl: 'resources/partials/integrity-renderer.html',
+        controller: ($scope) => {
+            $scope.renderInline = false;
+            $scope.doRender = () => $scope.renderInline = true;
+            $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
+            $scope.countProblems = (problemObj) => Object.keys(problemObj).map((k) => problemObj[k].length).reduce((a,b) => a + b)
+        }
     }
 }).filter('nodelink', () => (noderef:string) => noderef.replace('workspace://SpacesStore/',
         '/alfresco/s/xenit/care4alf/#/browser/workspace+SpacesStore+')

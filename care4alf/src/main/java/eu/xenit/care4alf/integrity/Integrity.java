@@ -62,6 +62,7 @@ public class Integrity {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.setDateFormat(new ISO8601DateFormat());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         if (report != null) {
             response.setContentType("application/json");
             mapper.writeValue(response.getWriter(), report);
