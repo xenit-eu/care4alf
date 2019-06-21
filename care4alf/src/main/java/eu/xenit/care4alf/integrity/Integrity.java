@@ -2,6 +2,7 @@ package eu.xenit.care4alf.integrity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
@@ -29,6 +30,11 @@ public class Integrity {
     @Uri(value = "/report", method = HttpMethod.GET)
     public void report(final WebScriptResponse response) throws IOException {
         writeReportAsResponse(integrityScanner.getLastReport(), response);
+    }
+
+    @Uri(value = "/summary", method = HttpMethod.GET)
+    public void reportSummary(final WebScriptResponse response) throws IOException {
+        writeReportAsSummary(integrityScanner.getLastReport(), response);
     }
 
     private static class SubsetBody { public List<String> nodes; public List<String> files; public SubsetBody() {} }
@@ -71,5 +77,23 @@ public class Integrity {
             response.setStatus(404);
             response.getWriter().write("No scan report exists yet. Run the scan-all Action.");
         }
+    }
+
+
+    private void writeReportAsSummary(IntegrityReport report, WebScriptResponse response) throws IOException {
+        response.setContentEncoding("utf-8");
+        response.setHeader("Cache-Control", "no-cache");
+        if (report == null) {
+            response.setContentType("text/plain");
+            response.setStatus(404);
+            response.getWriter().write("No scan report exists yet. Run the scan-all Action.");
+            return;
+        }
+        IntegrityReportSummary summary = new IntegrityReportSummary(report);
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.setDateFormat(new ISO8601DateFormat());
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        response.setContentType("application/json");
+        mapper.writeValue(response.getWriter(), summary);
     }
 }

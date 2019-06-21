@@ -15,10 +15,12 @@ interface Report {
     }]}
 }
 
-care4alf.controller('integrity', function($scope, $http, $routeParams, $location) {
+care4alf.controller('integrity', function($scope, $http, $window, $routeParams, $location) {
     $scope.hasReport = false;
+    $scope.reportLoaded = false;
     $scope.scanRunning = false;
     $scope.report = "";
+    $scope.summary = "";
 
     $scope.hasSubsetReport = false;
     $scope.subsetReport = ""
@@ -42,13 +44,11 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     }
 
     let load = function() {
-        $http.get("integrity/report").then((resp) => {
+        $http.get("integrity/summary").then((resp) => {
             $scope.hasReport = true;
-            $scope.report = makeReport(resp.data);
-            console.log(resp.data);
+            $scope.summary = resp.data;
         }, (resp) => {
             $scope.hasReport = false;
-            console.log(resp.data);
         });
         $http.get("integrity/progress").then((resp) => $scope.progress = resp.data);
         $http.get("/alfresco/s/xenit/care4alf/scheduled/executing").then((resp) => {
@@ -65,6 +65,16 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
         $scope.scanRunning = false;
         $scope.scanRunningSince = null;
     };
+
+    $scope.loadReport = function() {
+        $http.get("integrity/report").then((resp) => {
+            $scope.hasReport = true;
+            $scope.reportLoaded = true;
+            $scope.report = makeReport(resp.data);
+        }, (resp) => {
+            $scope.hasReport = false;
+        });
+    }
 
     $scope.scanSubset = function(noderefString:string, fileString:string) {
         $scope.subsetScanRunning = true;
@@ -88,16 +98,24 @@ care4alf.controller('integrity', function($scope, $http, $routeParams, $location
     }
 
     load();
+}).directive('reportSummary', function() {
+    return {
+        restrict: 'E',
+        scope: {
+            summary: '=summary'
+        },
+        templateUrl: 'resources/partials/integrity-summary.html'
+    }
 }).directive('reportRenderer', function() {
     return {
         restrict: 'E',
         scope: {
             report: '=report',
-            inlineDownload: '=inlineDl'
+            renderInline: '=renderInline',
+            downloadEmbedded: '=downloadEmbedded'
         },
         templateUrl: 'resources/partials/integrity-renderer.html',
         controller: ($scope) => {
-            $scope.renderInline = false;
             $scope.doRender = () => $scope.renderInline = true;
             $scope.isEmpty = (obj) => Object.keys(obj).length === 0;
             $scope.countProblems = (problemObj) => Object.keys(problemObj).map((k) => problemObj[k].length).reduce((a,b) => a + b)

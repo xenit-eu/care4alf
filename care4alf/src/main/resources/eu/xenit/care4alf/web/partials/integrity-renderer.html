@@ -1,10 +1,11 @@
-<p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
+<p>
+    <strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
     <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
     to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
-    <a ng-if="!inlineDownload" type="button" class="btn btn-default btn-xs" href="integrity/report" download="report.json">
+    <a ng-if="!downloadEmbedded" type="button" class="btn btn-default btn-xs" href="integrity/report" download="report.json">
         <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
     </a>
-    <a ng-if="inlineDownload" type="button" class="btn btn-default btn-xs"
+    <a ng-if="downloadEmbedded" type="button" class="btn btn-default btn-xs"
         ng-href="data:application/json;base64,{{report|json|base64}}" download="report.json">
         <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
     </a>
@@ -16,11 +17,11 @@
 </div>
 <div ng-if="renderInline">
     <p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
-        <ul ng-repeat="(noderef, problems) in report.nodeProblems">
-            <li>
-                <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>:
-                <ul ng-repeat="problem in problems">
-                    <li>
+        <ul>
+            <li ng-repeat="(noderef, problems) in report.nodeProblems">
+                <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>
+                <ul>
+                    <li ng-repeat="problem in problems">
                         {{problem.message}}
                         <ul ng-if="problem.property">
                             <li>{{problem.property}}</li>
@@ -35,11 +36,11 @@
     </p>
     <p ng-if="isEmpty(report.nodeProblems)">No problems found relating to noderefs.</p>
     <p ng-if="!isEmpty(report.fileProblems)">Problems found relating to files:
-        <ul ng-repeat="(file, problems) in report.fileProblems">
-            <li>
+        <ul>
+            <li ng-repeat="(file, problems) in report.fileProblems">
                 <strong>{{file}}</strong>
-                <ul ng-repeat="problem in problems">
-                    <li>{{problem.message}}</li>
+                <ul>
+                    <li ng-repeat="problem in problems">{{problem.message}}</li>
                 </ul>
             </li>
         </ul>

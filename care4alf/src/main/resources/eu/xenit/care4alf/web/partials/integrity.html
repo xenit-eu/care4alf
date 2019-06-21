@@ -9,8 +9,12 @@
     </div>
 </div>
 <p ng-if="!hasReport && !scanRunning">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
-<div ng-if="hasReport">
-    <report-renderer report="report"></report-renderer>
+<div ng-if="hasReport && !reportLoaded">
+    <report-summary summary="summary"></report-summary>
+    <button class="btn btn-default" ng-click="loadReport()">Show here (might be slow for large reports)</button>
+</div>
+<div ng-if="hasReport && reportLoaded">
+    <report-renderer report="report" render-inline="true"></report-renderer>
 </div>
 <hr />
 <p>
@@ -41,7 +45,7 @@
         </button>
     </div>
     <div ng-if="hasSubsetReport">
-        <report-renderer report="subsetReport"></report-renderer>
+        <report-renderer report="subsetReport" download-embedded="true" render-inline="false"></report-renderer>
     </div>
 </form>
 <div ng-if="scanRunning || subsetScanRunning">
