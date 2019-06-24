@@ -1,6 +1,8 @@
 # Changelog
 
-## [UNRELEASED] (yyyy-MM-dd)
+## Release 1.7.1 (2019-06-24)
+### USGSUPPORT
+- [698](https://xenitsupport.jira.com/browse/USGSUPPORT-698): USGSUPPORT-698 Fix permissions issue when retrieving license.users metrics
 
 ## Release 1.7.0 (2019-06-20)
 ### USGSUPPORT
