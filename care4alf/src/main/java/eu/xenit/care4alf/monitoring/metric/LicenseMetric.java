@@ -7,6 +7,7 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.admin.RepoAdminService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
@@ -28,9 +29,9 @@ import java.util.Map;
 public class LicenseMetric extends AbstractMonitoredSource {
 
     @Autowired
-    public LicenseService licenseService;
+    private LicenseService licenseService;
     @Autowired
-    public RepoAdminService repoAdminService;
+    private RepoAdminService repoAdminService;
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
@@ -42,12 +43,15 @@ public class LicenseMetric extends AbstractMonitoredSource {
             if(licenseService.getLicense().getMaxUsers() == null)
                 map.put("license.users.max", -1L);
             else
-                map.put("license.users.max", Long.valueOf(licenseService.getLicense().getMaxUsers()));
+                map.put("license.users.max", licenseService.getLicense().getMaxUsers());
         }
-        if(repoAdminService.getUsage().getUsers() == null)
-            map.put("license.users.authorized", -1L);
-        else
-            map.put("license.users.authorized", Long.valueOf(repoAdminService.getUsage().getUsers()));
+        Long userCount = AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Long>() {
+            @Override
+            public Long doWork() {
+                return repoAdminService.getUsage().getUsers();
+            }
+        });
+        map.put("license.users.authorized", userCount == null ? -1L : userCount);
         return map;
     }
 
