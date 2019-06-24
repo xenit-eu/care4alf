@@ -7,6 +7,7 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
+import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.admin.RepoAdminService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
@@ -44,10 +45,13 @@ public class LicenseMetric extends AbstractMonitoredSource {
             else
                 map.put("license.users.max", licenseService.getLicense().getMaxUsers());
         }
-        if(repoAdminService.getUsageStatus().getUsage().getUsers() == null)
-            map.put("license.users.authorized", -1L);
-        else
-            map.put("license.users.authorized", repoAdminService.getUsageStatus().getUsage().getUsers());
+        Long userCount = AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Long>() {
+            @Override
+            public Long doWork() {
+                return repoAdminService.getUsage().getUsers();
+            }
+        });
+        map.put("license.users.authorized", userCount == null ? -1L : userCount);
         return map;
     }
 
