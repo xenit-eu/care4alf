@@ -434,6 +434,7 @@ public class IntegrityScanner implements Job {
     }
 
     private void mailReport(IntegrityReport report) {
+        IntegrityReportSummary summary = new IntegrityReportSummary(report);
         String recipientString = config.getProperty("c4a.integrity.recipients");
         if (recipientString == null || recipientString.equals("")) {
             logger.info("No recipients configured for integrity report (c4a.integrity.recipients)");
@@ -458,7 +459,7 @@ public class IntegrityScanner implements Job {
         mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");
         mail.setParameterValue(PARAM_FROM, config.getProperty("c4a.integrity.mailfrom", "noreply@localhost"));
         mail.setParameterValue(PARAM_TO_MANY, recipients);
-        mail.setParameterValue(PARAM_TEXT, report.toString());
+        mail.setParameterValue(PARAM_TEXT, summary.toString());
         actionService.executeAction(mail, null);
     }
 

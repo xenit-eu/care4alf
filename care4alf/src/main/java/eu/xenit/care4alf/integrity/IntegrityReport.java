@@ -80,42 +80,4 @@ public class IntegrityReport {
     public long getRuntime() {
         return new Interval(getStartTime().getTime(), getEndTime().getTime()).toDurationMillis();
     }
-
-    @Override
-    public String toString() {
-        // Render this report as decently-formatted plaintext (suitable for the email)
-        StringBuilder builder = new StringBuilder();
-        builder.append("Scanned ").append(getScannedNodes()).append(" nodes in ").append(getRuntime()).append(" ms.\n");
-        builder.append("Ran from ").append(getStartTime()).append(" to ").append(getEndTime()).append(".\n");
-
-        if (getNodeProblems().isEmpty()) {
-            builder.append("\nNo problems found relating to nodes.\n");
-        } else {
-            builder.append("\nProblems found relating to noderefs:\n");
-            for (Map.Entry<NodeRef, List<NodeProblem>> entry : getNodeProblems().entrySet()) {
-                builder.append("\t• ").append(entry.getKey().toString()).append("\n");
-                for (NodeProblem np : entry.getValue()) {
-                    builder.append("\t\t• ").append(np.getMessage()).append("\n");
-                    if (np instanceof NodePropertyProblem) {
-                        builder.append("\t\t\t• ").append(((NodePropertyProblem) np).getProperty()).append("\n");
-                    }
-                    if (np.getExtraMessage() != null) {
-                        builder.append("\t\t\t• ").append(np.getExtraMessage()).append("\n");
-                    }
-                }
-            }
-        }
-        if (getFileProblems().isEmpty()) {
-            builder.append("\nNo problems found relating to files.\n");
-        } else {
-            builder.append("\nProblems found relating to files:\n");
-            for (Map.Entry<String, List<FileProblem>> entry : getFileProblems().entrySet()) {
-                builder.append("\t• ").append(entry.getKey()).append("\n");
-                for (FileProblem fp : entry.getValue()) {
-                    builder.append("\t\t• ").append(fp.getMessage()).append("\n");
-                }
-            }
-        }
-        return builder.toString();
-    }
 }

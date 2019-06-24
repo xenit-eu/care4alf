@@ -43,4 +43,23 @@ public class IntegrityReportSummary {
             frequencies.put(name, 1);
         }
     }
+
+    @Override
+    public String toString() {
+        // Render this summary as decently-formatted plaintext (suitable for the email)
+        StringBuilder builder = new StringBuilder();
+        builder.append("Scanned ").append(scannedNodes).append(" nodes in ").append(runtime).append(" ms.\n");
+        builder.append("Ran from ").append(startTime).append(" to ").append(endTime).append(".\n");
+
+        if (problemFreqMap.isEmpty()) {
+            builder.append("\nNo problems found.\n");
+        } else {
+            builder.append("\nFound the following problems:\n");
+            for (Map.Entry<String, Integer> line : problemFreqMap.entrySet()) {
+                builder.append("\t• ").append(line.getValue()).append(" cases of ").append(line.getKey()).append("\n");
+            }
+        }
+        builder.append("\nDownload the report in the integrity module in Care4Alf for detailed information.");
+        return builder.toString();
+    }
 }
