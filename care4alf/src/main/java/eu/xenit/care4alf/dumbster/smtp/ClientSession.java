@@ -68,7 +68,7 @@ public class ClientSession implements Runnable {
     }
 
     private void sessionLoop() throws IOException {
-        while (smtpState != SmtpState.CONNECT && readNextLineReady()) {
+        while (smtpState != SmtpState.QUIT && readNextLineReady()) {
             Request request = Request.createRequest(smtpState, line);
             smtpResponse = request.execute(mailStore, msg);
             storeInputInMessage(request);
