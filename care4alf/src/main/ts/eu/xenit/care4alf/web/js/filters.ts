@@ -23,4 +23,4 @@ care4alf.filter('checkmark',  () => {
     return function (input) {
         return input.replace(/^(workspace|archive|system|user):\/\/(\w+)\/(.+)$/, "$1+$2+$3");
     }
-});
+}).filter("base64", () => (input: string) => btoa(input));

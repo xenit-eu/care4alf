@@ -20,7 +20,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
+import org.alfresco.repo.domain.node.NodeEntity;
+import org.alfresco.repo.domain.node.StoreEntity;
+import org.alfresco.repo.domain.qname.QNameDAO;
 import org.alfresco.repo.domain.qname.ibatis.QNameDAOImpl;
 import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -50,17 +52,18 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.apache.commons.validator.routines.EmailValidator;
 
 @Component
-// !! Beware changing this group and name !! It's used in scheduledjobs.ts in the check in the callback of the REST call
+// !! Beware changing this group and name !! It's used in integrity.ts in the check in the callback of the REST call
 @ScheduledQuartzJob(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
 public class IntegrityScanner implements Job {
     private static final int BUFFER_SIZE = 8192;
@@ -83,26 +86,33 @@ public class IntegrityScanner implements Job {
     @Autowired
     private ActionService actionService;
 
+    private boolean shouldCancel;
+
     private AtomicInteger nodeCounter;
     private AtomicInteger fileCounter;
     private IntegrityReport lastReport;
-    private IntegrityReport inProgressReport;
     private Set<String> knownFileNames;
 
     public int scanAll() {
+        shouldCancel = false;
+
         nodeCounter = new AtomicInteger(0);
         fileCounter = new AtomicInteger(0);
         knownFileNames = new HashSet<>();
+        IntegrityReport inProgressReport = new IntegrityReport();
 
         NodeParameters nodeParameters = new NodeParameters();
         nodeParameters.setFromTxnId(0L);
         nodeParameters.setToTxnId(Long.MAX_VALUE);
         logger.debug("node params created");
-        inProgressReport = new IntegrityReport();
 
-        // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
         logger.info("Beginning Metadata Integrity Scan");
-        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler());
+        // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
+        // OR until one of the calls to handleNode returns with false — which it does in case of a cancel
+        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(nodeCounter, knownFileNames, inProgressReport));
+        if (shouldCancel) {
+            return nodeCounter.get();
+        }
         logger.info("Integrity Scan executed on {} nodes. Scanning filesystem next...", nodeCounter.get());
         inProgressReport.setScannedNodes(nodeCounter.get());
 
@@ -113,14 +123,66 @@ public class IntegrityScanner implements Job {
             inProgressReport.addFileProblem(new FileExceptionProblem(e));
         }
 
+        // We may have returned from verifyNoOrphans due to a cancel
+        // In that case we should not finish the report and return early
+        if (shouldCancel) {
+            return nodeCounter.get();
+        }
+
         logger.info("Ended Metadata Integrity Scan");
         inProgressReport.finish();
         lastReport = inProgressReport;
         return nodeCounter.get();
     }
 
+    public int getNodeProgress() {
+        if (nodeCounter == null) {
+            return -1;
+        }
+        return nodeCounter.get();
+    }
+
+    public int getFileProgress() {
+        if (fileCounter == null) {
+            return -1;
+        }
+        return fileCounter.get();
+    }
+
     public IntegrityReport getLastReport() {
         return lastReport;
+    }
+
+
+    public IntegrityReport scanSubset(Iterator<NodeRef> nodeIter, Collection<String> fileCollection) {
+        shouldCancel = false;
+
+        logger.info("Starting scan of subset...");
+
+        IntegrityReport subsetReport = new IntegrityReport();
+        CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
+        while (nodeIter.hasNext()) {
+            // make a fake "node" out of the next noderef, pass it to the handler that does the actual verification
+            // if this returns false, the operation has been cancelled
+            boolean run = handler.handleNode(fakeNode(nodeIter.next()));
+            if (!run) {
+                return null;
+            }
+            subsetReport.setScannedNodes(subsetReport.getScannedNodes() + 1);
+        }
+
+        if (fileCollection.size() > 0) {
+            final HashSet<String> files = new HashSet<>(fileCollection);
+            new JdbcTemplate(this.dataSource).query("SELECT content_url FROM alf_content_url",
+                    new OrphanCallbackHandler(files));
+            for (String remaining : files) {
+                subsetReport.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
+            }
+        }
+        logger.info("Finished scan of subset");
+
+        subsetReport.finish();
+        return subsetReport;
     }
 
     @Override
@@ -131,12 +193,32 @@ public class IntegrityScanner implements Job {
                 return IntegrityScanner.this.scanAll();
             }
         });
-        mailReport(lastReport);
+        if (!shouldCancel) {
+            mailReport(lastReport);
+        }
+    }
+
+    public void cancelScan() {
+        logger.warn("Cancelling integrity scan.");
+        shouldCancel = true;
     }
 
     private class CallbackHandler implements NodeQueryCallback {
+        private AtomicInteger nodeCounter;
+        private Set<String> knownFileNames;
+        private IntegrityReport inProgressReport;
+
+        public CallbackHandler(AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+            this.inProgressReport = report;
+            this.nodeCounter = nodeCounter;
+            this.knownFileNames = knownFileNames;
+        }
+
         @Override
         public boolean handleNode(Node node) {
+            if (shouldCancel) {
+                return false;
+            }
             if (node.getDeleted(qNameDAO)
                     || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)) {
                 return true; // continue to next node
@@ -152,18 +234,38 @@ public class IntegrityScanner implements Job {
                 for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
                     verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
                 }
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get properties for {} from database, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
+            } catch (Exception e) {
+                logger.error("Error {} when retrieving + verifying properties for node {}",
+                        e.getClass().getSimpleName(), noderef);
+                throw e;
             } finally {
                 // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
                 MLPropertyInterceptor.setMLAware(wasMultiLangAware);
             }
 
-            List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-            // sys:store_root doesn't have a parent, this is normal and should not be reported
-            if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
-                inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+            try {
+                List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
+                // sys:store_root doesn't have a parent, this is normal and should not be reported
+                if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
+                    inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                }
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
             }
 
-            verifyContentData(noderef, inProgressReport, knownFileNames);
+            try {
+                verifyContentData(noderef, inProgressReport, knownFileNames);
+            } catch (DataAccessException dae) {
+                logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
+                        dae.getClass().getSimpleName());
+                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
+            }
 
             int count = nodeCounter.incrementAndGet();
             if (count % 10000 == 0) {
@@ -295,13 +397,15 @@ public class IntegrityScanner implements Job {
         // This function finds orphaned files in alf_data, i.e. files that have no trace in the db of why they're there.
         // `Set<String> known` is a set of filenames (<guid>.bin) that we found when scanning through the nodes.
         // Any files we find in alf_data that aren't in this set are candidates for being an orphan.
-        // They can also be nodes that have been deleted and have an orphan_time in the db,
-        // this is a normal consequence of the node being deleted, so we don't include it in the report
-        // (although we log it).
+        // They can also be nodes that have been deleted recently, or a file that's referenced via a property other than
+        // cm:contentData:contentUrl
         final Set<String> potentialOrphans = new HashSet<>();
         Files.walkFileTree(Paths.get(getContentStoreDir()), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+                if (shouldCancel) {
+                    return FileVisitResult.TERMINATE;
+                }
                 if (attr.isRegularFile() && !known.contains(file.getFileName().toString())) {
                     // We don't know if it's a problem yet, might be a recently deleted file
                     // Investigate this one further by looking in the db (also convert path to store://, like db uses)
@@ -315,30 +419,22 @@ public class IntegrityScanner implements Job {
             }
         });
 
-        Map<String, ? extends List<String>> queryParams = Collections.singletonMap("urls",
-                new ArrayList<>(potentialOrphans));
-
-        // Query the db to see if they're in there and have an orphan_time
-        List<Map<String, Object>> results = new NamedParameterJdbcTemplate(this.dataSource).queryForList(
-                "SELECT cu.content_url, cu.orphan_time FROM alf_content_url cu WHERE cu.content_url IN (:urls)",
-                queryParams);
-
-        for (Map<String, Object> line : results) {
-            String contentUrl = (String) line.get("content_url");
-            Long orphanTime = (Long) line.get("orphan_time");
-            if (orphanTime == null) {
-                logger.debug("Found {} in db, turned out not to be an orphan ", contentUrl);
-            } else {
-                logger.debug("Found {} in db, orphan since {}", contentUrl, orphanTime);
-            }
-            potentialOrphans.remove(contentUrl);
+        if (shouldCancel) {
+            return;
         }
+
+        // Query the db to see if our potential orphans are in there. If not, they're a genuine orphan and should be
+        // reported in the scan.
+        new JdbcTemplate(this.dataSource).query("SELECT content_url FROM alf_content_url",
+                new OrphanCallbackHandler(potentialOrphans));
+
         for (String remaining : potentialOrphans) {
             report.addFileProblem(new OrphanFileProblem(absolutePath(remaining)));
         }
     }
 
     private void mailReport(IntegrityReport report) {
+        IntegrityReportSummary summary = new IntegrityReportSummary(report);
         String recipientString = config.getProperty("c4a.integrity.recipients");
         if (recipientString == null || recipientString.equals("")) {
             logger.info("No recipients configured for integrity report (c4a.integrity.recipients)");
@@ -363,8 +459,33 @@ public class IntegrityScanner implements Job {
         mail.setParameterValue(PARAM_SUBJECT, "Alfresco Metadata Integrity Report");
         mail.setParameterValue(PARAM_FROM, config.getProperty("c4a.integrity.mailfrom", "noreply@localhost"));
         mail.setParameterValue(PARAM_TO_MANY, recipients);
-        mail.setParameterValue(PARAM_TEXT, report.toString());
+        mail.setParameterValue(PARAM_TEXT, summary.toString());
         actionService.executeAction(mail, null);
+    }
+
+    private Node fakeNode(final NodeRef noderef) {
+        // Create an anonymous subclass of NodeEntity that contains our node
+        // Basically a fake way to give nodes that need to be converted to noderefs anyway, because that's what the
+        // CallbackHandler requires
+        return new NodeEntity() {
+            @Override
+            public boolean getDeleted(QNameDAO dao) {
+                return false;
+            }
+
+            @Override
+            public StoreEntity getStore() {
+                final StoreEntity storeEntity = new StoreEntity();
+                storeEntity.setProtocol(noderef.getStoreRef().getProtocol());
+                storeEntity.setIdentifier(noderef.getStoreRef().getIdentifier());
+                return storeEntity;
+            }
+
+            @Override
+            public NodeRef getNodeRef() {
+                return noderef;
+            }
+        };
     }
 
     public String absolutePath(ContentData contentData) {
@@ -382,6 +503,7 @@ public class IntegrityScanner implements Job {
     public String fileNameFromPath(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
+
     public String getContentStoreDir() {
         return config.getFullyParsedProperty("dir.contentstore");
     }

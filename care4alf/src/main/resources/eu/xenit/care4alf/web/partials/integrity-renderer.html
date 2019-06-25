@@ -1,0 +1,49 @@
+<p>
+    <strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
+    <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
+    to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
+    <a ng-if="!downloadEmbedded" type="button" class="btn btn-default btn-xs" href="integrity/report" download="report.json">
+        <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
+    </a>
+    <a ng-if="downloadEmbedded" type="button" class="btn btn-default btn-xs"
+        ng-href="data:application/json;base64,{{report|json|base64}}" download="report.json">
+        <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
+    </a>
+</p>
+<div ng-if="!renderInline">
+    <p>Found {{countProblems(report.nodeProblems)}} problems relating to noderefs and
+    {{countProblems(report.fileProblems)}} relating to files.</p>
+    <p><button class="btn btn-default" ng-click="doRender()">Show Here</button></p>
+</div>
+<div ng-if="renderInline">
+    <p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
+        <ul>
+            <li ng-repeat="(noderef, problems) in report.nodeProblems">
+                <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>
+                <ul>
+                    <li ng-repeat="problem in problems">
+                        {{problem.message}}
+                        <ul ng-if="problem.property">
+                            <li>{{problem.property}}</li>
+                        </ul>
+                        <ul ng-if="problem.extraMessage">
+                            <li>{{problem.extraMessage}}</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </p>
+    <p ng-if="isEmpty(report.nodeProblems)">No problems found relating to noderefs.</p>
+    <p ng-if="!isEmpty(report.fileProblems)">Problems found relating to files:
+        <ul>
+            <li ng-repeat="(file, problems) in report.fileProblems">
+                <strong>{{file}}</strong>
+                <ul>
+                    <li ng-repeat="problem in problems">{{problem.message}}</li>
+                </ul>
+            </li>
+        </ul>
+    </p>
+    <p ng-if="isEmpty(report.fileProblems)">No problems found relating to files.</p>
+</div>

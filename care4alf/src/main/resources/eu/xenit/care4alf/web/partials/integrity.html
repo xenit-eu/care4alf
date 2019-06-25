@@ -4,47 +4,17 @@
         <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
     </div>
     <div class="form-info-text">
-        <p>An Integrity Scan is currently running (since {{ scanRunningSince }})</p>
+        <p>An Integrity Scan is currently running. Since {{ scanRunningSince }}, <strong>{{ progress.nodeProgress }}
+            nodes</strong> and <strong>{{ progress.fileProgress }}</strong> files have been scanned.</p>
     </div>
 </div>
-<p ng-if="!hasReport">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
-<div ng-if="hasReport">
-    <p><strong>Scanned {{report.scannedNodes}} nodes in {{report['runtime (ms)']}} ms</strong>
-        <span class="small">from {{ report.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
-        to {{ report.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
-    </p>
-    <p ng-if="!isEmpty(report.nodeProblems)">Problems found relating to noderefs:
-        <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
-        <ul ng-repeat="noderef in report.nodeProblemKeys">
-            <li>
-                <strong><a href="{{noderef | nodelink}}">{{noderef}}</a></strong>:
-                <ul ng-repeat="problem in report.nodeProblems[noderef]">
-                    <li>
-                        {{problem.message}}
-                        <ul ng-if="problem.property">
-                            <li>{{problem.property}}</li>
-                        </ul>
-                        <ul ng-if="problem.extraMessage">
-                            <li>{{problem.extraMessage}}</li>
-                        </ul>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </p>
-    <p ng-if="isEmpty(report.nodeProblems)">No problems found relating to noderefs.</p>
-    <p ng-if="!isEmpty(report.fileProblems)">Problems found relating to files:
-        <!-- Iterating over Object.keys rather than using `in` directly because of wontfix angular bug: https://github.com/angular/angular.js/issues/6266 -->
-        <ul ng-repeat="file in report.fileProblemKeys">
-            <li>
-                <strong>{{file}}</strong>
-                <ul ng-repeat="problem in report.fileProblems[file]">
-                    <li>{{problem.message}}</li>
-                </ul>
-            </li>
-        </ul>
-    </p>
-    <p ng-if="isEmpty(report.fileProblems)">No problems found relating to files.</p>
+<p ng-if="!hasReport && !scanRunning">No scan report exists yet. <a href="#/scheduledjobs">Run the integrityscan scheduled job.</a></p>
+<div ng-if="hasReport && !reportLoaded">
+    <report-summary summary="summary"></report-summary>
+    <button class="btn btn-default" ng-click="loadReport()">Show here (might be slow for large reports)</button>
+</div>
+<div ng-if="hasReport && reportLoaded">
+    <report-renderer report="report" render-inline="true"></report-renderer>
 </div>
 <hr />
 <p>
@@ -55,3 +25,31 @@
     <code>c4a.integrity.cron</code> (proposed value: <code>0 0 3 ? * SAT</code>) or start it manually via the
     <a href="#/scheduledjobs">ScheduledJobs module</a> (choose integrityscan in the dropdown).
 </p>
+<hr />
+<form>
+    <h4>Scanning specific nodes</h4>
+    <p>You can test the scan on a specific subset of nodes by providing a comma-separated list of noderefs below.</p>
+
+    <div class="form-group">
+        <label for="subsetNoderefs">Noderefs</label>
+        <input type="text" ng-model="subsetNoderefs" class="form-control" id="subsetNoderefs" />
+    </div>
+    <div class="form-group">
+        <label for="subsetFiles">Files (as store://...)</label>
+        <p class="small">Specifying files will cause a single db lookup of <strong>all</strong> nodes.</p>
+        <input type="text" ng-model="subsetFiles" class="form-control" id="subsetFiles" />
+    </div>
+    <div class="form-group">
+        <button type="submit" id="subsetSubmit" class="btn btn-primary" ng-click="scanSubset(subsetNoderefs, subsetFiles)">
+            Scan Subset {{subsetScanRunning?"(scanning)":""}}
+        </button>
+    </div>
+    <div ng-if="hasSubsetReport">
+        <report-renderer report="subsetReport" download-embedded="true" render-inline="false"></report-renderer>
+    </div>
+</form>
+<div ng-if="scanRunning || subsetScanRunning">
+    <hr />
+    <p>You can cancel all running scans here, but you will not get a report from them.</p>
+    <button type="button" class="btn btn-danger" ng-click="cancel()">Cancel All Scans</button>
+</div>

@@ -75,7 +75,9 @@ nexusStaging {
 }
 
 def String getVersionQualifier(String branch_name) {
-    if (branch_name == 'release') {
+    if (project.hasProperty('qualifier')) {
+        return '-' + project.getProperty('qualifier')
+    } else if (branch_name == 'release') {
         return ''
     } else {
         return '-SNAPSHOT'

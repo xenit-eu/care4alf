@@ -1,0 +1,11 @@
+<p>
+    <strong>Scanned {{summary.scannedNodes}} nodes in {{summary.runtime}} ms</strong>
+    <span class="small">from {{ summary.startTime | date:'yyyy-MM-dd HH:mm:ss' }}
+    to {{ summary.endTime | date:'yyyy-MM-dd HH:mm:ss' }}.</span>
+    <a type="button" class="btn btn-default btn-xs" href="integrity/report" download="report.json">
+        <i class="glyphicon glyphicon-circle-arrow-down"></i> Download
+    </a>
+    <ul>
+        <li ng-repeat="(problem, count) in summary.problemCounts">{{ count }} cases of {{ problem }}</li>
+    </ul>
+</p>
