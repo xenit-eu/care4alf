@@ -110,12 +110,7 @@ public class Browser @Autowired constructor(
             } else {
                 QueryConsistency.EVENTUAL // Default, for counting total
             }
-            val localeArg = j.optString("locale");
-            if (localeArg == null || localeArg.isEmpty()) {
-                sp.addLocale(Locale("*"))
-            } else {
-                sp.addLocale(Locale(j.optString("locale")))
-            }
+            sp.addLocale(Locale("*"))
             val rs = searchService.query(sp)
 
             obj {
