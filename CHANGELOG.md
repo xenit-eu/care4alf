@@ -1,5 +1,7 @@
 # Changelog
 
+## Release 1.9.0 (Unreleased)
+
 ## Release 1.8.0 (2019-06-26)
 ### DSNYMETQUA
 - [14](https://xenitsupport.jira.com/browse/DSNYMETQUA-14): Fix the scan breaking on database access issues, include these issues as part of the metadata integrity report; add the ability to scan a subset of the repository for testing purposes.
