@@ -298,6 +298,7 @@ public class Export {
                                 } else {
                                     sp.setMaxItems(MAX_QUERY_SIZE);
                                 }
+                                sp.addLocale(new Locale("*"));
                                 logger.debug("About to search...");
                                 resultSet = Export.this.searchService.query(sp);
                                 logger.debug("Search completed");
