@@ -1,6 +1,13 @@
 # Changelog
 
-## Release 1.8.0 (Unreleased)
+## Release 1.8.0 (2019-06-26)
+### DSNYMETQUA
+- [14](https://xenitsupport.jira.com/browse/DSNYMETQUA-14): Fix the scan breaking on database access issues, include these issues as part of the metadata integrity report; add the ability to scan a subset of the repository for testing purposes.
+- [15](https://xenitsupport.jira.com/browse/DSNYMETQUA-15): Rework scan of orphaned files in the contentstore, fix false positive orphans.
+- [16](https://xenitsupport.jira.com/browse/DSNYMETQUA-16): Improve UI and notification email, show summary rather than full report, add on-demand download and render of full report.
+
+### ALFREDOPS
+- [195](https://xenitsupport.jira.com/browse/ALFREDOPS-195): Fix empty emails getting added to dummy mail.
 
 ## Release 1.7.1 (2019-06-24)
 ### USGSUPPORT
