@@ -1,0 +1,8 @@
+ext {
+    subproject_alfresco_version = '52'
+    alfresco_version = '5.2.f'
+    alfresco_dm_version = '6.16'
+    de_version = '1.7.6'
+    http_version = '4.3.3'
+    http_core_version = '4.3.3'
+}

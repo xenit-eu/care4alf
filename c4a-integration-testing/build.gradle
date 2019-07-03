@@ -1,15 +1,26 @@
-import com.github.dynamicextensionsalfresco.gradle.tasks.InstallBundle
 import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
-//import groovyx.net.http.RESTClient
+import com.github.dynamicextensionsalfresco.gradle.tasks.InstallBundle
 
-plugins {
-    id 'eu.xenit.docker-alfresco'// version '4.0.3'
-}
-allprojects {
-    apply plugin: 'alfresco-dynamic-extension'
 
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+subprojects {
+    apply plugin: 'alfresco-dynamic-extension' // Applies aQute bnd plugin for us
+    apply plugin: 'eu.xenit.docker-alfresco'
+    apply from: "${project.projectDir}/overrides.gradle"
+
+    sourceSets {
+        main {
+            java {
+                // potentially unnecessary, we don't have java-shared... (for that matter, neither does apix)
+                srcDirs = ['src/integration-test/java-shared', 'src/main/java']
+                // This is needed because client side, these dependencies are not really provided
+                runtimeClasspath += configurations.compileOnly
+            }
+            resources {
+                // potentially unnecessary, we don't have this
+                srcDir "${project.parent.projectDir}/src/integration-test/resources"
+            }
+        }
+    }
 
     configurations {
         integrationJar
@@ -17,8 +28,31 @@ allprojects {
     }
 
     dependencies {
-        compileOnly(project(":care4alf"))
-        integrationJar(group: 'eu.xenit.testing', name: 'integration-testing', version: '1.0')
+        compileOnly project(":care4alf")
+
+        compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_version) {
+            exclude group: 'maven-plugins'
+        }
+        compileOnly(group: 'org.alfresco', name: 'alfresco-remote-api', version: alfresco_version) {
+            transitive = false
+        }
+        compileOnly group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
+        compileOnly group: 'eu.xenit.de', name: 'annotations', version: de_version
+        compileOnly group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
+
+        integrationJar group: 'eu.xenit.testing', name: 'integration-testing', version: '1.1.0'
+
+        compile group: 'org.apache.httpcomponents', name: 'fluent-hc', version: http_version
+        compile group: 'org.apache.httpcomponents', name: 'httpclient', version: http_version
+        compile group: 'org.apache.httpcomponents', name: 'httpcore', version: http_core_version
+        compile group: 'org.apache.httpcomponents', name: 'httpmime', version: http_version
+//        compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+//        compile group: 'commons-logging', name: 'commons-logging', version: '1.1.3'
+//        compile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.13'
+//        compile group: 'org.codehaus.jackson', name: 'jackson-core-asl', version: '1.9.13'
+//        compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jackson_version
+//        compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: jackson_version
+
         compile(group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.3.2')
         compile(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2')
         compile group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
@@ -27,106 +61,123 @@ allprojects {
         compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
         compile group: 'com.google.guava', name: 'guava', version: '19.0'
     }
+    jar {
+        bnd(
+                'Export-Package': 'eu.xenit.care4alfintegration.*',
+                'Include-Resource': includeResource(configurations.compile),
+                'Bundle-ClassPath': bundleClassPath(configurations.compile),
+                'Alfresco-Dynamic-Extension': 'true',
+                'Import-Package': ('net.sf.cglib.core,'
+                        + 'net.sf.cglib.proxy,'
+                        + 'net.sf.cglib.reflect,'
+                        + '!COM.newmonics.PercClassLoader,'
+                        + '!android.os,'
+                        + '!com.github.scribejava.*,'
+                        + '!com.google.appengine.api,'
+                        + '!com.google.apphosting.api,'
+                        + '!com.google.gson,'
+                        // These are the fault of groovy
+                        + '!org.apache.commons.cli,!org.apache.ivy.*,!org.fusesource.jansi,'
+                        // This is the fault of commons-logging
+                        + '!org.apache.log,'
+                        // This is the fault of mockito
+                        + '!org.apache.tools.ant.*,!org.junit.runners.*,!org.junit.runner.notification.*,'
+                        + '!org.junit.internal.runners.*,!org.junit.rules.*,!org.mockito.asm.signature,*'
+                        + '!com.google.errorprone.annotations.concurrent,'
+                        + '!org.joda.convert,'
+                        + '!org.apache.log,'
+                        + '!groovy.runtime.metaclass'
+                        + '*')
+        )
+    }
 
-// The dependencies for the docker build (baseAlfrescoWar etc) are set in the subproject 42 or 5x
+    // Docker dependencies
+    dependencies {
+        baseAlfrescoWar 'org.alfresco:alfresco-enterprise:5.1.4.1@war'
+        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo:${deVersion}@amp"
+        alfrescoAmp project(path: ':care4alf', configuration: 'amp')
+    }
 
-
-    //project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
-
-    // This can be replaced by the healthcheck once we upgrade to the latest images and docker-compose plugin 
-    composeUp {
-        doLast {
-//            def serviceInfo = servicesInfos.get("alfresco-core")
-//            String url = "http://${serviceInfo.getHost()}:${serviceInfo.getPort()}/alfresco/s/dynamic-extensions/"
-//            println "Sleeping for startup"
-//            for (int i = 0; ; i++) {
-//                def client = new RESTClient()
-//                client.uri = url
-//                client.auth.basic("admin", "admin")
-//                try {
-//                    System.out.println("Poll $url")
-//                    def response = client.get([:])
-//                    if (response.isSuccess()) {
-//                        System.out.println("Ready: " + response.getStatusLine())
-//                        break
-//                    } else {
-//                        System.out.println(response.getStatusLine());
-//                    }
-//                } catch (IOException e) {
-//                    if (i == 20) {
-//                        throw e
-//                    }
-//                    System.out.println("IO Error: " + e.getMessage())
-//                    println "zzzz"
-//                    Thread.sleep(5000)
-//                }
-//            }
-            println("Sleeping another 25s...")
-            Thread.sleep(25000) //Give the boy a little extra time otherwise kaboom kaboom
+    dockerAlfresco {
+        baseImage = 'hub.xenit.eu/alfresco-enterprise:5.1.4'
+        leanImage = true
+        dockerBuild {
+            repository = 'hub.xenit.eu/care4alf-alfresco-51'
         }
     }
 
-//    def composeUpTask = project.tasks.getByName("composeUp")
-//
-//    task configureDE {
-//        dependsOn composeUpTask
-//        doLast {
-//            def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
-//            def port = serviceInfo.getPort()
-//            def host = serviceInfo.getHost()
-//            alfrescoDynamicExtensions.repository.endpoint.port = port
-//            alfrescoDynamicExtensions.repository.endpoint.host = host
-//        }
-//    }
-//
-//    task installIntegrationJar(type: InstallBundle) {
-//        dependsOn configureDE
-//        configuration = configurations.integrationJar { transitive = false }
-//    }
-//
-//    task installTestsOnDocker(type: InstallBundle) {
-//        dependsOn installIntegrationJar
-//        dependsOn jar
-//    }
-//
-//// Build a docker image, do a compose up, install the tests, run them
-//// Gets configuration information from the running docker
-//    task integrationTest(type: Test) {
-//        dependsOn installTestsOnDocker
-//        testClassesDirs = sourceSets.main.output.classesDirs
-//        classpath = sourceSets.main.runtimeClasspath
-//        classpath += sourceSets.main.compileClasspath
-//        doFirst {
-//            def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
-//            def port = serviceInfo.getPort()
-//            def host = serviceInfo.getHost()
-//            systemProperty('alfresco.url', "http://admin:admin@$host:$port/alfresco")
-//            systemProperty('protocol', 'http')
-//            systemProperty('host', host)
-//            systemProperty('port', port)
-//        }
-//
-//        //After the tests, the docker setup should be stopped
-//        finalizedBy(composeDown)
-//    }
-//
-//// Like above but assuming a docker container is already running
-//    task integrationTestLocal(type: Test) {
-//        testClassesDirs = sourceSets.main.output.classesDirs
-//        classpath = sourceSets.main.runtimeClasspath
-//        classpath += sourceSets.main.compileClasspath
-//        def host = project.hasProperty('host') ? project.host : 'localhost'
-//        def port = project.hasProperty('port') ? project.port : '8000'
-//        def protocol = project.hasProperty('protocol') ? project.protocol : 'http'
-//        systemProperty('alfresco.url', "$protocol://admin:admin@$host:$port/alfresco")
-//        systemProperty('protocol', protocol)
-//        systemProperty('host', host)
-//        systemProperty('port', port)
-//
-//        outputs.upToDateWhen { false }
-//    }
-}
+//    def projectDocker = project(":apix-docker:docker-${subproject_alfresco_version}")
+    def composeUpTask = project.tasks.getByName("composeUp")
+    def composeDownTask = project.tasks.getByName("composeDown")
 
-subprojects {
 
+    task configureDE {
+        dependsOn composeUpTask
+        doLast {
+            def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
+            def port = serviceInfo.ports[8080]
+            def host = serviceInfo.getHost()
+            alfrescoDynamicExtensions.repository.endpoint.port = port
+            alfrescoDynamicExtensions.repository.endpoint.host = host
+        }
+    }
+
+    task configureDELocal {
+        doLast {
+            alfrescoDynamicExtensions.repository.endpoint.protocol = project.hasProperty('protocol') ? project.protocol : 'http'
+            alfrescoDynamicExtensions.repository.endpoint.port = project.hasProperty('port') ? project.port : '8080'
+            alfrescoDynamicExtensions.repository.endpoint.host = project.hasProperty('host') ? project.host : 'localhost'
+        }
+    }
+
+    task installIntegrationJar(type: InstallBundle) {
+        dependsOn configureDE
+        files = configurations.integrationJar { transitive = false }
+    }
+
+    task installIntegrationJarLocal(type: InstallBundle) {
+        dependsOn configureDELocal
+        files = configurations.integrationJar { transitive = false }
+    }
+
+    task installTestsOnDocker(type: InstallBundle) {
+        dependsOn installIntegrationJar
+        dependsOn jar
+    }
+
+    task installTestsLocal(type: InstallBundle) {
+        dependsOn configureDELocal
+        dependsOn jar
+    }
+
+    task integrationTest(type: Test) {
+        group 'verification'
+        dependsOn installTestsOnDocker
+        testClassesDirs = sourceSets.main.output.classesDirs
+        classpath = sourceSets.main.runtimeClasspath
+
+        doFirst {
+            def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
+            def port = serviceInfo.ports[8080]
+            def host = serviceInfo.getHost()
+            systemProperty("alfresco.url", "http://admin:admin@" + host + ":" + port + "/alfresco")
+        }
+        outputs.upToDateWhen { false }
+
+        // After the tests, the docker setup should be stopped
+//        finalizedBy(composeDownTask)
+    }
+
+    task integrationTestLocal(type: Test) {
+        group 'verification'
+        dependsOn installTestsLocal
+        testClassesDirs = sourceSets.main.output.classesDirs
+        classpath = sourceSets.main.runtimeClasspath
+        def host = project.hasProperty('host') ? project.host : 'localhost'
+        def port = project.hasProperty('port') ? project.port : '8080'
+        def protocol = project.hasProperty('protocol') ? project.protocol : 'http'
+        systemProperty("alfresco.url", "$protocol://admin:admin@" + host + ":" + port + "/alfresco")
+
+        outputs.upToDateWhen { false }
+    }
 }
