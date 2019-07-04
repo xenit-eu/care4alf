@@ -4,28 +4,29 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-import java.io.File;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import io.restassured.RestAssured;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import java.io.File;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class PermissionImportTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        String port = System.getProperty("port");
+        String port = System.getProperty("alfresco.port");
         RestAssured.port = port == null ? 8080 : Integer.valueOf(port);
 
-        String protocol = System.getProperty("protocol");
+        String protocol = System.getProperty("alfresco.protocol");
         if (protocol == null) {
             protocol = "http";
         }
@@ -33,18 +34,18 @@ public class PermissionImportTest {
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
         RestAssured.useRelaxedHTTPSValidation();
-        String host = System.getProperty("host");
+        String host = System.getProperty("alfresco.host");
         if (host == null) {
             host = "localhost";
         }
         String baseUri = protocol + "://" + host;
-        System.out.println("Integration test host: " + baseUri);
+        System.out.println("Integration test host: " + baseUri + ":" + port + basePath);
         RestAssured.baseURI = baseUri;
 
         PreemptiveBasicAuthScheme authScheme = new PreemptiveBasicAuthScheme();
-        String username = System.getProperty("username");
+        String username = System.getProperty("alfresco.username");
         authScheme.setUserName(username != null ? username : "admin");
-        String password = System.getProperty("password");
+        String password = System.getProperty("alfresco.password");
         authScheme.setPassword(password != null ? password : "admin");
         RestAssured.authentication = authScheme;
 
@@ -184,7 +185,8 @@ public class PermissionImportTest {
     }
 
     private static void loadTestUsers() throws InterruptedException {
-        Response post = given().when().multiPart(new File("src/main/resources/authorityimporter/ExampleUserUpload.csv"))
+        Response post = given().when()
+                .multiPart(new File("src/main/resources/authorityimporter/ExampleUserUpload.csv"))
                 .post("/api/people/upload");
 
         post.then().statusCode(200).contentType(ContentType.JSON).body("data.totalUsers", equalTo(10));

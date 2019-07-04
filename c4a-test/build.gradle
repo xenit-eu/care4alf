@@ -172,6 +172,8 @@ subprojects {
             def port = serviceInfo.ports[8080]
             def host = serviceInfo.getHost()
             systemProperty("alfresco.url", "http://admin:admin@" + host + ":" + port + "/alfresco")
+            systemProperty("alfresco.protocol", "http")
+            systemProperty("alfresco.port", port)
         }
         outputs.upToDateWhen { false }
 
@@ -188,6 +190,9 @@ subprojects {
         def port = project.hasProperty('port') ? project.port : '8080'
         def protocol = project.hasProperty('protocol') ? project.protocol : 'http'
         systemProperty("alfresco.url", "$protocol://admin:admin@" + host + ":" + port + "/alfresco")
+        systemProperty("alfresco.url", "http://admin:admin@" + host + ":" + port + "/alfresco")
+        systemProperty("alfresco.protocol", "$protocol")
+        systemProperty("alfresco.port", "$port")
 
         outputs.upToDateWhen { false }
     }

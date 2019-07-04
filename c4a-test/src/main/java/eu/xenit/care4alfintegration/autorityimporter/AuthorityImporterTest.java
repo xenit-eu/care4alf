@@ -1,49 +1,48 @@
 package eu.xenit.care4alfintegration.autorityimporter;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.hamcrest.core.IsEqual.equalTo;
+
 import io.restassured.RestAssured;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.response.Response;
+import java.io.File;
+import java.util.Random;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
-import java.util.Random;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.hamcrest.core.IsEqual.equalTo;
-
 public class AuthorityImporterTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        RestAssured.port = Integer.valueOf(System.getProperty("port", "8080"));
+        RestAssured.port = Integer.valueOf(System.getProperty("alfresco.port", "8080"));
 
-        String protocol = System.getProperty("protocol", "http");
+        String protocol = System.getProperty("alfresco.protocol", "http");
 
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
         RestAssured.useRelaxedHTTPSValidation();
-        String host = System.getProperty("host", "localhost");
+        String host = System.getProperty("alfresco.host", "localhost");
 
         String baseUri = protocol+"://"+host;
         System.out.println("Integration test host: " + baseUri);
         RestAssured.baseURI = baseUri;
 
         PreemptiveBasicAuthScheme authScheme = new PreemptiveBasicAuthScheme();
-        String username = System.getProperty("username");
+        String username = System.getProperty("alfresco.username");
         if(username == null ){
             authScheme.setUserName("admin");
         } else {
             authScheme.setUserName(username);
         }
-        String password = System.getProperty("password");
+        String password = System.getProperty("alfresco.password");
         if(password == null ){
             authScheme.setPassword("admin");
         } else {
