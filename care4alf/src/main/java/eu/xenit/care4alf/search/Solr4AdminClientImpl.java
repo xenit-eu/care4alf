@@ -38,8 +38,8 @@ public class Solr4AdminClientImpl extends AbstractSolrAdminClient{
             SolrErrorDoc errorDoc = new SolrErrorDoc(
                     -1,
                     "",
-                    doc.has("id") ? doc.getString("id") : "",
-                    doc.has("DBID") ? Long.parseLong(doc.getString("DBID")) : -1,
+                    doc.optString("id", ""),
+                    doc.optLong("DBID", Long.parseLong(doc.optString("DBID", "-1"))),
                     doc.has("EXCEPTIONSTACK") ? doc.getJSONArray("EXCEPTIONSTACK").getString(0) : ""
             );
             errorDocs.add(errorDoc);
