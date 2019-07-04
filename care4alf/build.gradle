@@ -252,6 +252,8 @@ jar {
     bnd (
         'Alfresco-Dynamic-Extension': 'true',
         'Bundle-Description': 'Care4Alf: The Alfresco Swiss Army Knife',
+        'Bundle-Name': 'care4alf',
+        'Bundle-SymbolicName': 'eu.xenit.care4alf',
         'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
         'DynamicImport-Package': '*',
         'Include-Resource': includeUnrolledResource(configurations.compile),

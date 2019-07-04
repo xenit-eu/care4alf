@@ -24,6 +24,7 @@ subprojects {
 
     configurations {
         integrationJar
+        install.extendsFrom(integrationJar)
         compileOnly.extendsFrom(integrationJar)
     }
 
@@ -67,9 +68,10 @@ subprojects {
                 'Include-Resource': includeResource(configurations.compile),
                 'Bundle-ClassPath': bundleClassPath(configurations.compile),
                 'Alfresco-Dynamic-Extension': 'true',
-                'Import-Package': ('net.sf.cglib.core,'
-                        + 'net.sf.cglib.proxy,'
-                        + 'net.sf.cglib.reflect,'
+                'Import-Package': ('eu.xenit.care4alf.*,'
+                        // We need to specify this very wide version range because otherwise the bnd tool will choose
+                        // a very specific version (I don't know why) that prevents deployment
+                        + 'org.json;resolution:=optional;version="[0,99999999)",'
                         + '!COM.newmonics.PercClassLoader,'
                         + '!android.os,'
                         + '!com.github.scribejava.*,'
@@ -77,16 +79,23 @@ subprojects {
                         + '!com.google.apphosting.api,'
                         + '!com.google.gson,'
                         // These are the fault of groovy
-                        + '!org.apache.commons.cli,!org.apache.ivy.*,!org.fusesource.jansi,'
+                        + '!org.apache.commons.cli,'
+                        + '!org.apache.ivy.*,'
+                        + '!org.fusesource.jansi,'
                         // This is the fault of commons-logging
                         + '!org.apache.log,'
                         // This is the fault of mockito
-                        + '!org.apache.tools.ant.*,!org.junit.runners.*,!org.junit.runner.notification.*,'
-                        + '!org.junit.internal.runners.*,!org.junit.rules.*,!org.mockito.asm.signature,*'
+                        + '!org.apache.tools.ant.*,'
+                        + '!org.junit.runners.*,'
+                        + '!org.junit.runner.notification.*,'
+                        + '!org.junit.internal.runners.*,'
+                        + '!org.junit.rules.*,'
+                        + '!org.mockito.asm.signature,'
                         + '!com.google.errorprone.annotations.concurrent,'
                         + '!org.joda.convert,'
                         + '!org.apache.log,'
-                        + '!groovy.runtime.metaclass'
+                        + '!groovy.runtime.metaclass,'
+                        + '!jrockit.vm,'
                         + '*')
         )
     }
@@ -132,12 +141,12 @@ subprojects {
 
     task installIntegrationJar(type: InstallBundle) {
         dependsOn configureDE
-        files = configurations.integrationJar { transitive = false }
+        files = configurations.install // { transitive = false }
     }
 
     task installIntegrationJarLocal(type: InstallBundle) {
         dependsOn configureDELocal
-        files = configurations.integrationJar { transitive = false }
+        files = configurations.install // { transitive = false }
     }
 
     task installTestsOnDocker(type: InstallBundle) {
