@@ -7,6 +7,18 @@ subprojects {
     apply plugin: 'eu.xenit.docker-alfresco'
     apply from: "${project.projectDir}/overrides.gradle"
 
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://artifactory.xenit.eu/artifactory/libs-release'
+            credentials {
+                username property("eu.xenit.artifactory.username")
+                password property("eu.xenit.artifactory.password")
+            }
+        }
+    }
+
+
     sourceSets {
         main {
             java {
@@ -78,6 +90,7 @@ subprojects {
                         + '!com.google.appengine.api,'
                         + '!com.google.apphosting.api,'
                         + '!com.google.gson,'
+                        + '!com.thoughtworks.xstream,'
                         // These are the fault of groovy
                         + '!org.apache.commons.cli,'
                         + '!org.apache.ivy.*,'
@@ -102,13 +115,13 @@ subprojects {
 
     // Docker dependencies
     dependencies {
-        baseAlfrescoWar 'org.alfresco:alfresco-enterprise:5.1.4.1@war'
-        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo:${deVersion}@amp"
+        baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
+        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${deVersion}@amp"
         alfrescoAmp project(path: ':care4alf', configuration: 'amp')
     }
 
     dockerAlfresco {
-        baseImage = 'hub.xenit.eu/alfresco-enterprise:5.1.4'
+        baseImage = "hub.xenit.eu/alfresco-enterprise:${alfresco_img_version}"
         leanImage = true
         dockerBuild {
             repository = 'hub.xenit.eu/care4alf-alfresco-51'
