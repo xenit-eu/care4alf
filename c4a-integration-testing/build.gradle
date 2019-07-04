@@ -141,22 +141,24 @@ subprojects {
 
     task installIntegrationJar(type: InstallBundle) {
         dependsOn configureDE
-        files = configurations.install // { transitive = false }
+        files = configurations.install { transitive = false }
     }
 
     task installIntegrationJarLocal(type: InstallBundle) {
         dependsOn configureDELocal
-        files = configurations.install // { transitive = false }
+        files = configurations.install { transitive = false }
     }
 
     task installTestsOnDocker(type: InstallBundle) {
         dependsOn installIntegrationJar
         dependsOn jar
+        files = jar.outputs
     }
 
     task installTestsLocal(type: InstallBundle) {
         dependsOn configureDELocal
         dependsOn jar
+        files = jar.outputs
     }
 
     task integrationTest(type: Test) {
@@ -174,7 +176,7 @@ subprojects {
         outputs.upToDateWhen { false }
 
         // After the tests, the docker setup should be stopped
-//        finalizedBy(composeDownTask)
+        finalizedBy(composeDownTask)
     }
 
     task integrationTestLocal(type: Test) {
