@@ -34,10 +34,7 @@ public class PermissionImportTest {
         String basePath = "/alfresco/s";
         RestAssured.basePath = basePath;
         RestAssured.useRelaxedHTTPSValidation();
-        String host = System.getProperty("alfresco.host");
-        if (host == null) {
-            host = "localhost";
-        }
+        String host = System.getProperty("alfresco.host", "localhost");
         String baseUri = protocol + "://" + host;
         System.out.println("Integration test host: " + baseUri + ":" + port + basePath);
         RestAssured.baseURI = baseUri;
