@@ -257,7 +257,10 @@ jar {
         'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
         'DynamicImport-Package': '*',
         'Include-Resource': includeUnrolledResource(configurations.compile),
-        'Import-Package': 'kotlin.internal.jdk7;resolution:=optional,'
+        'Import-Package': 'org.json;version="[0,99999999)",' 
+                + 'kotlin.internal.jdk7;resolution:=optional,'
+                + 'com.hazelcast.monitor;resolution:=optional,'
+                + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
                 + 'kotlin.internal.jdk8;resolution:=optional,'
                 + 'com.google.appengine.api;resolution:=optional,'
                 + 'com.google.apphosting.api;resolution:=optional,'
