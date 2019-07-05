@@ -79,7 +79,6 @@ def importPackage() {
     return project("care4alf").file("importPackage").getText("UTF-8").replace("\n","")
 }
 
-ext.alfresco_version = '5.0.4'
 ext.deVersion = '2.0.1'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'

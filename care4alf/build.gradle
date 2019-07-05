@@ -17,6 +17,9 @@ apply plugin: 'lesscss'
 
 description = "Care4Alf — The Alfresco Swiss Army Knife"
 
+// For dependencies, still supporting 5.0
+ext.alfresco_version = '5.0.4'
+
 task sourceJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource

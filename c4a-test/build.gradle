@@ -43,10 +43,10 @@ subprojects {
     dependencies {
         compileOnly project(":care4alf")
 
-        compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_version) {
+        compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
         }
-        compileOnly(group: 'org.alfresco', name: 'alfresco-remote-api', version: alfresco_version) {
+        compileOnly(group: 'org.alfresco', name: 'alfresco-remote-api', version: alfresco_remote_api_version) {
             transitive = false
         }
         compileOnly group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
@@ -91,6 +91,7 @@ subprojects {
                         + '!com.google.apphosting.api,'
                         + '!com.google.gson,'
                         + '!com.thoughtworks.xstream,'
+                        + '!org.codehaus.jackson.*,'
                         // These are the fault of groovy
                         + '!org.apache.commons.cli,'
                         + '!org.apache.ivy.*,'
