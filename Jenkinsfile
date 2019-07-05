@@ -17,16 +17,17 @@ node {
     }
 
     try {
-         stage('Testing 4.2') {
-            sh "./gradlew clean :c4a-integration-testing:42:integrationTest -PbuildNumber=${buildNr} -i"
-        }
 
         stage('Testing 5.x') {
-            sh "./gradlew clean :c4a-integration-testing:5x:integrationTest -PbuildNumber=${buildNr} -i"
+            sh "./gradlew clean :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
+        }
+
+        stage('Testing 6.0') {
+            sh "./gradlew clean :c4a-test:test-60:integrationTest -PbuildNumber=${buildNr} -i"
         }
 
         stage('Building AMP') {
-            sh "./gradlew :care4alf:ampde -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew :care4alf:amp -PbuildNumber=${buildNr} --continue -i"
 
             def artifacts = [
                     'care4alf/build/libs/*.jar',
