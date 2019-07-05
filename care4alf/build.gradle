@@ -2,18 +2,13 @@ plugins {
     id 'eu.xenit.alfresco'
     id 'eu.xenit.amp'
 }
-//import aQute.bnd.gradle.Bundle
-//import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
 import eu.xenit.gradle.alfrescosdk.tasks.Amp
 
-//apply plugin: 'ampde'
 apply plugin: 'alfresco-dynamic-extension'
 apply plugin: 'kotlin'
 apply plugin: 'com.moowork.node'
 apply plugin: 'de.richsource.gradle.plugins.typescript'
 apply plugin: 'lesscss'
-//apply plugin: 'signing'
-//apply plugin: 'maven-publish'
 
 description = "Care4Alf — The Alfresco Swiss Army Knife"
 
@@ -35,162 +30,6 @@ task setupArtifacts {
         archives alfrescoAmp, sourceJar, javadocJar
     }
 }
-
-//uploadArchives {
-//    dependsOn setupArtifacts
-//    repositories {
-//        mavenDeployer {
-//            signing {
-//                required {false}
-//                sign configurations.archives
-//            }
-//            beforeDeployment {
-//                MavenDeployment deployment -> signing.signPom(deployment)
-//            }
-//
-//            repository(url: project.hasProperty('publish_url') ? project.publish_url : "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-//                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
-//            }
-//
-//            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-//                authentication(userName: project.hasProperty('publish_username') ? project.publish_username : '', password: project.hasProperty('publish_password') ? project.publish_password : '')
-//            }
-//
-//            pom.project {
-//                url 'https://bitbucket.org/xenit/care4alf'
-//                name "Care4Alf"
-//                description "An Alfresco dynamic extension providing a variety of maintainance/admin/support utilities " +
-//                        "for alfresco, along side with optional monitoring extension"
-//
-//                scm {
-//                    connection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
-//                    developerConnection 'scm:git:git@bitbucket.org:xenit/care4alf.git'
-//                    url 'https://bitbucket.org/xenit/care4alf'
-//                }
-//
-//                licenses {
-//                    license {
-//                        name 'GNU Lesser General Public License v3.0 or later'
-//                        url 'http://www.gnu.org/licenses/lgpl-3.0-standalone.html'
-//                    }
-//                }
-//
-//                developers {
-//                    developer{
-//                        id "laurentvdl"
-//                        name "Laurent Van der Linden"
-//                        roles{
-//                            role "Founder"
-//                            role "Architect"
-//                        }
-//                    }
-//                    developer {
-//                        id 'willemvde'
-//                        name 'Willem Van den Eynde'
-//                        email 'willem.vandeneynde@xenit.eu '
-//                        roles{
-//                            role "Architect"
-//                            role "Developer"
-//                        }
-//                    }
-//                    developer {
-//                        id 'stanmine'
-//                        name 'Stan Mine'
-//                        email 'stan.mine@xenit.eu'
-//                        roles{
-//                            role "Developer"
-//                        }
-//                    }
-//                    developer {
-//                        id 'Pantera160'
-//                        name 'Thomas Straetmans'
-//                        email 'thomas.straetmans@xenit.eu'
-//                        roles{
-//                            role "Developer"
-//                        }
-//                    }
-//                    developer {
-//                        id 'yregaieg'
-//                        name 'Younes Regaieg'
-//                        email 'younes.regaieg@xenit.eu'
-//                        roles{
-//                            role "Developer"
-//                        }
-//                    }
-//                    developer {
-//                        id 'thijslemmens'
-//                        name 'Thijs Lemmens'
-//                        email 'thijs.lemmens@xenit.eu'
-//                        roles{
-//                            role "Developer"
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-//gradle.taskGraph.whenReady { graph ->
-//    if (graph.hasTask(uploadArchives)) {
-//        if (!project.hasProperty('keyId') || !project.hasProperty('secretKeyRingFile') || !project.hasProperty('password')){
-//            throw new GradleException('You need to provide signing params in order to sign artifacts')
-//        }
-//
-//        def id = project.hasProperty('keyId') ? project.keyId : ''
-//        def file = project.hasProperty('secretKeyRingFile') ? project.secretKeyRingFile : ''
-//        def password = project.hasProperty('password') ? project.password : ''
-//
-//        ext."signing.keyId" = id
-//        ext."signing.secretKeyRingFile" = file
-//        ext."signing.password" = password
-//    }else if (project.hasProperty("buildNumber")) {
-//        version = project.version.replace("SNAPSHOT", buildNumber)
-//    }
-//}
-
-//publishing {
-//    publications {
-//        mavenJava(MavenPublication) {
-//            from components.java
-//            groupId 'eu.xenit'
-//            version project.version.replace("SNAPSHOT", buildNumber)
-//        }
-//        amp(MavenPublication) {
-//            artifactId project.name + '-amp'
-//            groupId 'eu.xenit'
-//            version project.version.replace("SNAPSHOT", buildNumber)
-//            artifact file("${buildDir}/distributions/${project.name}-${project.version.replace("SNAPSHOT", buildNumber)}.amp")
-//            //artifact ampde
-//        }
-////        integrationJar(MavenPublication) {
-////            artifactId project.name + '-integration'
-////            groupId 'eu.xenit'
-////            version project.version.replace("SNAPSHOT", buildNumber)
-////            artifact file("${buildDir}/libs-test/${project.name}-integration-${project.version.replace("SNAPSHOT", buildNumber)}.jar")
-////        }
-//    }
-//    repositories {
-//        maven {
-//            name 'snapshot'
-//            url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
-//            credentials {
-//                username property("eu.xenit.artifactory.username")
-//                password property("eu.xenit.artifactory.password")
-//            }
-//        }
-//        maven {
-//            name 'release'
-//            url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
-//            credentials {
-//                username property("eu.xenit.artifactory.username")
-//                password property("eu.xenit.artifactory.password")
-//            }
-//        }
-//
-//    }
-//}
-
 
 [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
@@ -270,10 +109,6 @@ jar {
                 + 'kotlin.reflect.jvm.internal;resolution:=optional,'
                 + '*',
         'Export-Package': 'eu.xenit.care4alf.*'
-//        'Import-Package': '!com.google.appengine.api,!com.google.apphosting.api,!kotlin.internal.jdk7,*',
-//        //'Import-Package': importPackage(),
-//        'Include-Resource': includeResource(configurations.compile),
-//        'Bundle-ClassPath': bundleClassPath(configurations.compile),
     )
 }
 
@@ -285,21 +120,9 @@ sourceSets {
     }
 }
 
-//task amp(type: Amp) {
 amp {
     deBundles = jar.outputs.files
-    //libs = project.files([])
 }
-
-//configurations {
-//    ampArtifact
-//}
-//
-//artifacts {
-//    ampArtifact amp
-//}
-
-//project.extensions.add("alfrescoDynamicExtensions", new BaseConfig())
 
 jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
 
