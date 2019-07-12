@@ -3,11 +3,8 @@ package eu.xenit.care4alf.monitoring.metric;
 import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
-import com.hazelcast.monitor.LocalMapStats;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
-import org.alfresco.enterprise.repo.cluster.cache.HazelcastSimpleCache;
-import org.alfresco.enterprise.repo.cluster.cache.InvalidatingCache;
 import org.alfresco.repo.cache.DefaultSimpleCache;
 import org.alfresco.repo.cache.SimpleCache;
 import org.alfresco.repo.cache.TransactionalCache;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -92,13 +88,6 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         if ("org.alfresco.repo.cache.DefaultSimpleCache".equals(cacheType)){
             metrics.putAll(getDefaultSimpleCacheStats(cacheName, (DefaultSimpleCache) cache));
             metrics.put(buildKey(cacheName, "type"), 1L);
-        }else if("org.alfresco.enterprise.repo.cluster.cache.InvalidatingCache".equals(cacheType)){
-            metrics.putAll(getInvalidatingCacheStats(cacheName, cache));
-            metrics.put(buildKey(cacheName, "type"), 2L);
-        }else if("org.alfresco.enterprise.repo.cluster.cache.HazelcastSimpleCache".equals(cacheType)){
-            // These metrics can be a bit less reliable than former cache stats
-            metrics.putAll(getHazelcastSimpleCacheStats(cacheName, cache));
-            metrics.put(buildKey(cacheName, "type"), 3L);
         }else{
             logger.debug("Ignoring cache " + cacheName + " of type " + cacheType);
             metrics.put(buildKey(cacheName, "type"), -1L);
@@ -106,32 +95,6 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         return metrics;
     }
 
-    private Map<String, Long> getHazelcastSimpleCacheStats(String cacheName, SimpleCache simpleCache) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        final HazelcastSimpleCache cache = (HazelcastSimpleCache) simpleCache;
-        final Field mapField = cache.getClass().getDeclaredField("map");
-        mapField.setAccessible(true);
-        final Object map = mapField.get(cache);
-        final Method mapStatMethod = map.getClass().getMethod("getLocalMapStats");
-        final LocalMapStats stats = (LocalMapStats) mapStatMethod.invoke(map);
-        Map<String, Long> metrics = new HashMap<>();
-
-        metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.getOperationStats().getNumberOfGets()));
-        metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.getOperationStats().getNumberOfPuts()));
-        metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.getHits()));
-        metrics.put(buildKey(cacheName, "nbMiss"), -1L);
-        metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.getOperationStats().getNumberOfRemoves()));
-
-        return metrics;
-    }
-
-    private Map<String, Long> getInvalidatingCacheStats(String cacheName, SimpleCache simpleCache) throws NoSuchFieldException, IllegalAccessException {
-        final InvalidatingCache cache = (InvalidatingCache) simpleCache;
-        final Field cacheField = cache.getClass().getDeclaredField("cache");
-        cacheField.setAccessible(true);
-        DefaultSimpleCache realCache = (DefaultSimpleCache) cacheField.get(cache);
-
-        return getDefaultSimpleCacheStats(cacheName, realCache);
-    }
 
     private Map<String, Long> getDefaultSimpleCacheStats(String cacheName, DefaultSimpleCache cache) throws NoSuchFieldException, IllegalAccessException {
         Map<String, Long> metrics = new HashMap<>();
