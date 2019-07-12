@@ -39,8 +39,8 @@ subprojects {
     [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
 
     compileJava {
-        sourceCompatibility = 1.7
-        targetCompatibility = 1.7
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
 
     repositories {
@@ -61,13 +61,14 @@ subprojects {
 
         compileOnly group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
 
-
         compileOnly("eu.xenit.de:annotations:${deVersion}") { transitive = false }
         compileOnly("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
         compileOnly("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
 
         compileOnly("org.osgi:org.osgi.core:4.3.1")
 
+        compile('joda-time:joda-time:2.10.3')
+        compile('org.joda:joda-convert:2.2.1')
         compile('javax.transaction:transaction-api:1.1') { transitive = false }
         compile('com.googlecode.json-simple:json-simple:1.1')
         compile('javax.servlet:servlet-api:2.5')
@@ -118,9 +119,8 @@ subprojects {
 
     sourceSets {
         main {
-            java {
-                srcDirs = [ 'src/main/java', 'src/main/java-shared' ]
-            }
+            java.srcDirs += 'src/main/java-shared'
+            kotlin.srcDirs += 'src/main/kotlin-shared'
             amp {
                 dynamicExtension()
             }
