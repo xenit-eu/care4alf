@@ -41,7 +41,7 @@ subprojects {
     }
 
     dependencies {
-        compileOnly project(":care4alf")
+        compileOnly project(":c4a-impl:care4alf-${c4a_version}")
 
         compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
@@ -111,7 +111,7 @@ subprojects {
     dependencies {
         baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
         alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${deVersion}@amp"
-        alfrescoAmp project(path: ':care4alf', configuration: 'amp')
+        alfrescoAmp project(path: ":c4a-impl:care4alf-${c4a_version}", configuration: 'amp')
     }
 
     dockerAlfresco {

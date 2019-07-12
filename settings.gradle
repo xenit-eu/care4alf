@@ -1,9 +1,14 @@
 rootProject.name='care4alf'
 
-include ':care4alf'
+include ':c4a-impl'
+include ':c4a-impl:care4alf-5x'
+include ':c4a-impl:care4alf-60'
 include ':c4a-test'
 include ':c4a-test:test-5x'
 include ':c4a-test:test-60'
+
+project(':c4a-impl:care4alf-5x').projectDir = "$rootDir/c4a-impl/5x" as File
+project(':c4a-impl:care4alf-60').projectDir = "$rootDir/c4a-impl/60" as File
 
 project(':c4a-test:test-5x').projectDir = "$rootDir/c4a-test/5x" as File
 project(':c4a-test:test-60').projectDir = "$rootDir/c4a-test/60" as File
