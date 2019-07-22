@@ -15,6 +15,7 @@
         <thead>
         <tr>
             <th>Name</th>
+            <th>Class</th>
             <th>Cron expression</th>
             <th>Previous fire time</th>
             <th>Next fire time</th>
@@ -24,6 +25,7 @@
         <tbody>
         <tr ng-repeat="job in jobs | orderBy:orderByField:reverseSort">
             <td>{{job.Name}}</td>
+            <td>{{job.JobClass}}</td>
             <td>{{job.CronExpression}}</td>
             <td>{{job.PreviousFireTime}}</td>
             <td>{{job.NextFireTime}}</td>

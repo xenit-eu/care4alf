@@ -1,6 +1,6 @@
 package eu.xenit.care4alfintegration;
 
-import eu.xenit.care4alf.scheduledjobs.ScheduledJobs;
+import eu.xenit.care4alf.scheduledjobs.ScheduledJobsImpl;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import org.junit.Assert;
@@ -21,21 +21,21 @@ import java.io.PrintWriter;
 public class ScheduledJobsTest {
 
     @Autowired
-    ScheduledJobs scheduledJobs;
+    ScheduledJobsImpl scheduledJobsImpl;
 
     @Test
     public void listScheduledJobs() throws SchedulerException {
-        Assert.assertTrue(scheduledJobs.getScheduledJobs("DEFAULT").size() > 0);
+        Assert.assertTrue(scheduledJobsImpl.getScheduledJobs("DEFAULT").size() > 0);
     }
 
     @Test
     public void executeScheduledJob() throws SchedulerException {
-        this.scheduledJobs.execute("downloadCleanerJobDetail","DEFAULT");
+        this.scheduledJobsImpl.execute("downloadCleanerTrigger","DEFAULT");
     }
 
     @Test
     public void testValidateSchema(){
-        scheduledJobs.validateSchema(new PrintWriter(new NullOutputStream()));
+        scheduledJobsImpl.validateSchema(new PrintWriter(new NullOutputStream()));
     }
 
     public class NullOutputStream extends OutputStream {
