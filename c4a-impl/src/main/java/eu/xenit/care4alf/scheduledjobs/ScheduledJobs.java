@@ -10,11 +10,14 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import java.io.IOException;
 import java.io.PrintWriter;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONWriter;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.extensions.webscripts.WebScriptRequest;
 import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Component
 @WebScript(baseUri = "/xenit/care4alf/scheduled", families = {"care4alf"}, description = "Show and execute scheduled jobs")
@@ -46,15 +49,15 @@ public class ScheduledJobs {
 
         for (ScheduledJob job : scheduledJobsImpl.getScheduledJobs(groupname)) {
             json.object();
-            json.key("Name");
+            json.key("name");
             json.value(job.getTriggerName());
-            json.key("JobClass");
+            json.key("jobClass");
             json.value(job.getJobClass().getSimpleName());
-            json.key("PreviousFireTime");
+            json.key("previousFireTime");
             json.value(job.getPreviousFireTime());
-            json.key("NextFireTime");
+            json.key("nextFireTime");
             json.value(job.getNextFireTime());
-            json.key("CronExpression");
+            json.key("cronExpression");
             json.value(job.getCronExpression());
             json.endObject();
         }
@@ -79,9 +82,9 @@ public class ScheduledJobs {
         json.endArray();
     }
 
-    @Uri(value = "job/{name}/{group}/execute", method = HttpMethod.POST)
-    public void executeGet(@UriVariable final String name, @UriVariable final String group) throws SchedulerException {
-        scheduledJobsImpl.execute(name, group);
+    @Uri(value = "execute", method = HttpMethod.POST)
+    public void execute(@RequestBody final JSONObject body) throws SchedulerException {
+        scheduledJobsImpl.execute(body.getString("name"), body.getString("group"));
     }
 
     @Uri("validateschema/txt")

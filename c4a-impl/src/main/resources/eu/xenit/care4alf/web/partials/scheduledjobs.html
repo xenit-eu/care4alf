@@ -11,10 +11,10 @@
 <div ng-show="jobcategory == 'available'">
     <select name="groupSelect" id="groupSelect" ng-options="group.name for group in groups track by group.name" ng-model="selectedGroup"
             ng-change="update()"></select>
-    <table class="table">
+    <table class="table table-hover">
         <thead>
         <tr>
-            <th>Name</th>
+            <th>Trigger name</th>
             <th>Class</th>
             <th>Cron expression</th>
             <th>Previous fire time</th>
@@ -24,12 +24,12 @@
         </thead>
         <tbody>
         <tr ng-repeat="job in jobs | orderBy:orderByField:reverseSort">
-            <td>{{job.Name}}</td>
-            <td>{{job.JobClass}}</td>
-            <td>{{job.CronExpression}}</td>
-            <td>{{job.PreviousFireTime}}</td>
-            <td>{{job.NextFireTime}}</td>
-            <td><button class="btn btn-info" ng-click="execute(job.Name, selectedGroup)" ng-disabled="loading">execute</button></td>
+            <td>{{job.name}}</td>
+            <td>{{job.jobClass}}</td>
+            <td>{{job.cronExpression}}</td>
+            <td>{{job.previousFireTime}}</td>
+            <td>{{job.nextFireTime}}</td>
+            <td><button class="btn btn-info" ng-click="execute(job.name, selectedGroup.name)" ng-disabled="loading">execute</button></td>
         </tr>
         </tbody>
     </table>

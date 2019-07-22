@@ -8,8 +8,8 @@ care4alf.controller('scheduledjobs', ($scope,$http: ng.IHttpService) => {
     getData();
 
     $scope.execute = (name, group) => {
-        $http.post('scheduled/job/' + name + '/' + group.name + '/execute', {}).error((error) => {
-            alert(error.message);
+        $http.post('scheduled/execute', { name, group }).error((error) => {
+            alert(error);
             console.log("failed to execute %o", error);
         });
     };
