@@ -27,18 +27,22 @@ node {
         }
 
         stage('Building AMP') {
-            sh "./gradlew :care4alf:amp -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-5x:amp -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-60:amp -PbuildNumber=${buildNr} --continue -i"
 
             def artifacts = [
-                    'care4alf/build/libs/*.jar',
-                    'care4alf/build/distributions/*.amp'
+                    'c4a-impl/5x/build/libs/*.jar',
+                    'c4a-impl/60/build/libs/*.jar',
+                    'c4a-impl/5x/build/distributions/*.amp',
+                    'c4a-impl/60/build/distributions/*.amp'
             ]
 
             archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
         }
 
         stage('Publishing') {
-            sh "./gradlew :care4alf:${publishAmpTask} :care4alf:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-5x:${publishAmpTask} :c4a-impl:care4alf-5x:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-60:${publishAmpTask} :c4a-impl:care4alf-60:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
         }
 
     } catch (err) {
