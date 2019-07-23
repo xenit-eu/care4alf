@@ -1,11 +1,13 @@
 plugins {
     id 'eu.xenit.alfresco' apply false
     id 'eu.xenit.amp' apply false
+    id 'com.github.johnrengelman.shadow' version '5.1.0' apply false
 }
-
 
 import com.moowork.gradle.node.NodeExtension
 import com.moowork.gradle.node.variant.VariantBuilder
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 subprojects {
     apply from: "${project.projectDir}/overrides.gradle"
@@ -56,17 +58,17 @@ subprojects {
     }
 
     dependencies {
-        compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
+        alfrescoProvided(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
         }
 
-        compileOnly group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
+        alfrescoProvided group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
 
-        compileOnly("eu.xenit.de:annotations:${deVersion}") { transitive = false }
-        compileOnly("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
-        compileOnly("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
+        alfrescoProvided("eu.xenit.de:annotations:${deVersion}") { transitive = false }
+        alfrescoProvided("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
+        alfrescoProvided("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
 
-        compileOnly("org.osgi:org.osgi.core:4.3.1")
+        alfrescoProvided("org.osgi:org.osgi.core:4.3.1")
 
         compile('joda-time:joda-time:2.10.3')
         compile('org.joda:joda-convert:2.2.1')
@@ -93,7 +95,22 @@ subprojects {
         compress = false
     }
 
+    task relocateDependencies(type: ShadowJar) {
+        archiveClassifier = "shadow"
+        from(sourceSets.main.output)
+        configurations = [project.configurations.runtimeClasspath]
+    }
+
+    task configureRelocateDependencies(type: ConfigureShadowRelocation) {
+        target = relocateDependencies
+        prefix = "eu.xenit.care4alf.impldep"
+    }
+
+
+    relocateDependencies.dependsOn(configureRelocateDependencies)
+
     jar {
+        from zipTree(relocateDependencies.outputs.files.singleFile)
         version = project.version.replace("SNAPSHOT", buildNumber)
         from(compileTypeScript.outputs)
 
@@ -104,18 +121,16 @@ subprojects {
                 'Bundle-SymbolicName': 'eu.xenit.care4alf',
                 'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
                 'DynamicImport-Package': '*',
-                'Include-Resource': includeUnrolledResource(configurations.compile),
                 'Import-Package': 'org.json;version="[0,99999999)",'
-                        + 'kotlin.internal.jdk7;resolution:=optional,'
+                        + "!${configureRelocateDependencies.prefix}.*,"
                         + 'com.hazelcast.monitor;resolution:=optional,'
                         + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
-                        + 'kotlin.internal.jdk8;resolution:=optional,'
                         + 'com.google.appengine.api;resolution:=optional,'
                         + 'com.google.apphosting.api;resolution:=optional,'
-                        + 'kotlin.reflect.jvm.internal;resolution:=optional,'
                         + '*',
-                'Export-Package': 'eu.xenit.care4alf.*'
+                'Export-Package': "!${configureRelocateDependencies.prefix}.*,eu.xenit.care4alf.*"
         )
+        dependsOn(relocateDependencies)
     }
 
     sourceSets {
