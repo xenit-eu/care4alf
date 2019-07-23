@@ -138,8 +138,6 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-            }
-            amp(MavenPublication) {
                 artifact tasks.amp
             }
         }

@@ -39,7 +39,7 @@ plugins {
 
 allprojects {
     version = '2.0.0' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
-    group = 'eu.xenit'
+    group = 'eu.xenit.care4alf'
 }
 
 //task wrapper(type: Wrapper) {

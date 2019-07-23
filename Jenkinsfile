@@ -1,8 +1,7 @@
 node {
     def buildNr = "SNAPSHOT"
 
-    def publishAmpTask = "publishAmpPublicationToSnapshotRepository"
-    def publishJarTask = "publishMavenJavaPublicationToSnapshotRepository"
+    def publishMavenJavaTask = "publishMavenJavaPublicationToSnapshotRepository"
     def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
 
     stage('Checkout') {
@@ -10,8 +9,7 @@ node {
 
         if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
-            publishAmpTask = "publishAmpPublicationToReleaseRepository"
-            publishJarTask = "publishMavenJavaPublicationToReleaseRepository"
+            publishMavenJavaTask = "publishMavenJavaPublicationToReleaseRepository"
             publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
         }
     }
@@ -41,8 +39,8 @@ node {
         }
 
         stage('Publishing') {
-            sh "./gradlew :c4a-impl:care4alf-5x:${publishAmpTask} :c4a-impl:care4alf-5x:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-60:${publishAmpTask} :c4a-impl:care4alf-60:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-5x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-60:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
         }
 
     } catch (err) {
