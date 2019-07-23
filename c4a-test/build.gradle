@@ -110,7 +110,7 @@ subprojects {
     // Docker dependencies
     dependencies {
         baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
-        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${deVersion}@amp"
+        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${de_version}@amp"
         alfrescoAmp project(path: ":c4a-impl:care4alf-${c4a_version}", configuration: 'amp')
     }
 
@@ -118,7 +118,7 @@ subprojects {
         baseImage = "hub.xenit.eu/alfresco-enterprise:${alfresco_img_version}"
         leanImage = true
         dockerBuild {
-            repository = 'hub.xenit.eu/care4alf-alfresco-51'
+            repository = "hub.xenit.eu/care4alf-alfresco-${subproject_alfresco_version}"
         }
     }
 

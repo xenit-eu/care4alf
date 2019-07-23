@@ -1,5 +1,5 @@
 ext {
-    c4a_version = '60'
+    c4a_version = '6x'
     subproject_alfresco_version = '60'
     alfresco_repo_version = '6.56.4'
     alfresco_remote_api_version = '6.39.1'

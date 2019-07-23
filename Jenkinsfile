@@ -21,18 +21,18 @@ node {
         }
 
         stage('Testing 6.0') {
-            sh "./gradlew clean :c4a-test:test-60:integrationTest -PbuildNumber=${buildNr} -i"
+            sh "./gradlew clean :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
         }
 
         stage('Building AMP') {
             sh "./gradlew :c4a-impl:care4alf-5x:amp -PbuildNumber=${buildNr} --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-60:amp -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-6x:amp -PbuildNumber=${buildNr} --continue -i"
 
             def artifacts = [
                     'c4a-impl/5x/build/libs/*.jar',
-                    'c4a-impl/60/build/libs/*.jar',
+                    'c4a-impl/6x/build/libs/*.jar',
                     'c4a-impl/5x/build/distributions/*.amp',
-                    'c4a-impl/60/build/distributions/*.amp'
+                    'c4a-impl/6x/build/distributions/*.amp'
             ]
 
             archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
@@ -40,7 +40,7 @@ node {
 
         stage('Publishing') {
             sh "./gradlew :c4a-impl:care4alf-5x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-60:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-6x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
         }
 
     } catch (err) {

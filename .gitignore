@@ -1,7 +1,3 @@
-# C4A specific
-c4a-integration-testing/42/src/main/java
-c4a-integration-testing/5x/src/main/java
-
 # Created by .gitignore support plugin (hsz.mobi)
 ### Eclipse template
 *.pydevproject

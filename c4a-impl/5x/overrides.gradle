@@ -5,7 +5,7 @@ ext {
     alfresco_war = 'alfresco-enterprise:5.1.4.1'
     alfresco_img_version = '5.1.4'
     alfresco_dm_version = '6.16'
-    de_version = '1.7.6'
+    de_version = '2.0.1'
     http_version = '4.3.3'
     http_core_version = '4.3.3'
 }
