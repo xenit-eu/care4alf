@@ -25,7 +25,7 @@ public class JMXMonitoringTest {
     public void dataRealistic(){
         Map<String, Long> map = memoryMetrics.getMonitoringMetrics();
         assertTrue(map.get("jvm.memory.eden.used") > 0L);
-        assertTrue(map.get("jvm.memory.eden.max") > 0L);
+        assertTrue(map.get("jvm.memory.eden.max") != 0L);
         assertTrue(map.get("jvm.memory.heap.used") > 0L);
     }
 
