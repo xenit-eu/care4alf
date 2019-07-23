@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.repo.security.authentication.TicketComponent;
@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by willem on 5/3/17.
  */
 @Component
-@ScheduledQuartzJob(name = "ActiveSessionsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/1 * * * ?", cronProp = "c4a.monitoring.activesessions.cron")
+@ScheduledTask(name = "ActiveSessionsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/1 * * * ?", cronProp = "c4a.monitoring.activesessions.cron")
 public class ActiveSessionsMetric extends AbstractMonitoredSource {
 
     @Autowired

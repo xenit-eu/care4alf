@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.Map;
  * Created by willem on 7/14/16.
  */
 @Component
-@ScheduledQuartzJob(name = "ClusteringMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0/15 * * * * ?", cronProp = "c4a.monitoring.clustering.cron")
+@ScheduledTask(name = "ClusteringMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0/15 * * * * ?", cronProp = "c4a.monitoring.clustering.cron")
 public class ClusteringMetric extends AbstractMonitoredSource {
     @Autowired
     private MBeanServerConnection alfrescoMBeanServer;

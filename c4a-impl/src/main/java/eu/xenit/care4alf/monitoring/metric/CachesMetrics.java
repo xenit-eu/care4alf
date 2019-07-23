@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
@@ -27,7 +27,7 @@ import java.util.Properties;
  * Created by yregaieg on 19.05.17.
  */
 @Component
-@ScheduledQuartzJob(name = "CachesMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/10 * * * ?", cronProp = "c4a.monitoring.caches.cron")
+@ScheduledTask(name = "CachesMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/10 * * * ?", cronProp = "c4a.monitoring.caches.cron")
 public class CachesMetrics extends AbstractMonitoredSource implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(CachesMetrics.class);
     private ApplicationContext ctx;

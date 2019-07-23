@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@ScheduledQuartzJob(name = "AuditMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?", cronProp = "c4a.monitoring.audit.cron")
+@ScheduledTask(name = "AuditMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0 1 * * ?", cronProp = "c4a.monitoring.audit.cron")
 public class AuditMetric extends AbstractMonitoredSource {
     @Autowired
     private DataSource dataSource;

@@ -2,7 +2,7 @@ package eu.xenit.care4alf.monitoring.metric;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.repo.descriptor.DescriptorDAO;
@@ -24,7 +24,7 @@ import java.util.Properties;
  * Created by willem on 1/17/17.
  */
 @Component
-@ScheduledQuartzJob(name = "DbMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.db.cron")
+@ScheduledTask(name = "DbMetrics", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.db.cron")
 public class DbMetrics extends AbstractMonitoredSource {
 
     public static final String PROPS_PREFIX = "eu.xenit.c4a.metrics.";

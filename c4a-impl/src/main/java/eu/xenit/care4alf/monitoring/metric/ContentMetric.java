@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.helpers.NodeHelper;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
@@ -24,7 +24,7 @@ import java.util.Map;
  * Created by Thomas S on 11/07/2017.
  */
 @Component
-@ScheduledQuartzJob(name = "OperationsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.operations.cron")
+@ScheduledTask(name = "OperationsMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.operations.cron")
 public class ContentMetric extends AbstractMonitoredSource{
     @Autowired
     private NodeHelper nodeHelper;

@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.Map;
  * Created by willem on 1/16/17.
  */
 @Component
-@ScheduledQuartzJob(name = "MemoryMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.memory.cron")
+@ScheduledTask(name = "MemoryMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?", cronProp = "c4a.monitoring.memory.cron")
 public class MemoryMetric extends AbstractMonitoredSource {
 
     @Override

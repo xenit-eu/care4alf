@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.Map;
  * Created by Thomas.Straetmans on 30/11/2016.
  */
 @Component
-@ScheduledQuartzJob(name = "GCMonitoring", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?"
+@ScheduledTask(name = "GCMonitoring", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?"
         , cronProp = "c4a.monitoring.gcmonitoring.cron") //We go light on this because it already exists in jmxTrans
 public class GCMonitoring extends AbstractMonitoredSource {
 

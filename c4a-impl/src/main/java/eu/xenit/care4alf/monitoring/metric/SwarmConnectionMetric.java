@@ -1,6 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
-import com.github.dynamicextensionsalfresco.jobs.ScheduledQuartzJob;
+import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@ScheduledQuartzJob(name = "SwarmConnectionMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?"
+@ScheduledTask(name = "SwarmConnectionMetric", group = Monitoring.SCHEDULE_GROUP, cron = "0 0/5 * * * ?"
 		, cronProp = "c4a.monitoring.swarmconnection.cron")
 public class SwarmConnectionMetric extends AbstractMonitoredSource {
 
