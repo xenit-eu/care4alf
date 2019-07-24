@@ -1,6 +1,6 @@
 package eu.xenit.care4alfintegration;
 
-import eu.xenit.care4alf.impldep.com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import eu.xenit.care4alf.search.*;
 import org.json.JSONObject;
 import org.junit.Assert;

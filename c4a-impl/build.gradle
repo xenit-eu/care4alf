@@ -57,6 +57,21 @@ subprojects {
         }
     }
 
+    configurations {
+        // shadowDeps are our dependencies that get included in the bundle, but get shadowed (i.e. the package name gets
+        // rewritten) so as not to pollute the classpath. The flipside is that these can't be part of the public api.
+        // You can't expose a method that has e.g. a HttpClient parameter, because for care4alf (after compilation) that
+        // will be eu.xenit.care4alf.impldeps.org.apache.HttpClient. Any external code that wants to call this public
+        // method will not be able to reach this class and likely try with the regular org.apache.HttpClient. This won't
+        // work, because they're distinct despite being identical.
+        // embedDeps is the exception to the above, these are bundled in a normal way and *can* be used for the public
+        // API, at the cost of polluting the classpath.
+        shadowDeps
+        embedDeps
+        compile.extendsFrom shadowDeps
+        compile.extendsFrom embedDeps
+    }
+
     dependencies {
         alfrescoProvided(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
@@ -70,21 +85,26 @@ subprojects {
 
         alfrescoProvided("org.osgi:org.osgi.core:4.3.1")
 
-        compile('joda-time:joda-time:2.10.3')
-        compile('org.joda:joda-convert:2.2.1')
-        compile('javax.transaction:transaction-api:1.1') { transitive = false }
-        compile('com.googlecode.json-simple:json-simple:1.1')
-        compile('javax.servlet:servlet-api:2.5')
-        compile('com.google.collections:google-collections:1.0')
-        compile('org.apache.commons:commons-csv:20110211')
+        shadowDeps('joda-time:joda-time:2.10.3')
+        shadowDeps('org.joda:joda-convert:2.2.1')
+        shadowDeps('javax.transaction:transaction-api:1.1') { transitive = false }
+        shadowDeps('com.googlecode.json-simple:json-simple:1.1')
+        shadowDeps('javax.servlet:servlet-api:2.5')
+        shadowDeps('org.apache.commons:commons-csv:20110211')
 
-        compile('com.fasterxml.jackson.core:jackson-databind:2.3.2')
-        compile('org.apache.commons:commons-lang3:3.7')
-        compile('com.google.guava:guava:19.0') // I believe Alfresco comes bundled with v11. Conflicts?
+        shadowDeps('com.fasterxml.jackson.core:jackson-databind:2.3.2')
+        shadowDeps('org.apache.commons:commons-lang3:3.7')
+        shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+        shadowDeps('commons-codec:commons-codec:1.10')
 
-        compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
-
-        compile('commons-codec:commons-codec:1.10')
+        if (subproject_alfresco_version == '60') {
+            alfrescoProvided('com.google.guava:guava:24.0-jre')
+        } else {
+            // Alfresco comes bundled with 11.0, so we're risking classpath conflicts and a random choice between our
+            // dependencies here. But Guava is reasonably stable and if we're importing one of the classes that are 
+            // added since 11.0, there's only one candidate to import from.
+            embedDeps('com.google.guava:guava:19.0')
+        }
     }
 
     lesscss {
@@ -98,7 +118,7 @@ subprojects {
     task relocateDependencies(type: ShadowJar) {
         archiveClassifier = "shadow"
         from(sourceSets.main.output)
-        configurations = [project.configurations.runtimeClasspath]
+        configurations = [project.configurations.shadowDeps]
     }
 
     task configureRelocateDependencies(type: ConfigureShadowRelocation) {
@@ -121,6 +141,7 @@ subprojects {
                 'Bundle-SymbolicName': 'eu.xenit.care4alf',
                 'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
                 'DynamicImport-Package': '*',
+                'Include-Resource': includeUnrolledResource(configurations.embedDeps),
                 'Import-Package': 'org.json;version="[0,99999999)",'
                         + "!${configureRelocateDependencies.prefix}.*,"
                         + 'com.hazelcast.monitor;resolution:=optional,'
@@ -228,6 +249,16 @@ subprojects {
         compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
         dependsOn "npmInstall"
     }
+
+    task configureDELocal {
+        doLast {
+            alfrescoDynamicExtensions.repository.endpoint.protocol = project.hasProperty('protocol') ? project.protocol : 'http'
+            alfrescoDynamicExtensions.repository.endpoint.port = project.hasProperty('port') ? project.port : '8080'
+            alfrescoDynamicExtensions.repository.endpoint.host = project.hasProperty('host') ? project.host : 'localhost'
+        }
+    }
+
+    installBundle.dependsOn(configureDELocal)
 }
 
 
