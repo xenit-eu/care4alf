@@ -73,7 +73,11 @@ subprojects {
                 'Include-Resource': includeResource(configurations.compile),
                 'Bundle-ClassPath': bundleClassPath(configurations.compile),
                 'Alfresco-Dynamic-Extension': 'true',
-                'Import-Package': ('eu.xenit.care4alf.*,'
+                'Import-Package': (''
+                        // The tests need some of the shadowed classes from care4alf's dependencies, but c4a doesn't
+                        // list them in their osgi, so the tests can't *say* that they require them
+                        + '!eu.xenit.care4alf.impldep.com.google.common.collect,'
+                        + 'eu.xenit.care4alf.*,'
                         // We need to specify this very wide version range because otherwise the bnd tool will choose
                         // a very specific version (I don't know why) that prevents deployment
                         + 'org.json;resolution:=optional;version="[0,99999999)",'

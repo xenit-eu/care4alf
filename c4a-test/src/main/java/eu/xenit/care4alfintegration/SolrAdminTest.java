@@ -3,7 +3,6 @@ package eu.xenit.care4alfintegration;
 import eu.xenit.care4alf.search.SolrAdmin;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
-import org.apache.commons.codec.EncoderException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +50,7 @@ public class SolrAdminTest {
     }
 
     @Test
-    public void testOptimize() throws IOException, EncoderException {
+    public void testOptimize() throws Exception {
         String result = solrAdmin.optimize();
         Assert.assertFalse(result.contains("\"code\":400"));
         System.out.println(result);
