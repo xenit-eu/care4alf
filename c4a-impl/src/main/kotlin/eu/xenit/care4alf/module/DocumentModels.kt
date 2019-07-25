@@ -1,4 +1,4 @@
-package xenit.care4alf.module
+package eu.xenit.care4alf.module
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService
 import com.github.dynamicextensionsalfresco.annotations.ServiceType

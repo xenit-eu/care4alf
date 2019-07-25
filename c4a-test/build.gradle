@@ -65,7 +65,11 @@ subprojects {
         compile group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
         compile group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
         compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-        compile group: 'com.google.guava', name: 'guava', version: '19.0'
+        if (subproject_alfresco_version == '60') {
+            compileOnly group: 'com.google.guava', name: 'guava', version: '24.0-jre'
+        } else {
+            compile group: 'com.google.guava', name: 'guava', version: '19.0'
+        }
     }
     jar {
         bnd(

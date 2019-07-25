@@ -3,6 +3,7 @@
 ## Release 1.9.0 (Unreleased)
 ### ALFREDOPS
 - [167](https://xenitsupport.jira.com/browse/ALFREDOPS-167): Make browser do locale-independent search
+- [287](https://xenitsupport.jira.com/browse/ALFREDOPS-287): Shadow embedded dependencies to an internal package
 
 ## Release 1.8.0 (2019-06-26)
 ### DSNYMETQUA
