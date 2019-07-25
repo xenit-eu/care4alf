@@ -63,13 +63,13 @@ subprojects {
         // You can't expose a method that has e.g. a HttpClient parameter, because for care4alf (after compilation) that
         // will be eu.xenit.care4alf.impldeps.org.apache.HttpClient. Any external code that wants to call this public
         // method will not be able to reach this class and likely try with the regular org.apache.HttpClient. This won't
-        // work, because they're distinct despite being identical.
-        // embedDeps is the exception to the above, these are bundled in a normal way and *can* be used for the public
-        // API, at the cost of polluting the classpath.
+        // work, because they're distinct classes from the perspective of Java (despite being identical).
+        // embedDeps is the exception to the above, these are embedded directly in the jar, without rewriting package
+        // names and *can* be used for the public API, at the cost of polluting the classpath.
         shadowDeps
         embedDeps
         compile.extendsFrom shadowDeps
-        compile.extendsFrom embedDeps
+        compileOnly.extendsFrom embedDeps
     }
 
     dependencies {
@@ -101,7 +101,7 @@ subprojects {
             alfrescoProvided('com.google.guava:guava:24.0-jre')
         } else {
             // Alfresco comes bundled with 11.0, so we're risking classpath conflicts and a random choice between our
-            // dependencies here. But Guava is reasonably stable and if we're importing one of the classes that are 
+            // dependencies here. But Guava is reasonably stable and if we're importing one of the classes that are
             // added since 11.0, there's only one candidate to import from.
             embedDeps('com.google.guava:guava:19.0')
         }
