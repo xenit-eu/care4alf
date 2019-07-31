@@ -148,7 +148,9 @@ subprojects {
                         + 'com.google.apphosting.api;resolution:=optional,'
                         + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
                         + "*",
-                'Export-Package': "!${configureRelocateDependencies.prefix}.*,eu.xenit.care4alf.*"
+                'Export-Package': "!${configureRelocateDependencies.prefix}.*"
+                        + ", !eu.xenit.care4alf.web.js.*"
+                        + ", eu.xenit.care4alf.*"
         )
         dependsOn(relocateDependencies)
     }
