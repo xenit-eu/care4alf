@@ -4,6 +4,7 @@
 ### ALFREDOPS
 - [167](https://xenitsupport.jira.com/browse/ALFREDOPS-167): Make browser do locale-independent search
 - [287](https://xenitsupport.jira.com/browse/ALFREDOPS-287): Shadow embedded dependencies to an internal package
+- [290](https://xenitsupport.jira.com/browse/ALFREDOPS-290): C4A 2.0: Make sure dummy mail is properly tested
 
 ## Release 1.8.0 (2019-06-26)
 ### DSNYMETQUA

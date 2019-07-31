@@ -13,6 +13,9 @@ services:
     - GLOBAL_audit.enabled = true
     - GLOBAL_audit.alfresco-access.enabled=true
     - GLOBAL_audit.alfresco-access.sub-actions.enabled=true
+    # Define mail host settings explicitly for tests involving mailactionexecuter
+    - GLOBAL_mail.host=localhost
+    - GLOBAL_mail.port=2500
 
   solr:
     image: hub.xenit.eu/alfresco-solr6:1.1.1
