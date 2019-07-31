@@ -150,7 +150,7 @@ subprojects {
                         + "*",
                 'Export-Package': "!${configureRelocateDependencies.prefix}.*"
                         + ", !eu.xenit.care4alf.web.js.*"
-                        + ", eu.xenit.care4alf.*"
+                        + ", eu.xenit.care4alf.*;-noimport:=true"
         )
         dependsOn(relocateDependencies)
     }
