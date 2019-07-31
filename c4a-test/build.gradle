@@ -160,7 +160,7 @@ subprojects {
     }
 
     task installTestsLocal(type: InstallBundle) {
-        dependsOn configureDELocal
+        dependsOn installIntegrationJarLocal
         dependsOn jar
         files = jar.outputs
     }
