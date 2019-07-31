@@ -90,21 +90,15 @@ subprojects {
                         + '!com.thoughtworks.xstream,'
                         + '!org.codehaus.jackson.*,'
                         // These are the fault of groovy
-                        + '!org.apache.commons.cli,'
-                        + '!org.apache.ivy.*,'
+                        + '!org.apache.commons.cli,'                        
+                        + '!org.apache.ivy.*,'                        
                         + '!org.fusesource.jansi,'
                         // This is the fault of commons-logging
                         + '!org.apache.log,'
                         // This is the fault of mockito
-                        + '!org.apache.tools.ant.*,'
-                        + '!org.junit.runners.*,'
-                        + '!org.junit.runner.notification.*,'
+                        + '!org.apache.tools.ant.*,'                        
                         + '!org.junit.internal.runners.*,'
-                        + '!org.junit.rules.*,'
                         + '!org.mockito.asm.signature,'
-                        + '!com.google.errorprone.annotations.concurrent,'
-                        + '!org.joda.convert,'
-                        + '!org.apache.log,'
                         + '!groovy.runtime.metaclass,'
                         + '!jrockit.vm,'
                         + '*')
