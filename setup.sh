@@ -29,3 +29,8 @@ rm -f "c4a-test/5x/src/main/java"
 rm -f "c4a-test/5x/src/main/resources"
 ln -s "../../../src/main/java" "c4a-test/5x/src/main/java"
 ln -s "../../../src/main/resources" "c4a-test/5x/src/main/resources"
+
+rm -f "c4a-test/6x/src/main/java"
+rm -f "c4a-test/6x/src/main/resources"
+ln -s "../../../src/main/java" "c4a-test/6x/src/main/java"
+ln -s "../../../src/main/resources" "c4a-test/6x/src/main/resources"
