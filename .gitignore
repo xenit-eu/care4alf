@@ -94,6 +94,14 @@ gradle-app.setting
 src/main/ts/eu/xenit/care4alf/web/js/**/*.js
 src/main/ts/eu/xenit/care4alf/web/js/**/*.js.map
 
+c4a-impl/*/src/main/java-shared
+c4a-impl/*/src/main/kotlin-shared
+c4a-impl/*/src/main/less
+c4a-impl/*/src/main/resources
+c4a-impl/*/src/main/ts
+
+c4a-test/*/src/main/java
+c4a-test/*/src/main/resources
 
 
 gradle.properties
