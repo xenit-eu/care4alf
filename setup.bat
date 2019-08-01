@@ -28,3 +28,8 @@ rmdir /s /q "c4a-test/5x/src/main/java"
 rmdir /s /q "c4a-test/5x/src/main/resources"
 mklink /J "c4a-test/5x/src/main/java" "c4a-test/src/main/java"
 mklink /J "c4a-test/5x/src/main/resources" "c4a-test/src/main/resources"
+
+rmdir /s /q "c4a-test/6x/src/main/java"
+rmdir /s /q "c4a-test/6x/src/main/resources"
+mklink /J "c4a-test/6x/src/main/java" "c4a-test/src/main/java"
+mklink /J "c4a-test/6x/src/main/resources" "c4a-test/src/main/resources"
