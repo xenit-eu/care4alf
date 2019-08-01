@@ -1,9 +1,7 @@
 package eu.xenit.care4alf.monitoring;
 
+import com.github.dynamicextensionsalfresco.schedule.Task;
 import eu.xenit.care4alf.integration.MonitoredSource;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,7 @@ import java.util.List;
  * Created by willem on 5/10/17.
  */
 @Component
-public  abstract class AbstractMonitoredSource implements MonitoredSource, Job{
+public  abstract class AbstractMonitoredSource implements MonitoredSource, Task {
     private final Logger logger = LoggerFactory.getLogger(AbstractMonitoredSource.class);
 
     @Autowired()
@@ -62,7 +60,7 @@ public  abstract class AbstractMonitoredSource implements MonitoredSource, Job{
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void execute() {
         if(!enabled)
             return;
 
