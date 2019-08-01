@@ -2,6 +2,9 @@
 
 ## Build
 
+Before you build you have to run setup.sh or setup.bat, depending on your operating system. That script will create
+the necessary symlinks.
+
 Using Gradle, run gradle installBundle to deploy on your local Alfresco. (requires Dynamic Extensions 1.1+)
 
 Your JS controller file reference can be added to the main `care4alf.js` file.
