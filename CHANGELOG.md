@@ -7,6 +7,7 @@
 - [288](https://xenitsupport.jira.com/browse/ALFREDOPS-288): Clean up osgi import packages
 - [289](https://xenitsupport.jira.com/browse/ALFREDOPS-289): Clean up osgi export packages
 - [290](https://xenitsupport.jira.com/browse/ALFREDOPS-290): C4A 2.0: Make sure dummy mail is properly tested
+- [293](https://xenitsupport.jira.com/browse/ALFREDOPS-293): Replace deprecated Job interface with new Task interface
 
 ## Release 1.8.0 (2019-06-26)
 ### DSNYMETQUA

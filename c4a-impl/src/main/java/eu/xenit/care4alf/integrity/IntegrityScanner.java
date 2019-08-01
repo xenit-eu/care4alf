@@ -3,6 +3,7 @@ package eu.xenit.care4alf.integrity;
 import static org.alfresco.repo.action.executer.MailActionExecuter.*;
 
 import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
+import com.github.dynamicextensionsalfresco.schedule.Task;
 import eu.xenit.care4alf.Config;
 import java.io.IOException;
 import java.io.Serializable;
@@ -65,7 +66,7 @@ import org.springframework.stereotype.Component;
 @Component
 // !! Beware changing this group and name !! It's used in integrity.ts in the check in the callback of the REST call
 @ScheduledTask(name = "IntegrityScan", group = "integrityscan", cron = "* * * * * ? 2099", cronProp = "c4a.integrity.cron")
-public class IntegrityScanner implements Job {
+public class IntegrityScanner implements Task {
     private static final int BUFFER_SIZE = 8192;
     private Logger logger = LoggerFactory.getLogger(IntegrityScanner.class);
 
@@ -186,7 +187,7 @@ public class IntegrityScanner implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) {
+    public void execute() {
         AuthenticationUtil.runAsSystem(new RunAsWork<Object>() {
             @Override
             public Object doWork() {
