@@ -8,6 +8,7 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.SearchService;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,6 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BulkTest {
     private final Logger logger = LoggerFactory.getLogger(BulkTest.class);
 
+    @BeforeClass
+    public static void waitForSolr() throws InterruptedException {
+        // Solr might not have indexed the necessary files by the time this test runs.
+        // The order in which tests run is essentially random, if this is one of the earlier tests, it's likely to fail
+        // if we didn't have this sleep here.
+        Thread.sleep(20000);
+    }
     @Autowired
     Bulk bulk;
 
@@ -39,6 +47,7 @@ public class BulkTest {
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_FTS_ALFRESCO);
         int results = processor.getSuccessfullyProcessedEntries();
+        System.out.printf("Bulk dummy: success: %d fail: %d\n", results, processor.getTotalErrors());
         Assert.assertTrue(results > 0);
     }
 
@@ -56,6 +65,7 @@ public class BulkTest {
                 StoreRef.STORE_REF_WORKSPACE_SPACESSTORE,
                 SearchService.LANGUAGE_FTS_ALFRESCO);
         int results = processor.getSuccessfullyProcessedEntries();
+        System.out.printf("Bulk reindex: success: %d fail: %d\n", results, processor.getTotalErrors());
         Assert.assertTrue("Expects more then 0 successful results",results > 0);
     }
 
