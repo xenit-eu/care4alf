@@ -65,7 +65,10 @@ def includeResource(configuration) {
 def includeUnrolledResource(configuration) {
     def list = []
     configuration.each {
-        list += '@' + it.path
+        //We have to replace the backslashes with forward slashes because on windows the path will just be unseparated.
+        //For example when you have path "C\:Users\Someone\.gradle\caches" it will become "C\:UsersSomeone.gradlecaches"
+        def normalizedPath = it.path.replace("\\", "/")
+        list += '@' + normalizedPath
     }
     return list.join(',')
 }
