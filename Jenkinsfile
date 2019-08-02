@@ -16,6 +16,10 @@ node {
 
     try {
 
+        stage('Setup symlinks') {
+            sh "./setup.sh"
+        }
+
         stage('Testing 5.x') {
             sh "./gradlew clean :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
         }
