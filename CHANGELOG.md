@@ -1,5 +1,8 @@
 # Changelog
 
+## Release 2.1.0 (Unreleased)
+
+
 ## Release 2.0.0 (2019-08-20)
 ### ALFREDOPS
 - [167](https://xenitsupport.jira.com/browse/ALFREDOPS-167): Make browser do locale-independent search
