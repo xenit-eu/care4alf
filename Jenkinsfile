@@ -31,15 +31,6 @@ node {
         stage('Building AMP') {
             sh "./gradlew :c4a-impl:care4alf-5x:amp -PbuildNumber=${buildNr} --continue -i"
             sh "./gradlew :c4a-impl:care4alf-6x:amp -PbuildNumber=${buildNr} --continue -i"
-
-            def artifacts = [
-                    'c4a-impl/5x/build/libs/*.jar',
-                    'c4a-impl/6x/build/libs/*.jar',
-                    'c4a-impl/5x/build/distributions/*.amp',
-                    'c4a-impl/6x/build/distributions/*.amp'
-            ]
-
-            archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
         }
 
         stage('Publishing') {
