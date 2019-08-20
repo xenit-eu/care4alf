@@ -1,6 +1,6 @@
 # Changelog
 
-## Release 1.9.0 (2019-08-20)
+## Release 2.0.0 (2019-08-20)
 ### ALFREDOPS
 - [167](https://xenitsupport.jira.com/browse/ALFREDOPS-167): Make browser do locale-independent search
 - [261](https://xenitsupport.jira.com/browse/ALFREDOPS-261): Update Gradle build
