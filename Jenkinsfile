@@ -1,8 +1,7 @@
 node {
     def buildNr = "SNAPSHOT"
 
-    def publishAmpTask = "publishAmpPublicationToSnapshotRepository"
-    def publishJarTask = "publishMavenJavaPublicationToSnapshotRepository"
+    def publishMavenJavaTask = "publishMavenJavaPublicationToSnapshotRepository"
     def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
 
     stage('Checkout') {
@@ -10,34 +9,33 @@ node {
 
         if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
-            publishAmpTask = "publishAmpPublicationToReleaseRepository"
-            publishJarTask = "publishMavenJavaPublicationToReleaseRepository"
+            publishMavenJavaTask = "publishMavenJavaPublicationToReleaseRepository"
             publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
         }
     }
 
     try {
-         stage('Testing 4.2') {
-            sh "./gradlew clean :c4a-integration-testing:42:integrationTest -PbuildNumber=${buildNr} -i"
+
+        stage('Setup symlinks') {
+            sh "./setup.sh"
         }
 
         stage('Testing 5.x') {
-            sh "./gradlew clean :c4a-integration-testing:5x:integrationTest -PbuildNumber=${buildNr} -i"
+            sh "./gradlew clean :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
+        }
+
+        stage('Testing 6.0') {
+            sh "./gradlew clean :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
         }
 
         stage('Building AMP') {
-            sh "./gradlew :care4alf:ampde -PbuildNumber=${buildNr} --continue -i"
-
-            def artifacts = [
-                    'care4alf/build/libs/*.jar',
-                    'care4alf/build/distributions/*.amp'
-            ]
-
-            archiveArtifacts artifacts: artifacts.join(','), excludes: '**/*-sources.jar'
+            sh "./gradlew :c4a-impl:care4alf-5x:amp -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-6x:amp -PbuildNumber=${buildNr} --continue -i"
         }
 
         stage('Publishing') {
-            sh "./gradlew :care4alf:${publishAmpTask} :care4alf:${publishJarTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-5x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
+            sh "./gradlew :c4a-impl:care4alf-6x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
         }
 
     } catch (err) {

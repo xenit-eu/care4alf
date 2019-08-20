@@ -1,5 +1,17 @@
 # Changelog
 
+## Release 1.9.0 (2019-08-20)
+### ALFREDOPS
+- [167](https://xenitsupport.jira.com/browse/ALFREDOPS-167): Make browser do locale-independent search
+- [261](https://xenitsupport.jira.com/browse/ALFREDOPS-261): Update Gradle build
+- [287](https://xenitsupport.jira.com/browse/ALFREDOPS-287): Shadow embedded dependencies to an internal package
+- [288](https://xenitsupport.jira.com/browse/ALFREDOPS-288): Clean up osgi import packages
+- [289](https://xenitsupport.jira.com/browse/ALFREDOPS-289): Clean up osgi export packages
+- [290](https://xenitsupport.jira.com/browse/ALFREDOPS-290): C4A 2.0: Make sure dummy mail is properly tested
+- [291](https://xenitsupport.jira.com/browse/ALFREDOPS-291): Care4alf can now be built on Windows
+- [293](https://xenitsupport.jira.com/browse/ALFREDOPS-293): Replace deprecated Job interface with new Task interface
+- [295](https://xenitsupport.jira.com/browse/ALFREDOPS-295): Remove Jenkins Archiving & Release
+
 ## Release 1.8.0 (2019-06-26)
 ### DSNYMETQUA
 - [14](https://xenitsupport.jira.com/browse/DSNYMETQUA-14): Fix the scan breaking on database access issues, include these issues as part of the metadata integrity report; add the ability to scan a subset of the repository for testing purposes.

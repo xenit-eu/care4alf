@@ -1,0 +1,263 @@
+plugins {
+    id 'eu.xenit.alfresco' apply false
+    id 'eu.xenit.amp' apply false
+    id 'com.github.johnrengelman.shadow' version '5.1.0' apply false
+}
+
+import com.moowork.gradle.node.NodeExtension
+import com.moowork.gradle.node.variant.VariantBuilder
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+subprojects {
+    apply from: "${project.projectDir}/overrides.gradle"
+
+    apply plugin: 'eu.xenit.alfresco'
+    apply plugin: 'eu.xenit.amp'
+    apply plugin: 'alfresco-dynamic-extension'
+    apply plugin: 'kotlin'
+    apply plugin: 'com.moowork.node'
+    apply plugin: 'de.richsource.gradle.plugins.typescript'
+    apply plugin: 'lesscss'
+    apply plugin: 'maven-publish'
+
+    description = "Care4Alf — The Alfresco Swiss Army Knife"
+
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from "${buildDir}/docs/javadoc"
+    }
+
+    def alfrescoAmp = file("${buildDir}/distributions/${project.name}-${project.version}.amp")
+    task setupArtifacts {
+        artifacts {
+            archives alfrescoAmp, sourceJar, javadocJar
+        }
+    }
+
+    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://artifactory.xenit.eu/artifactory/libs-release'
+            credentials {
+                username property('eu.xenit.artifactory.username')
+                password property('eu.xenit.artifactory.password')
+            }
+        }
+    }
+
+    configurations {
+        // shadowDeps are our dependencies that get included in the bundle, but get shadowed (i.e. the package name gets
+        // rewritten) so as not to pollute the classpath. The flipside is that these can't be part of the public api.
+        // You can't expose a method that has e.g. a HttpClient parameter, because for care4alf (after compilation) that
+        // will be eu.xenit.care4alf.impldeps.org.apache.HttpClient. Any external code that wants to call this public
+        // method will not be able to reach this class and likely try with the regular org.apache.HttpClient. This won't
+        // work, because they're distinct classes from the perspective of Java (despite being identical).
+        // embedDeps is the exception to the above, these are embedded directly in the jar, without rewriting package
+        // names and *can* be used for the public API, at the cost of polluting the classpath.
+        shadowDeps
+        embedDeps
+        compile.extendsFrom shadowDeps
+        compileOnly.extendsFrom embedDeps
+    }
+
+    dependencies {
+        alfrescoProvided(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
+            exclude group: 'maven-plugins'
+        }
+
+        alfrescoProvided group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
+
+        alfrescoProvided("eu.xenit.de:annotations:${deVersion}") { transitive = false }
+        alfrescoProvided("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
+        alfrescoProvided("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
+
+        alfrescoProvided("org.osgi:org.osgi.core:4.3.1")
+
+        shadowDeps('joda-time:joda-time:2.10.3')
+        shadowDeps('org.joda:joda-convert:2.2.1')
+        shadowDeps('javax.transaction:transaction-api:1.1') { transitive = false }
+        shadowDeps('com.googlecode.json-simple:json-simple:1.1')
+        shadowDeps('javax.servlet:servlet-api:2.5')
+        shadowDeps('org.apache.commons:commons-csv:20110211')
+
+        shadowDeps('com.fasterxml.jackson.core:jackson-databind:2.3.2')
+        shadowDeps('org.apache.commons:commons-lang3:3.7')
+        shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+        shadowDeps('commons-codec:commons-codec:1.10')
+
+        if (subproject_alfresco_version == '60') {
+            alfrescoProvided('com.google.guava:guava:24.0-jre')
+        } else {
+            // Alfresco comes bundled with 11.0, so we're risking classpath conflicts and a random choice between our
+            // dependencies here. But Guava is reasonably stable and if we're importing one of the classes that are
+            // added since 11.0, there's only one candidate to import from.
+            embedDeps('com.google.guava:guava:19.0')
+        }
+    }
+
+    lesscss {
+        source = fileTree('src/main/less') {
+            include '**/*.less'
+        }
+        dest = file("${buildDir}/resources/main/")
+        compress = false
+    }
+
+    task relocateDependencies(type: ShadowJar) {
+        archiveClassifier = "shadow"
+        from(sourceSets.main.output)
+        configurations = [project.configurations.shadowDeps]
+    }
+
+    task configureRelocateDependencies(type: ConfigureShadowRelocation) {
+        target = relocateDependencies
+        prefix = "eu.xenit.care4alf.impldep"
+    }
+
+
+    relocateDependencies.dependsOn(configureRelocateDependencies)
+
+    jar {
+        from zipTree(relocateDependencies.outputs.files.singleFile)
+        version = project.version.replace("SNAPSHOT", buildNumber)
+        from(compileTypeScript.outputs)
+
+        bnd(
+                'Alfresco-Dynamic-Extension': 'true',
+                'Bundle-Description': 'Care4Alf: The Alfresco Swiss Army Knife',
+                'Bundle-Name': 'care4alf',
+                'Bundle-SymbolicName': 'eu.xenit.care4alf',
+                'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
+                'DynamicImport-Package': '*',
+                'Include-Resource': includeUnrolledResource(configurations.embedDeps),
+                'Import-Package': 'org.json;version="[0,99999999)",'
+                        + "!${configureRelocateDependencies.prefix}.*,"
+                        + 'com.google.appengine.api;resolution:=optional,'
+                        + 'com.google.apphosting.api;resolution:=optional,'
+                        + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
+                        + "*",
+                'Export-Package': "!${configureRelocateDependencies.prefix}.*"
+                        + ", !eu.xenit.care4alf.web.js.*"
+                        + ", eu.xenit.care4alf.*;-noimport:=true"
+        )
+        dependsOn(relocateDependencies)
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs += 'src/main/java-shared'
+            kotlin.srcDirs += 'src/main/kotlin-shared'
+            amp {
+                dynamicExtension()
+            }
+        }
+    }
+
+    amp {
+        deBundles = jar.outputs.files
+    }
+
+    jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact tasks.amp
+            }
+        }
+        repositories {
+            maven {
+                name 'snapshot'
+                url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
+                credentials {
+                    username property("eu.xenit.artifactory.username")
+                    password property("eu.xenit.artifactory.password")
+                }
+            }
+            maven {
+                name 'release'
+                url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
+                credentials {
+                    username property("eu.xenit.artifactory.username")
+                    password property("eu.xenit.artifactory.password")
+                }
+            }
+        }
+    }
+
+
+// make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
+// instead of 'tsc' command line which is not present on Jenkins server !j
+    def nodeExecutable = {
+        NodeExtension nodeExt = NodeExtension.get(project)
+        return new VariantBuilder(nodeExt).build().nodeExec
+    }
+    node {
+        download = true
+    }
+
+    test {
+        testLogging {
+            events "passed", "skipped", "failed", "standardOut", "standardError"
+        }
+
+        if (project.hasProperty('username')) {
+            systemProperty 'username', project.getProperty('username')
+        }
+
+        if (project.hasProperty('password')) {
+            systemProperty 'password', project.getProperty('password')
+        }
+
+        if (project.hasProperty('alfresco.url')) {
+            systemProperty 'alfresco.url', project.getProperty('alfresco.url')
+        }
+
+        if (project.hasProperty('protocol')) {
+            systemProperty 'protocol', project.getProperty('protocol')
+        }
+
+        if (project.hasProperty('host')) {
+            systemProperty 'host', project.getProperty('host')
+        }
+
+        if (project.hasProperty('port')) {
+            systemProperty 'port', project.getProperty('port')
+        }
+    }
+
+
+    compileTypeScript {
+        sourcemap = false
+        source = 'src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
+        outFile = file("${buildDir}/ts/eu/xenit/care4alf/web/js/care4alf.js")
+
+        compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
+        dependsOn "npmInstall"
+    }
+
+    task configureDELocal {
+        doLast {
+            alfrescoDynamicExtensions.repository.endpoint.protocol = project.hasProperty('protocol') ? project.protocol : 'http'
+            alfrescoDynamicExtensions.repository.endpoint.port = project.hasProperty('port') ? project.port : '8080'
+            alfrescoDynamicExtensions.repository.endpoint.host = project.hasProperty('host') ? project.host : 'localhost'
+        }
+    }
+
+    installBundle.dependsOn(configureDELocal)
+}
+
+
