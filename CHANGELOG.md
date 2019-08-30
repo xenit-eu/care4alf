@@ -1,7 +1,8 @@
 # Changelog
 
 ## Release 2.1.0 (Unreleased)
-
+### ALFREDOPS
+- [308](https://xenitsupport.jira.com/browse/ALFREDOPS-308): Finalize Jenkins run with a `composeDown` task
 
 ## Release 2.0.0 (2019-08-20)
 ### ALFREDOPS

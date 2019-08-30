@@ -43,6 +43,8 @@ node {
         currentBuild.result = "FAILED"
     } finally {
         junit '**/build/**/TEST-*.xml'
+        sh "./gradlew :c4a-test:test-5x:composeDownForced -i"
+        sh "./gradlew :c4a-test:test-6x:composeDownForced -i"
         cleanWs()
     }
 }
