@@ -156,12 +156,12 @@ public class PermissionImportTest {
 
         System.out.println("groups added");
 
-        given().when().multiPart(new File("src/main/resources/permissionimport/test.xlsx")).queryParam("removeFirst", true)
+        given().when().multiPart(new File("../src/main/resources/permissionimport/test.xlsx")).queryParam("removeFirst", true)
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
         checkFoldersPermissions_testxlsx();
 
-        given().when().multiPart(new File("src/main/resources/permissionimport/test2.xlsx")).queryParam("removeFirst", true) // !!
+        given().when().multiPart(new File("../src/main/resources/permissionimport/test2.xlsx")).queryParam("removeFirst", true) // !!
                 .post("/xenit/care4alf/permissionimport/importpermissions").then().statusCode(200);
 
         // should be the same permission sets as we removed the previous one.
@@ -183,7 +183,7 @@ public class PermissionImportTest {
 
     private static void loadTestUsers() throws InterruptedException {
         Response post = given().when()
-                .multiPart(new File("src/main/resources/authorityimporter/ExampleUserUpload.csv"))
+                .multiPart(new File("../src/main/resources/authorityimporter/ExampleUserUpload.csv"))
                 .post("/api/people/upload");
 
         post.then().statusCode(200).contentType(ContentType.JSON).body("data.totalUsers", equalTo(10));
