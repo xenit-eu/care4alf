@@ -5,21 +5,18 @@
 Before you build you have to run setup.sh or setup.bat, depending on your operating system. That script will create
 the necessary symlinks.
 
-Using Gradle, run gradle installBundle to deploy on your local Alfresco. (requires Dynamic Extensions 1.1+)
+Run `./gradlew :c4a-impl:care4alf-5x:assemble` to build a jar for Alfresco 5.0/5.1/5.2 and
+`./gradlew :c4a-impl:care4alf-6x:assemble` for Alfresco 6.0/6.1.
 
-Your JS controller file reference can be added to the main `care4alf.js` file.
+These jars can be deployed on Alfresco with Dynamic Extensions 2.0.1 or later.
 
-Note that node, tsc, lessc are required for development.
+## Test
 
-sudo npm install -g typescript
-sudo npm install -g less
-
-For Windows( make sure both npm and node are in PATH of environment variables):
-
-npm install -g typescript
-npm install -g less
-
-./gradlew installBundle -Pprotocol=http -Phost=localhost -Pport=8080 -Pusername=admin -Ppassword=admin
+You can run the integration tests with `./gradlew :c4a-test:test-5x:integrationTest` for Alfresco 5 and
+`./gradlew :c4a-test:test-6x:integrationTest` for Alfresco 6. The containers will automatically shut down after the
+tests are completed. If you want to run the integration tests several times without always needing to restart the
+containers, use `DOCKER_ALF_PORT=8080 ./gradlew:c4a-test:test-5x:composeUp`, followed by
+`./gradlew :c4a-test:test-5x:integrationTestLocal -Pport=8080`.
 
 ## Extend
 
