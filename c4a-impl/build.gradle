@@ -108,7 +108,7 @@ subprojects {
     }
 
     lesscss {
-        source = fileTree('src/main/less') {
+        source = fileTree('../src/main/less') {
             include '**/*.less'
         }
         dest = file("${buildDir}/resources/main/")
@@ -158,7 +158,9 @@ subprojects {
     sourceSets {
         main {
             java.srcDirs += 'src/main/java-shared'
-            kotlin.srcDirs += 'src/main/kotlin-shared'
+            java.srcDirs += '../src/main/java'
+            kotlin.srcDirs += '../src/main/kotlin'
+            resources.srcDirs += '../src/main/resources'
             amp {
                 dynamicExtension()
             }
@@ -207,6 +209,7 @@ subprojects {
     }
     node {
         download = true
+        nodeModulesDir = file(project(":c4a-impl").projectDir)
     }
 
     test {
@@ -242,10 +245,10 @@ subprojects {
 
     compileTypeScript {
         sourcemap = false
-        source = 'src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
+        source = '../src/main/ts/eu/xenit/care4alf/web/js/care4alf.ts'
         outFile = file("${buildDir}/ts/eu/xenit/care4alf/web/js/care4alf.js")
 
-        compilerExecutable "${nodeExecutable()} ${projectDir}/node_modules/typescript/lib/tsc.js"
+        compilerExecutable "${nodeExecutable()} ${project(":c4a-impl").projectDir}/node_modules/typescript/lib/tsc.js"
         dependsOn "npmInstall"
     }
 

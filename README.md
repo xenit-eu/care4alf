@@ -2,9 +2,6 @@
 
 ## Build
 
-Before you build you have to run setup.sh or setup.bat, depending on your operating system. That script will create
-the necessary symlinks.
-
 Run `./gradlew :c4a-impl:care4alf-5x:assemble` to build a jar for Alfresco 5.0/5.1/5.2 and
 `./gradlew :c4a-impl:care4alf-6x:assemble` for Alfresco 6.0/6.1.
 

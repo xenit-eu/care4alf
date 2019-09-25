@@ -22,14 +22,13 @@ subprojects {
     sourceSets {
         main {
             java {
-                // potentially unnecessary, we don't have java-shared... (for that matter, neither does apix)
-                srcDirs = ['src/integration-test/java-shared', 'src/main/java']
+                srcDirs = ['../src/main/java', 'src/main/java']
                 // This is needed because client side, these dependencies are not really provided
                 runtimeClasspath += configurations.compileOnly
             }
             resources {
                 // potentially unnecessary, we don't have this
-                srcDir "${project.parent.projectDir}/src/integration-test/resources"
+                srcDir "${project.parent.projectDir}/src/main/resources"
             }
         }
     }
