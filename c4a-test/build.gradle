@@ -64,7 +64,7 @@ subprojects {
         compile group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
         compile group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
         compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-        if (subproject_alfresco_version == '60') {
+        if (subproject_alfresco_version == '61') {
             compileOnly group: 'com.google.guava', name: 'guava', version: '24.0-jre'
         } else {
             compile group: 'com.google.guava', name: 'guava', version: '19.0'
@@ -109,6 +109,9 @@ subprojects {
         baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
         alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${de_version}@amp"
         alfrescoAmp project(path: ":c4a-impl:care4alf-${c4a_version}", configuration: 'amp')
+        if (subproject_alfresco_version == '61') {
+            alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.1@amp"
+        }
     }
 
     dockerAlfresco {
