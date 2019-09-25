@@ -97,7 +97,7 @@ subprojects {
         shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
         shadowDeps('commons-codec:commons-codec:1.10')
 
-        if (subproject_alfresco_version == '60') {
+        if (subproject_alfresco_version == '61') {
             alfrescoProvided('com.google.guava:guava:24.0-jre')
         } else {
             // Alfresco comes bundled with 11.0, so we're risking classpath conflicts and a random choice between our
