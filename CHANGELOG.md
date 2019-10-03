@@ -3,6 +3,7 @@
 ## Release 2.1.0 (Unreleased)
 ### ALFREDOPS
 - [308](https://xenitsupport.jira.com/browse/ALFREDOPS-308): Finalize Jenkins run with a `composeDown` task
+- [324](https://xenitsupport.jira.com/browse/ALFREDOPS-324): Update plugins and gradle wrapper
 
 ## Release 2.0.0 (2019-08-20)
 ### ALFREDOPS

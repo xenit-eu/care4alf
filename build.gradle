@@ -32,9 +32,9 @@ buildscript {
 }
 
 plugins {
-    id 'eu.xenit.docker-alfresco' version '4.0.3'
-    id 'eu.xenit.alfresco' version '0.2.0'
-    id 'eu.xenit.amp' version '0.2.0'
+    id 'eu.xenit.docker-alfresco' version '4.1.1'
+    id 'eu.xenit.alfresco' version '1.0.0'
+    id 'eu.xenit.amp' version '1.0.0'
 }
 
 allprojects {
@@ -42,10 +42,10 @@ allprojects {
     group = 'eu.xenit.care4alf'
 }
 
-//task wrapper(type: Wrapper) {
-//    gradleVersion = '5.4.1'
-//    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
-//}
+wrapper {
+    gradleVersion = '5.6.2'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
 
 
 def bundleClassPath(configuration) {
