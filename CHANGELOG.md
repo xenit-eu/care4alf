@@ -1,6 +1,8 @@
 # Changelog
 
 ## Release 2.1.0 (Unreleased)
+### GENERIC
+- Add module.aliases to module.properties to improve the upgrade process
 
 ## Release 2.0.1 (2019-10-30)
 ### ALFREDOPS
