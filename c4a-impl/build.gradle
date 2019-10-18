@@ -191,7 +191,7 @@ allprojects {
                     if (project.name.contains('6x')) {
                         aliasesString += ', eu.xenit.care4alf-5x'
                     }
-                    put("module.aliases", aliasesString)
+                    it.put("module.aliases", aliasesString)
                 }
                 dynamicExtension()
             }
