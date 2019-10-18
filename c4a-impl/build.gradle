@@ -186,6 +186,13 @@ allprojects {
             kotlin.srcDirs += '../src/main/kotlin'
             resources.srcDirs += '../src/main/resources'
             amp {
+                module {
+                    def aliasesString = 'care4alf'
+                    if (project.name.contains('6x')) {
+                        aliasesString += ', eu.xenit.care4alf-5x'
+                    }
+                    put("module.aliases", aliasesString)
+                }
                 dynamicExtension()
             }
         }
