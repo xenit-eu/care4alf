@@ -9,9 +9,34 @@ import com.moowork.gradle.node.variant.VariantBuilder
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+/*
+Beginning of the IntelliJ-helping section.
+These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+During normal use of the collected build scripts, you never actually build any
+artifact that uses the values below and always those from an overrides.gradle.
+The reason these are here at all is to provide information to IntelliJ so that
+it can do good syntax highlighting, because Intellij won't apply the overrides
+when it does highlighting for any Java files in the ./src/main/java directory.
+ */
+ext {
+    subproject_alfresco_version = '51'
+    alfresco_repo_version = '5.1.g'
+    alfresco_remote_api_version = '5.1.g'
+    alfresco_img_version = '5.1'
+    alfresco_dm_version = '6.16'
+    de_version = '2.0.1'
+    http_version = '4.3.3'
+    http_core_version = '4.3.3'
+}
+// Give IntelliJ a default source of non-shared classes
+sourceSets.main.java.srcDirs += "5x/src/main/java"
+/* End of the IntelliJ-helping section. */
+
 subprojects {
     apply from: "${project.projectDir}/overrides.gradle"
+}
 
+allprojects {
     apply plugin: 'eu.xenit.alfresco'
     apply plugin: 'eu.xenit.amp'
     apply plugin: 'alfresco-dynamic-extension'
@@ -157,7 +182,6 @@ subprojects {
 
     sourceSets {
         main {
-            java.srcDirs += 'src/main/java-shared'
             java.srcDirs += '../src/main/java'
             kotlin.srcDirs += '../src/main/kotlin'
             resources.srcDirs += '../src/main/resources'
