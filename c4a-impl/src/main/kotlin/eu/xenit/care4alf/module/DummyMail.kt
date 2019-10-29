@@ -1,6 +1,7 @@
 package eu.xenit.care4alf.module
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*
+import eu.xenit.care4alf.dumbster.smtp.MailMessage
 import eu.xenit.care4alf.json
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
@@ -38,6 +39,8 @@ class DummyMail : InitializingBean, DisposableBean {
             }
         }
     }
+
+    fun getMessages() : List<MailMessage> = smtpServer!!.messages.toList();
 
     @Uri("/list", method = HttpMethod.DELETE)
     fun clearMails() {
