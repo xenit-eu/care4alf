@@ -1,9 +1,10 @@
 # Changelog
 
-## Release 2.1.0 (Unreleased)
+## Release 2.0.1 (Unreleased)
 ### ALFREDOPS
 - [308](https://xenitsupport.jira.com/browse/ALFREDOPS-308): Finalize Jenkins run with a `composeDown` task
 - [324](https://xenitsupport.jira.com/browse/ALFREDOPS-324): Update plugins and gradle wrapper
+- [375](https://xenitsupport.jira.com/browse/ALFREDOPS-375): Fix early socket closure in dummy mail
 
 ## Release 2.0.0 (2019-08-20)
 ### ALFREDOPS
