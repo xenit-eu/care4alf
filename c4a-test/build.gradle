@@ -1,11 +1,34 @@
 import com.github.dynamicextensionsalfresco.gradle.configuration.BaseConfig
 import com.github.dynamicextensionsalfresco.gradle.tasks.InstallBundle
 
+/*
+These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+During normal use of the collected build scripts, you never actually build any
+artifact that uses the values below and always those from an overrides.gradle.
+The reason these are here at all is to provide information to IntelliJ so that
+it can do good syntax highlighting, because Intellij won't apply the overrides
+when it does highlighting for any Java files in the ./src/main/java directory.
+ */
+ext {
+    c4a_dependency = ':c4a-impl'
+    subproject_alfresco_version = '51'
+    alfresco_repo_version = '5.1.g'
+    alfresco_remote_api_version = '5.1.g'
+    alfresco_war = 'alfresco-enterprise:5.1.5'
+    alfresco_img_version = '5.1'
+    alfresco_dm_version = '6.16'
+    de_version = '2.0.1'
+    http_version = '4.3.3'
+    http_core_version = '4.3.3'
+}
 
-subprojects {
+allprojects {
     apply plugin: 'alfresco-dynamic-extension' // Applies aQute bnd plugin for us
     apply plugin: 'eu.xenit.docker-alfresco'
-    apply from: "${project.projectDir}/overrides.gradle"
+
+    if (file("${project.projectDir}/overrides.gradle").exists()) {
+        apply from: "${project.projectDir}/overrides.gradle"
+    }
 
     repositories {
         mavenCentral()
@@ -40,7 +63,7 @@ subprojects {
     }
 
     dependencies {
-        compileOnly project(":c4a-impl:care4alf-${c4a_version}")
+        compileOnly project("${c4a_dependency}")
 
         compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
@@ -108,7 +131,7 @@ subprojects {
     dependencies {
         baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
         alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${de_version}@amp"
-        alfrescoAmp project(path: ":c4a-impl:care4alf-${c4a_version}", configuration: 'amp')
+        alfrescoAmp project(path: "${c4a_dependency}", configuration: 'amp')
         if (subproject_alfresco_version == '61') {
             alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.1@amp"
         }

@@ -1,5 +1,5 @@
 ext {
-    c4a_version = '6x'
+    c4a_dependency = ':c4a-impl:care4alf-6x'
     subproject_alfresco_version = '61'
     alfresco_repo_version = '6.56.4'
     alfresco_remote_api_version = '7.34.1'
