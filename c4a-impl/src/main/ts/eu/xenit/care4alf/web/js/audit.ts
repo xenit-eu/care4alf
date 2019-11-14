@@ -13,7 +13,8 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
         $scope.showBack = false;
         console.log("loading app: " + app);
         let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
-        let fromTimeBit = $scope.fromTime == "" ? "" : "&fromTime=" + $scope.fromTime;
+        let parsedTime = $scope.parseFromTime($scope.fromTime);
+        let fromTimeBit = parsedTime == null ? "" : "&fromTime=" + parsedTime;
         let userFilterBit = $scope.userFilter == "" ? "" : "&user=" + $scope.userFilter
         $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
                 + fromIdBit + fromTimeBit + "&forward=" + $scope.forward + userFilterBit).success(function(data) {
@@ -51,6 +52,22 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
             $scope.query($scope.application, params[1], params[2]);
         }
     };
+
+    $scope.parseFromTime = function(time: string) {
+        if (time == null) {
+            return null;
+        }
+        var m;
+        if (time.match(/^\d{12,13}$/)) {
+            m = moment(parseInt(time, 10))
+        } else {
+            m = moment(time, moment.ISO_8601);
+        }
+        if (m != null && m.isValid()) {
+            return m.valueOf();
+        }
+        return null;
+    }
 
     if($routeParams.subtoken !== undefined) {
         console.log("putting the routeparam in");
