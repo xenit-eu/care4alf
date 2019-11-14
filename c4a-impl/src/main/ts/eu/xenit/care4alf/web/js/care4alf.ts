@@ -2,6 +2,7 @@
 /// <reference path="angular/angular-route.d.ts" />
 /// <reference path="angular/angular-resource.d.ts" />
 /// <reference path="underscore/underscore.d.ts" />
+/// <reference path="moment/moment.d.ts" />
 
 /// <reference path="app.ts" />
 /// <reference path="filters.ts" />
