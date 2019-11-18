@@ -15,6 +15,7 @@ services:
     - DB_URL=jdbc:postgresql://postgresql:5432/alfresco
     - DB_DRIVER=org.postgresql.Driver
     - SOLR_HOST=solr
+    - ALFRESCO_HOST=alfresco-core
     - JAVA_XMS=511M
     - JAVA_XMX=2048M
     - GLOBAL_content.transformer.RemoteJODConverter.endpoint=http://jodconverter:8080/converter/service

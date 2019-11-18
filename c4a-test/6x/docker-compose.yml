@@ -10,6 +10,7 @@ services:
     restart: unless-stopped
     environment:
     - SOLR_HOST=solr
+    - ALFRESCO_HOST=alfresco-core
     - GLOBAL_audit.enabled = true
     - GLOBAL_audit.alfresco-access.enabled=true
     - GLOBAL_audit.alfresco-access.sub-actions.enabled=true

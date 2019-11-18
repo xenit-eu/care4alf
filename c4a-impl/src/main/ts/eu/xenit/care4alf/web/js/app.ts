@@ -25,7 +25,7 @@ var care4alf = angular.module('care4alf', ['ngRoute', 'ngSanitize', 'ngResource'
                         $rootScope.loading = loadOperations > 0;
                         $rootScope.requestError = error.data;
 
-                        if (angular.isDefined(error.data.message)) {
+                        if (error.data != null && angular.isDefined(error.data.message)) {
                             toaster.pop('error', "XHR operation failed", error.data.message);
                         }
 
