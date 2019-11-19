@@ -1,11 +1,8 @@
 package eu.xenit.care4alf.audit
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.alfresco.service.cmr.audit.AuditService.AuditQueryCallback
 import org.alfresco.service.cmr.repository.datatype.DefaultTypeConverter
 import org.alfresco.service.cmr.repository.datatype.TypeConversionException
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
@@ -16,15 +13,8 @@ class DefaultAuditCollector : AuditQueryCallback {
 
     override fun handleAuditEntry(entryId: Long, applicationName: String, user: String?, time: Long,
                                   values: MutableMap<String, Serializable>?): Boolean {
-        var entry = Entry(entryId, applicationName, Date(time), user, null);
-        if (user != null) {
-            entry.user
-        }
-        if (values != null) {
-            val stringvals = values.mapValues { makeString(it.value) }
-            entry.values = stringvals;
-        }
-        entries.add(entry)
+        val stringValues = values?.mapValues { makeString(it.value) }
+        entries.add(Entry(entryId, applicationName, Date(time), user, stringValues))
 
         return true
     }
@@ -45,4 +35,4 @@ data class Entry(val id: Long,
                  val application: String,
                  val time: Date,
                  val user: String?,
-                 var values: Map<String, Serializable>?): Serializable
+                 var values: Map<String, String>?): Serializable

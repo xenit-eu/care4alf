@@ -1,5 +1,6 @@
 package eu.xenit.care4alf.audit;
 
+import static eu.xenit.care4alf.JsonKt.jsonJava;
 import static eu.xenit.care4alf.helpers.UtilHelper.codepointToString;
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
@@ -9,14 +10,12 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.springframework.http.MediaType;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.alfresco.service.cmr.audit.AuditQueryParameters;
 import org.alfresco.service.cmr.audit.AuditService;
 import org.alfresco.service.cmr.audit.AuditService.AuditQueryCallback;
@@ -31,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.extensions.webscripts.Status;
 import org.springframework.extensions.webscripts.WebScriptException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Component
 @WebScript(baseUri = "/xenit/care4alf/audit", families = {"care4alf"}, description = "Audit")
@@ -69,30 +68,24 @@ public class Audit {
         DefaultAuditCollector callback = new DefaultAuditCollector();
         auditService.auditQuery(callback, params, limit);
         List<Entry> entries = callback.getEntries();
-        Map<String, Serializable> result = new HashMap<>();
-        result.put("count", entries.size());
-        result.put("entries", (Serializable) entries);
 
-        return new JsonWriterResolution() {
-            @Override
-            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-                jsonWriter.object()
-                        .key("count").value(entries.size())
-                        .key("entries").array();
-                // loop over each entry
-                for (Entry e : entries) {
-                    jsonWriter.object()
-                            .key("id").value(e.getId())
-                            .key("application").value(e.getApplication())
-                            .key("user").value(e.getUser())
-                            .key("time").value(e.getTime())
-                            .key("values").value(e.getValues())
-                            .endObject();
-                }
-                // write closing braces for array and obj
-                jsonWriter.endArray().endObject();
+        return jsonJava((writer) -> {
+            writer.object()
+                    .key("count").value(entries.size())
+                    .key("entries").array();
+            // loop over each entry
+            for (Entry e : entries) {
+                writer.object()
+                        .key("id").value(e.getId())
+                        .key("application").value(e.getApplication())
+                        .key("user").value(e.getUser())
+                        .key("time").value(e.getTime())
+                        .key("values").value(e.getValues())
+                        .endObject();
             }
-        };
+            // write closing braces for array and obj
+            writer.endArray().endObject();
+        });
     }
 
     @Uri(value = "/id/{application}/{id}", method = HttpMethod.DELETE)
