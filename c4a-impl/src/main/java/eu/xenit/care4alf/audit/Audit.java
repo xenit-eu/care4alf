@@ -1,5 +1,7 @@
 package eu.xenit.care4alf.audit;
 
+import static eu.xenit.care4alf.helpers.UtilHelper.codepointToString;
+
 import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
@@ -7,6 +9,8 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.UriVariable;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.http.MediaType;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -140,10 +144,24 @@ public class Audit {
         }
     }
 
-    public String getNodePath(@RequestParam NodeRef noderef) {
+    public String getNodePath(NodeRef noderef) {
         Path path = nodeService.getPath(noderef);
-        // TODO full replacements
-        String qnamePath = path.toPrefixString(namespaceService).replace("_x0020_", " ");
+        // The qname path contains unicode escape sequences in the form of _x\d{4}_, e.g. _x0020_ for a space
+        // The audit api's filter-by-value also uses qname paths but does NOT include these escape sequences
+        // So we replace all these sequences in the path by their unescaped forms before continuing with the audit
+        String escapedQnamePath = path.toPrefixString(namespaceService);
+        String qnamePath = null;
+
+        Pattern p = Pattern.compile("_x(\\d{4})_");
+        Matcher matcher = p.matcher(escapedQnamePath);
+        while(matcher.find()) {
+            // find the next escape sequence, parse the base-16 number that represents the codepoint
+            int codePoint = Integer.parseInt(matcher.group(1), 16);
+            // convert the codepoint to String and replace the match we just found
+            qnamePath = matcher.replaceFirst(codepointToString(codePoint));
+            // re-initialize the matcher on the new string so we don't keep replacing the same bit
+            matcher = p.matcher(qnamePath);
+        }
         logger.debug("Restricting to value = {}", qnamePath);
         return qnamePath;
     }
