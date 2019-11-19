@@ -142,7 +142,12 @@ public class Audit {
         // The qname path contains unicode escape sequences in the form of _x\d{4}_, e.g. _x0020_ for a space
         // The audit api's filter-by-value also uses qname paths but does NOT include these escape sequences
         // So we replace all these sequences in the path by their unescaped forms before continuing with the audit
-        String escapedQnamePath = path.toPrefixString(namespaceService);
+        String qnamePath = decodeNodePath(path.toPrefixString(namespaceService));
+        logger.debug("Restricting to value = {}", qnamePath);
+        return qnamePath;
+    }
+
+    public static String decodeNodePath(String escapedQnamePath) {
         String qnamePath = null;
 
         Pattern p = Pattern.compile("_x(\\d{4})_");
@@ -155,7 +160,6 @@ public class Audit {
             // re-initialize the matcher on the new string so we don't keep replacing the same bit
             matcher = p.matcher(qnamePath);
         }
-        logger.debug("Restricting to value = {}", qnamePath);
         return qnamePath;
     }
 }

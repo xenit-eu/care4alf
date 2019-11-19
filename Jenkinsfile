@@ -15,6 +15,9 @@ node {
     }
 
     try {
+        stage ('Unit Tests') {
+            sh "./gradlew clean :c4a-impl:test -PbuildNumber=${buildNr} -i"
+        }
 
         stage('Testing 5.x') {
             sh "./gradlew clean :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
