@@ -4,6 +4,9 @@
 ### GENERIC
 - Add module.aliases to module.properties to improve the upgrade process
 
+### ALFREDOPS
+- [382](https://xenitsupport.jira.com/browse/ALFREDOPS-382): Fix Audit filtering on date and on document
+
 ## Release 2.0.1 (2019-10-30)
 ### ALFREDOPS
 - [308](https://xenitsupport.jira.com/browse/ALFREDOPS-308): Finalize Jenkins run with a `composeDown` task

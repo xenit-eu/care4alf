@@ -13,12 +13,21 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
         $scope.showBack = false;
         console.log("loading app: " + app);
         let fromIdBit = $scope.fromId == "" ? "" : "&fromId=" + $scope.fromId;
-        let fromTimeBit = $scope.fromTime == "" ? "" : "&fromTime=" + $scope.fromTime;
+        let parsedTime = $scope.parseFromTime($scope.fromTime);
+        let fromTimeBit = parsedTime == null ? "" : "&fromTime=" + parsedTime;
         let userFilterBit = $scope.userFilter == "" ? "" : "&user=" + $scope.userFilter
-        $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
-                + fromIdBit + fromTimeBit + "&forward=" + $scope.forward + userFilterBit).success(function(data) {
-            $scope.entries = data.entries;
-        });
+        if ($scope.nodeFilter == "") {
+            $http.get("/alfresco/service/api/audit/query" + app + "?verbose=true&limit=" + $scope.limit
+                + fromIdBit + fromTimeBit + "&forward=" + $scope.forward + userFilterBit).success(function (data) {
+                    $scope.entries = data.entries;
+                });
+        } else {
+            let nodeFilterBit = "&noderef=" + $scope.nodeFilter;
+            $http.get("/alfresco/s/xenit/care4alf/audit/node" + app + "?limit=" + $scope.limit + fromIdBit
+                + fromTimeBit + "&forward=" + $scope.forward + userFilterBit + nodeFilterBit).success(function (data) {
+                    $scope.entries = data.entries;
+                });
+        }
     };
 
     $scope.query = function(app: string, key: string, value: string){
@@ -51,6 +60,22 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
             $scope.query($scope.application, params[1], params[2]);
         }
     };
+
+    $scope.parseFromTime = function(time: string) {
+        if (time == null) {
+            return null;
+        }
+        var m;
+        if (time.match(/^\d{12,13}$/)) {
+            m = moment(parseInt(time, 10))
+        } else {
+            m = moment(time, moment.ISO_8601);
+        }
+        if (m != null && m.isValid()) {
+            return m.valueOf();
+        }
+        return null;
+    }
 
     if($routeParams.subtoken !== undefined) {
         console.log("putting the routeparam in");
@@ -99,7 +124,7 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
 
     $scope.deleteEntry = function(app, entry) {
         if ($window.confirm("Are you sure you want to delete entry " + entry.id + " ?")) {
-            $http.delete("/alfresco/s/xenit/care4alf/audit" + app + "/" + entry.id).success(() => {
+            $http.delete("/alfresco/s/xenit/care4alf/audit/id" + app + "/" + entry.id).success(() => {
                 $scope.entries = _.without($scope.entries, entry)
             })
         }
@@ -110,4 +135,5 @@ care4alf.controller('audit', function($scope, $http, $routeParams, $window: Wind
     $scope.fromTime = "";
     $scope.forward = true;
     $scope.userFilter = "";
+    $scope.nodeFilter = "";
 });

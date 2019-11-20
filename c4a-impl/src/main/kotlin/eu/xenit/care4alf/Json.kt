@@ -4,6 +4,7 @@ import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterRes
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution
 import org.json.JSONWriter
 import java.util.*
+import java.util.function.Consumer
 
 /**
  * JSON builder to safely construct JSON hierarchies
@@ -70,6 +71,14 @@ fun json(body: JsonRoot.() -> Unit): Resolution {
     return object : JsonWriterResolution() {
         override fun writeJson(jsonWriter: JSONWriter?) {
             JsonRoot(jsonWriter!!).body()
+        }
+    }
+}
+
+fun jsonJava(body: Consumer<JSONWriter>): Resolution {
+    return object : JsonWriterResolution() {
+        override fun writeJson(jsonWriter: JSONWriter?) {
+            body.accept(jsonWriter!!)
         }
     }
 }
