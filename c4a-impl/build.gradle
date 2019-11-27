@@ -34,6 +34,7 @@ sourceSets.main.java.srcDirs += "5x/src/main/java"
 
 subprojects {
     apply from: "${project.projectDir}/overrides.gradle"
+    apply from: "${rootProject.projectDir}/publish.gradle"
 }
 
 allprojects {
@@ -196,9 +197,20 @@ allprojects {
 
     amp {
         deBundles = jar.outputs.files
+        archiveClassifier = "amp"
     }
 
     jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact tasks.amp
+            }
+        }
+
+    }
 
 
 // make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
