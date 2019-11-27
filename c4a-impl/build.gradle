@@ -74,11 +74,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url 'https://artifactory.xenit.eu/artifactory/libs-release'
-            credentials {
-                username property('eu.xenit.artifactory.username')
-                password property('eu.xenit.artifactory.password')
-            }
+            url 'https://artifacts.alfresco.com/nexus/content/repositories/public'
         }
     }
 
@@ -203,33 +199,6 @@ allprojects {
     }
 
     jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifact tasks.amp
-            }
-        }
-        repositories {
-            maven {
-                name 'snapshot'
-                url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
-                credentials {
-                    username property("eu.xenit.artifactory.username")
-                    password property("eu.xenit.artifactory.password")
-                }
-            }
-            maven {
-                name 'release'
-                url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
-                credentials {
-                    username property("eu.xenit.artifactory.username")
-                    password property("eu.xenit.artifactory.password")
-                }
-            }
-        }
-    }
 
 
 // make typescript use the node plugin (cfr https://github.com/sothmann/typescript-gradle-plugin)
