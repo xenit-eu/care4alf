@@ -50,12 +50,12 @@ allprojects {
     description = "Care4Alf — The Alfresco Swiss Army Knife"
 
     task sourceJar(type: Jar) {
-        classifier = 'sources'
+        archiveClassifier = 'sources'
         from sourceSets.main.allSource
     }
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from "${buildDir}/docs/javadoc"
+        archiveClassifier = 'javadoc'
+        from javadoc
     }
 
     def alfrescoAmp = file("${buildDir}/distributions/${project.name}-${project.version}.amp")
@@ -207,6 +207,8 @@ allprojects {
             mavenJava(MavenPublication) {
                 from components.java
                 artifact tasks.amp
+                artifact tasks.sourceJar
+                artifact tasks.javadocJar
             }
         }
 
