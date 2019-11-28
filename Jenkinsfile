@@ -48,7 +48,7 @@ node {
                         -Ppublish_password=${sonatypePassword} \
                         -PkeyId=DF8285F0 \
                         -Ppassword=${gpgPassPhrase} \
-                        -PsecretKeyRindFile=/var/jenkins_home/secring.gpg"""
+                        -PsecretKeyRingFile=/var/jenkins_home/secring.gpg"""
                     sh "./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToArtifactoryRepository -i"
                 }
             }
