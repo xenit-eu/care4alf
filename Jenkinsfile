@@ -1,17 +1,11 @@
 node {
     def buildNr = "SNAPSHOT"
 
-    def publishMavenJavaTask = "publishMavenJavaPublicationToMavenRepository"
-    def publishAmpTask = "publishAmpPublicationToMavenRepository"
-    def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
-
     stage('Checkout') {
         checkout scm
 
         if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
-            publishMavenJavaTask = "publishMavenJavaPublicationToReleaseRepository"
-            publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
         }
     }
 
