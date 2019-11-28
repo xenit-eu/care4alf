@@ -73,12 +73,8 @@ gradle.taskGraph.whenReady { graph ->
             throw new GradleException('You need to provide signing params in order to sign artifacts')
         }
 
-        def id = project.hasProperty('keyId') ? project.keyId : ''
-        def file = project.hasProperty('secretKeyRingFile') ? project.secretKeyRingFile : ''
-        def password = project.hasProperty('password') ? project.password : ''
-
-        ext."signing.keyId" = id
-        ext."signing.secretKeyRingFile" = file
-        ext."signing.password" = password
+        ext."signing.keyId" = project.findProperty('keyId')
+        ext."signing.secretKeyRingFile" = project.findProperty('secretKeyRingFile')
+        ext."signing.password" =  project.findProperty('password')
     }
 }
