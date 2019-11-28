@@ -1,16 +1,11 @@
 node {
     def buildNr = "SNAPSHOT"
 
-    def publishMavenJavaTask = "publishMavenJavaPublicationToSnapshotRepository"
-    def publishIntegrationJarTask = "publishIntegrationJarPublicationToSnapshotRepository"
-
     stage('Checkout') {
         checkout scm
 
         if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
-            publishMavenJavaTask = "publishMavenJavaPublicationToReleaseRepository"
-            publishIntegrationJarTask = "publishIntegrationJarPublicationToReleaseRepository"
         }
     }
 
@@ -33,8 +28,24 @@ node {
         }
 
         stage('Publishing') {
-            sh "./gradlew :c4a-impl:care4alf-5x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-6x:${publishMavenJavaTask} -PbuildNumber=${buildNr}  --continue -i"
+            def sonatypeCredentials = usernamePassword(
+                credentialsId: 'sonatype',
+                passwordVariable: 'sonatypePassword',
+                usernameVariable: 'sonatypeUsername'
+            );
+            def gpgCredentials = string(credentialsId: 'gpgpassphrase', variable: 'gpgPassPhrase');
+            withCredentials([sonatypeCredentials, gpgCredentials]) {
+                for (project in ['care4alf-5x', 'care4alf-6x']) {
+                    sh """./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToSonatypeRepository -i \
+                        -PbuildNumber=${buildNr} \
+                        -Ppublish_username=${sonatypeUsername} \
+                        -Ppublish_password=${sonatypePassword} \
+                        -PkeyId=DF8285F0 \
+                        -Ppassword=${gpgPassPhrase} \
+                        -PsecretKeyRingFile=/var/jenkins_home/secring.gpg"""
+                    sh "./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToArtifactoryRepository -i"
+                }
+            }
         }
 
     } catch (err) {

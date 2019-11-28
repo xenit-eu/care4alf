@@ -34,6 +34,7 @@ sourceSets.main.java.srcDirs += "5x/src/main/java"
 
 subprojects {
     apply from: "${project.projectDir}/overrides.gradle"
+    apply from: "${rootProject.projectDir}/publish.gradle"
 }
 
 allprojects {
@@ -49,12 +50,12 @@ allprojects {
     description = "Care4Alf — The Alfresco Swiss Army Knife"
 
     task sourceJar(type: Jar) {
-        classifier = 'sources'
+        archiveClassifier = 'sources'
         from sourceSets.main.allSource
     }
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from "${buildDir}/docs/javadoc"
+        archiveClassifier = 'javadoc'
+        from javadoc
     }
 
     def alfrescoAmp = file("${buildDir}/distributions/${project.name}-${project.version}.amp")
@@ -74,11 +75,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url 'https://artifactory.xenit.eu/artifactory/libs-release'
-            credentials {
-                username property('eu.xenit.artifactory.username')
-                password property('eu.xenit.artifactory.password')
-            }
+            url 'https://artifacts.alfresco.com/nexus/content/repositories/public'
         }
     }
 
@@ -200,6 +197,7 @@ allprojects {
 
     amp {
         deBundles = jar.outputs.files
+        archiveClassifier = "amp"
     }
 
     jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
@@ -209,26 +207,11 @@ allprojects {
             mavenJava(MavenPublication) {
                 from components.java
                 artifact tasks.amp
+                artifact tasks.sourceJar
+                artifact tasks.javadocJar
             }
         }
-        repositories {
-            maven {
-                name 'snapshot'
-                url 'https://artifactory.xenit.eu/artifactory/libs-snapshot-local'
-                credentials {
-                    username property("eu.xenit.artifactory.username")
-                    password property("eu.xenit.artifactory.password")
-                }
-            }
-            maven {
-                name 'release'
-                url 'https://artifactory.xenit.eu/artifactory/libs-release-local'
-                credentials {
-                    username property("eu.xenit.artifactory.username")
-                    password property("eu.xenit.artifactory.password")
-                }
-            }
-        }
+
     }
 
 

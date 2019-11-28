@@ -35,8 +35,8 @@ allprojects {
         maven {
             url 'https://artifactory.xenit.eu/artifactory/libs-release'
             credentials {
-                username property("eu.xenit.artifactory.username")
-                password property("eu.xenit.artifactory.password")
+                username findProperty("eu.xenit.artifactory.username") ?: ""
+                password findProperty("eu.xenit.artifactory.password") ?: ""
             }
         }
     }
