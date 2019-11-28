@@ -42,13 +42,14 @@ node {
             def gpgCredentials = string(credentialsId: 'gpgpassphrase', variable: 'gpgPassPhrase');
             withCredentials([sonatypeCredentials, gpgCredentials]) {
                 for (project in ['care4alf-5x', 'care4alf-6x']) {
-                    sh """./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToMavenRepository -i \
+                    sh """./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToSonatypeRepository -i \
                         -PbuildNumber=${buildNr} \
                         -Ppublish_username=${sonatypeUsername} \
                         -Ppublish_password=${sonatypePassword} \
                         -PkeyId=DF8285F0 \
                         -Ppassword=${gpgPassPhrase} \
                         -PsecretKeyRindFile=/var/jenkins_home/secring.gpg"""
+                    sh "./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToArtifactoryRepository -i"
                 }
             }
         }
