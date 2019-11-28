@@ -7,6 +7,9 @@
 ### ALFREDOPS
 - [382](https://xenitsupport.jira.com/browse/ALFREDOPS-382): Fix Audit filtering on date and on document
 
+### SPWPRI
+- [31](https://xenitsupport.jira.com/browse/SPWPRI-31): Publish to Sonatype
+
 ## Release 2.0.1 (2019-10-30)
 ### ALFREDOPS
 - [308](https://xenitsupport.jira.com/browse/ALFREDOPS-308): Finalize Jenkins run with a `composeDown` task
