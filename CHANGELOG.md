@@ -1,11 +1,13 @@
 # Changelog
 
-## Release 2.1.0 (Unreleased)
+## Release 2.1.0 (2019-11-29)
 ### GENERIC
 - Add module.aliases to module.properties to improve the upgrade process
 
 ### ALFREDOPS
 - [382](https://xenitsupport.jira.com/browse/ALFREDOPS-382): Fix Audit filtering on date and on document
+- [324](https://xenitsupport.jira.com/browse/ALFREDOPS-324): Fix building without artifactory credentials
+- [325](https://xenitsupport.jira.com/browse/ALFREDOPS-325): Get commons-csv from Alfresco nexus
 
 ### SPWPRI
 - [31](https://xenitsupport.jira.com/browse/SPWPRI-31): Publish to Sonatype
