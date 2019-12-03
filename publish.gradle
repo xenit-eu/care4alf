@@ -48,15 +48,19 @@ publishing {
     }
 }
 
+static def hasPublish(TaskExecutionGraph graph) {
+    graph.allTasks.any { it.name.startsWith("publish")}
+}
+
 afterEvaluate {
     signing {
-        required { !version.endsWith('SNAPSHOT') && gradle.taskGraph.hasTask("publish") }
+        required { hasPublish(gradle.taskGraph) }
         sign publishing.publications
     }
 }
 
 gradle.taskGraph.whenReady { graph ->
-    if (graph.hasTask(publish)) {
+    if (hasPublish(graph)) {
         if (!project.hasProperty('keyId') || !project.hasProperty('secretKeyRingFile') || !project.hasProperty('password')) {
             throw new GradleException('You need to provide signing params in order to sign artifacts')
         }
