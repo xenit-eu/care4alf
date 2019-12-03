@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 2.1.1 (2019-12-03)
+### ALFREDOPS
+- [390](https://xenitsupport.jira.com/browse/ALFREDOPS-390): Fix signing artifacts
+
 ## Release 2.1.0 (2019-11-29)
 ### GENERIC
 - Add module.aliases to module.properties to improve the upgrade process
