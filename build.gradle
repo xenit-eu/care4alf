@@ -23,7 +23,7 @@ plugins {
 }
 
 allprojects {
-    version = '2.1.2' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
+    version = '2.2.0' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
     group = 'eu.xenit.care4alf'
 }
 

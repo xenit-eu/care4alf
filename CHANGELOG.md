@@ -1,5 +1,7 @@
 # Changelog
 
+## Release 2.2.0 (Unreleased)
+
 ## Release 2.1.2 (2019-12-03)
 ### ALFREDOPS
 - [390](https://xenitsupport.jira.com/browse/ALFREDOPS-390): Fix publishing amp without classifier
