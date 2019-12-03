@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 2.1.2 (2019-12-03)
+### ALFREDOPS
+- [390](https://xenitsupport.jira.com/browse/ALFREDOPS-390): Fix publishing amp without classifier
+
 ## Release 2.1.1 (2019-12-03)
 ### ALFREDOPS
 - [390](https://xenitsupport.jira.com/browse/ALFREDOPS-390): Fix signing artifacts
