@@ -197,7 +197,6 @@ allprojects {
 
     amp {
         deBundles = jar.outputs.files
-        archiveClassifier = "amp"
     }
 
     jar.dependsOn(['cleanCompileTypeScript', 'compileTypeScript', 'lesscss'])
@@ -211,7 +210,6 @@ allprojects {
                 artifact tasks.javadocJar
             }
         }
-
     }
 
 
