@@ -10,16 +10,19 @@ node {
     }
 
     try {
-        stage ('Unit Tests') {
+        stage('Unit Tests') {
             sh "./gradlew clean :c4a-impl:test -PbuildNumber=${buildNr} -i"
         }
 
-        stage('Testing 5.x') {
-            sh "./gradlew clean :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
-        }
-
-        stage('Testing 6.0') {
-            sh "./gradlew clean :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
+        stage('Integration Tests') {
+            parallel (
+                'Testing 5.x': {
+                    sh "./gradlew :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
+                },
+                'Testing 6.x': {
+                    sh "./gradlew :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
+                }
+            )
         }
 
         stage('Building AMP') {
