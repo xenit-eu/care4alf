@@ -45,18 +45,6 @@ publishing {
                 password = project.findProperty('publish_password') ?: ''
             }
         }
-        // Artifactory
-        maven {
-            name = 'Artifactory'
-            def releasesRepoUrl = "https://artifactory.xenit.eu/artifactory/libs-release-local"
-            def snapshotsRepoUrl = "https://artifactory.xenit.eu/artifactory/libs-snapshot-local"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-
-            credentials {
-                username = project.findProperty('eu.xenit.artifactory.username') ?: ''
-                password = project.findProperty('eu.xenit.artifactory.password') ?: ''
-            }
-        }
     }
 }
 
