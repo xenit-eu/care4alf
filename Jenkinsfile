@@ -31,21 +31,23 @@ node {
         }
 
         stage('Publishing') {
-            def sonatypeCredentials = usernamePassword(
-                credentialsId: 'sonatype',
-                passwordVariable: 'sonatypePassword',
-                usernameVariable: 'sonatypeUsername'
-            );
-            def gpgCredentials = string(credentialsId: 'gpgpassphrase', variable: 'gpgPassPhrase');
-            withCredentials([sonatypeCredentials, gpgCredentials]) {
-                for (project in ['care4alf-5x', 'care4alf-6x']) {
-                    sh """./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToSonatypeRepository -i \
-                        -PbuildNumber=${buildNr} \
-                        -Ppublish_username=${sonatypeUsername} \
-                        -Ppublish_password=${sonatypePassword} \
-                        -PkeyId=DF8285F0 \
-                        -Ppassword=${gpgPassPhrase} \
-                        -PsecretKeyRingFile=/var/jenkins_home/secring.gpg"""
+            if (env.BRANCH_NAME == "release") {
+                def sonatypeCredentials = usernamePassword(
+                        credentialsId: 'sonatype',
+                        passwordVariable: 'sonatypePassword',
+                        usernameVariable: 'sonatypeUsername'
+                );
+                def gpgCredentials = string(credentialsId: 'gpgpassphrase', variable: 'gpgPassPhrase');
+                withCredentials([sonatypeCredentials, gpgCredentials]) {
+                    for (project in ['care4alf-5x', 'care4alf-6x']) {
+                        sh """./gradlew :c4a-impl:${project}:publishMavenJavaPublicationToSonatypeRepository -i \
+                            -PbuildNumber=${buildNr} \
+                            -Ppublish_username=${sonatypeUsername} \
+                            -Ppublish_password=${sonatypePassword} \
+                            -PkeyId=DF8285F0 \
+                            -Ppassword=${gpgPassPhrase} \
+                            -PsecretKeyRingFile=/var/jenkins_home/secring.gpg"""
+                    }
                 }
             }
         }

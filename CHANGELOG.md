@@ -1,6 +1,8 @@
 # Changelog
 
 ## Release 2.2.0 (Unreleased)
+### ALFREDOPS
+- [391](https://xenitsupport.jira.com/browse/ALFREDOPS-391): Parallelize Jenkins build
 
 ## Release 2.1.2 (2019-12-03)
 ### ALFREDOPS
