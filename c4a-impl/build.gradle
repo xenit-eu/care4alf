@@ -118,15 +118,6 @@ allprojects {
         shadowDeps('org.apache.commons:commons-lang3:3.7')
         shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
         shadowDeps('commons-codec:commons-codec:1.10')
-
-        if (subproject_alfresco_version == '61') {
-            alfrescoProvided('com.google.guava:guava:24.0-jre')
-        } else {
-            // Alfresco comes bundled with 11.0, so we're risking classpath conflicts and a random choice between our
-            // dependencies here. But Guava is reasonably stable and if we're importing one of the classes that are
-            // added since 11.0, there's only one candidate to import from.
-            embedDeps('com.google.guava:guava:19.0')
-        }
     }
 
     lesscss {
@@ -168,6 +159,7 @@ allprojects {
                         + "!${configureRelocateDependencies.prefix}.*,"
                         + 'com.google.appengine.api;resolution:=optional,'
                         + 'com.google.apphosting.api;resolution:=optional,'
+                        + 'com.google.common.reflect;resolution:=optional,'
                         + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
                         + "*",
                 'Export-Package': "!${configureRelocateDependencies.prefix}.*"
