@@ -31,7 +31,7 @@ import java.util.Properties;
 public class CachesMetrics extends AbstractMonitoredSource implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(CachesMetrics.class);
     private ApplicationContext ctx;
-    private Map<String, SimpleCache> monitoredCaches;
+    private Map<String, SimpleCache<?, ?>> monitoredCaches;
 
     @Autowired()
     @Qualifier("global-properties")
@@ -49,7 +49,7 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         }
 
         Map<String, Long> metrics = new HashMap<>();
-        for (Map.Entry<String, SimpleCache> cacheEntry:
+        for (Map.Entry<String, SimpleCache<?, ?>> cacheEntry:
              monitoredCaches.entrySet()) {
             try {
                 metrics.putAll(getMonitoringMetrics(cacheEntry.getKey(), cacheEntry.getValue()));
@@ -80,42 +80,42 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         return cacheProps;
     }
 
-    public Map<String, Long> getMonitoringMetrics(String cacheName, SimpleCache cache) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public Map<String, Long> getMonitoringMetrics(String cacheName, SimpleCache<?, ?> cache) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Map<String, Long> metrics = new HashMap<>();
         metrics.putAll(getCacheProperties(cacheName));
-        String cacheType = cache.getClass().getName();
         metrics.put(buildKey(cacheName, "size"), Long.valueOf(cache.getKeys().size()));
-        if ("org.alfresco.repo.cache.DefaultSimpleCache".equals(cacheType)){
-            metrics.putAll(getDefaultSimpleCacheStats(cacheName, (DefaultSimpleCache) cache));
+        if (cache instanceof DefaultSimpleCache<?, ?>) {
+            metrics.putAll(getDefaultSimpleCacheStats(cacheName, (DefaultSimpleCache<?, ?>) cache));
             metrics.put(buildKey(cacheName, "type"), 1L);
         }else{
-            logger.debug("Ignoring cache " + cacheName + " of type " + cacheType);
+            logger.debug("Ignoring cache " + cacheName + " of type " + cache.getClass().getName());
             metrics.put(buildKey(cacheName, "type"), -1L);
         }
         return metrics;
     }
 
 
-    private Map<String, Long> getDefaultSimpleCacheStats(String cacheName, DefaultSimpleCache cache) throws NoSuchFieldException, IllegalAccessException {
+    // These cache stats are gathered using reflection, therefore more fragile, hence exceptions don't propagate
+    private Map<String, Long> getDefaultSimpleCacheStats(String cacheName, DefaultSimpleCache<?, ?> wrappedCache) {
         Map<String, Long> metrics = new HashMap<>();
 
         try {
-            final Field cacheField = cache.getClass().getDeclaredField("cache");
+            final Field cacheField = wrappedCache.getClass().getDeclaredField("cache");
             cacheField.setAccessible(true);
-            final Object realCacheObject = cacheField.get(cache);
+            final Object unwrappedCacheObj = cacheField.get(wrappedCache);
             try {
-                final Cache realCache = (Cache) realCacheObject;
-                final CacheStats stats = realCache.stats();
+                final Cache<?, ?> unwrappedCache = (Cache<?, ?>) unwrappedCacheObj;
+                final CacheStats stats = unwrappedCache.stats();
 
-                metrics.put(buildKey(cacheName, "nbGets"), Long.valueOf(stats.requestCount()));
-                metrics.put(buildKey(cacheName, "nbPuts"), Long.valueOf(stats.loadCount()));
-                metrics.put(buildKey(cacheName, "nbHits"), Long.valueOf(stats.hitCount()));
-                metrics.put(buildKey(cacheName, "nbMiss"), Long.valueOf(stats.missCount()));
-                metrics.put(buildKey(cacheName, "nbEvictions"), Long.valueOf(stats.evictionCount()));
+                metrics.put(buildKey(cacheName, "nbGets"), stats.requestCount());
+                metrics.put(buildKey(cacheName, "nbPuts"), stats.loadCount());
+                metrics.put(buildKey(cacheName, "nbHits"), stats.hitCount());
+                metrics.put(buildKey(cacheName, "nbMiss"), stats.missCount());
+                metrics.put(buildKey(cacheName, "nbEvictions"), stats.evictionCount());
             } catch (ClassCastException cce) {
                 logger.warn("Exception while trying to cast cache , issue might be related to guava version :", cce);
             }
-        }catch (NoSuchFieldException|NoClassDefFoundError e){
+        }catch (NoSuchFieldException | NoClassDefFoundError | IllegalAccessException e){
             // This field got introduced in Alfresco 5.x, ignore this exception
             logger.debug("Skipping cache statistics collection: unsopported Alfresco version");
         }
@@ -127,7 +127,7 @@ public class CachesMetrics extends AbstractMonitoredSource implements Applicatio
         monitoredCaches = new HashMap<>();
         String[] allCacheBeanNames = ctx.getBeanNamesForType(SimpleCache.class, false, false);
         for (int i=0; i < allCacheBeanNames.length; i++){
-            SimpleCache cache = ctx.getBean(allCacheBeanNames[i], SimpleCache.class);
+            SimpleCache<?, ?> cache = ctx.getBean(allCacheBeanNames[i], SimpleCache.class);
             if (!(cache instanceof TransactionalCache)){
                 monitoredCaches.put(allCacheBeanNames[i], cache);
             }
