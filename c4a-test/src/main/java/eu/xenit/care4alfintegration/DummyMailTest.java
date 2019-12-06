@@ -3,6 +3,7 @@ package eu.xenit.care4alfintegration;
 import eu.xenit.care4alf.module.DummyMail;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
+import java.util.Objects;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,9 @@ public class DummyMailTest {
         mailer.send(message);
 
         Assert.assertTrue("Mailstore contains test email",
-                dummyMail.getMessages().stream().anyMatch(m -> m.getFirstHeaderValue("Subject").equals(TEST)));
+                dummyMail.getMessages().stream()
+                        .filter(Objects::nonNull)
+                        .anyMatch(m -> TEST.equals(m.getFirstHeaderValue("Subject"))));
 
     }
 }

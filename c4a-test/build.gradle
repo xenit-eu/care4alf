@@ -90,7 +90,7 @@ allprojects {
         if (subproject_alfresco_version == '61') {
             compileOnly group: 'com.google.guava', name: 'guava', version: '24.0-jre'
         } else {
-            compile group: 'com.google.guava', name: 'guava', version: '19.0'
+            compileOnly group: 'com.google.guava', name: 'guava', version: '11.0.2'
         }
     }
     jar {
