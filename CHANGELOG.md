@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 2.1.3 (2019-12-06)
+### ALFREDOPS
+- [399](https://xenitsupport.jira.com/browse/ALFREDOPS-399): Fix missing cache metrics due to guava classpath conflicts
+
 ## Release 2.1.2 (2019-12-03)
 ### ALFREDOPS
 - [390](https://xenitsupport.jira.com/browse/ALFREDOPS-390): Fix publishing amp without classifier
