@@ -294,6 +294,11 @@ public class Bulk implements ApplicationContextAware {
             }
         }
 
+        logger.debug("Type: ‘{}’; Workspace: ‘{}’; Query: ‘{}’; Batchsize: ‘{}’; Threads: ‘{}’; Batchnumber: ‘{}’; "
+                        + "MaxLag: ‘{}’; DisableAuditablePolicies: ‘{}’; Parameters: ‘{}’; IncludeCsvParam: ‘{}’;",
+                type, workspace, query, batchsize, threads, nbBatches, maxLag, disableAuditablePolicies, parameters,
+                includeCsvParam);
+
         BetterBatchProcessor<NodeRef> processor = null;
         try{
             if (disableAuditablePolicies){
