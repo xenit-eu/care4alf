@@ -3,6 +3,7 @@
 ## Release 2.2.0 (Unreleased)
 ### ALFREDOPS
 - [391](https://xenitsupport.jira.com/browse/ALFREDOPS-391): Parallelize Jenkins build
+- [395](https://xenitsupport.jira.com/browse/ALFREDOPS-395): Bulk Module: Add "Disable Auditable Policies" to File and Metadata mode
 
 ## Release 2.1.3 (2019-12-06)
 ### ALFREDOPS
