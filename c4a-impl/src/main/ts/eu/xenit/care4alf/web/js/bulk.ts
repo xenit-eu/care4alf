@@ -89,8 +89,7 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
         return json;
     };
 
-
-    $scope.executeFileOrMetadata = (executionType) => {
+    $scope.executeBulk = (executionType) => {
         $scope.loading = true;
         let callInfo =
             $http({
@@ -100,14 +99,16 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     'Content-Type': 'multipart/form-data'
                 },
                 data: {
-                    type: executionType, // Should be 'file' or 'metadata'
+                    type: executionType, // 'search', 'file', or 'metadata
+                    workspace: $scope.form.store,
+                    query: $scope.form.query,
                     file: $scope.form.file,
                     batchsize: $scope.form.batchsize,
                     threads: $scope.form.threads,
                     batchnumber: $scope.form.batchnumber,
                     maxlag: $scope.form.maxlag,
-                    disableauditablepolicies : $scope.form.disableauditablepolicies,
-                    includecsvparam : $scope.form.includecsvparam,
+                    disableauditablepolicies: $scope.form.disableauditablepolicies,
+                    includecsvparam: $scope.form.includecsvparam,
                     parameters: actionParameters()
                 },
                 transformRequest: function (data, headersGetter) {
@@ -122,56 +123,14 @@ care4alf.controller('bulk', ($scope, $http:ng.IHttpService, $timeout) => {
                     return formData;
                 }
             })
-                .success(function (data) {
-                    $scope.result = data;
-                    $scope.loading = false;
-                })
-                .error(function (data, status) {
-                    $scope.result = "Error: " + data;
-                    $scope.loading = false;
-                });
-    };
-
-    $scope.executeSearch = () => {
-        $scope.loading = true;
-        let callInfo =
-            $http({
-                method: 'POST',
-                url: "bulk/form/action/" + $scope.form.action,
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
-                data: {
-                    type: 'search',
-                    workspace: $scope.form.store,
-                    query: $scope.form.query,
-                    batchsize: $scope.form.batchsize,
-                    threads: $scope.form.threads,
-                    batchnumber: $scope.form.batchnumber,
-                    maxlag: $scope.form.maxlag,
-                    disableauditablepolicies : $scope.form.disableauditablepolicies,
-                    parameters: actionParameters()
-                },
-                transformRequest: function (data, headersGetter) {
-                    var formData = new FormData();
-                    angular.forEach(data, function (value, key) {
-                        formData.append(key, value);
-                    });
-
-                    var headers = headersGetter();
-                    delete headers['Content-Type'];
-
-                    return formData;
-                }
+            .success(function (data) {
+                $scope.result = data;
+                $scope.loading = false;
             })
-                .success(function (data) {
-                    $scope.result = data;
-                    $scope.loading = false;
-                })
-                .error(function (data, status) {
-                    $scope.result = "Error: " + data;
-                    $scope.loading = false;
-                });
+            .error(function (data, status) {
+                $scope.result = "Error: " + data;
+                $scope.loading = false;
+            });
     };
 
 });
