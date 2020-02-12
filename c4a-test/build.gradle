@@ -41,6 +41,10 @@ allprojects {
         }
     }
 
+    compileJava {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
 
     sourceSets {
         main {
@@ -92,6 +96,10 @@ allprojects {
         } else {
             compileOnly group: 'com.google.guava', name: 'guava', version: '11.0.2'
         }
+
+        compile "javax.xml.bind:jaxb-api-osgi:2.2.7"
+        compile "org.glassfish.hk2:osgi-resource-locator:1.0.1"
+
     }
     jar {
         bnd(
