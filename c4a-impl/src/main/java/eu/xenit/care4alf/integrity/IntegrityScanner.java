@@ -7,6 +7,7 @@ import com.github.dynamicextensionsalfresco.schedule.Task;
 import eu.xenit.care4alf.Config;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -379,7 +380,10 @@ public class IntegrityScanner implements Task {
                     report.addFileProblem(new FileEncodingProblem(absolutePath(contentData), encoding, noderef));
                 }
                 if (hasRead > 0) {
-                    buffer.rewind();
+                    // This strange cast is needed for compatibility with java 9 and higher, otherwise we get
+                    // java.lang.NoSuchMethodError: java.nio.ByteBuffer.limit()Ljava/nio/ByteBuffer;
+                    // See https://github.com/apache/felix/pull/114 for an explanation
+                    ((Buffer)buffer).rewind();
                     CharsetDecoder decoder = Charset.forName(encoding).newDecoder()
                             .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT);
                     CharBuffer uselessBuffer = CharBuffer.allocate(BUFFER_SIZE);
