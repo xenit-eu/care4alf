@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 
+
 /**
  * Created by willem on 1/19/17.
  */
@@ -22,5 +23,6 @@ public class LicenseMetricsTest {
     public void testLicenseValid() {
         Assert.assertTrue(licenseMetrics.getMonitoringMetrics().containsKey("license.valid"));
     }
+
 
 }
