@@ -72,7 +72,7 @@ public class LicenseMetric extends AbstractMonitoredSource {
         }
     }
 
-    public class LicenseInfo {
+    public static class LicenseInfo {
         private Integer remainingDays;
         private String validUntil;
         private String holderOrganisation;
