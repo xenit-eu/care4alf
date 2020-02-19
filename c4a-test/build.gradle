@@ -24,6 +24,7 @@ ext {
 
 allprojects {
     apply plugin: 'alfresco-dynamic-extension' // Applies aQute bnd plugin for us
+    apply plugin: 'eu.xenit.docker-compose'
     apply plugin: 'eu.xenit.docker-alfresco'
 
     if (file("${project.projectDir}/overrides.gradle").exists()) {
@@ -155,7 +156,6 @@ allprojects {
 
     def composeUpTask = project.tasks.getByName("composeUp")
     def composeDownTask = project.tasks.getByName("composeDown")
-
 
     task configureDE {
         dependsOn composeUpTask
