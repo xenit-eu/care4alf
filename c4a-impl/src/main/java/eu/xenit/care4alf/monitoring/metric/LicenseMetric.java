@@ -4,16 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
-import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
-import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
 import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.admin.RepoAdminService;
 import org.alfresco.service.license.LicenseDescriptor;
 import org.alfresco.service.license.LicenseService;
-import org.json.JSONException;
-import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -64,36 +60,6 @@ public class LicenseMetric extends AbstractMonitoredSource {
         return map;
     }
 
-//    @Uri(value="/xenit/care4alf/monitoring/license")
-//    public Resolution getLicenseInfo(){
-//        if(licenseService == null ||licenseService.getLicense() == null)
-//            return new JsonWriterResolution() {
-//                @Override
-//                protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-//                    jsonWriter.object();
-//                    jsonWriter.endObject();
-//                }
-//            };
-//
-//        final LicenseDescriptor license = licenseService.getLicense();
-//        final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
-//        return new JsonWriterResolution() {
-//            @Override
-//            protected void writeJson(JSONWriter jsonWriter) throws JSONException {
-//                jsonWriter.object();
-//                jsonWriter.key("days").value(license.getRemainingDays());
-//                if (license.getValidUntil() != null ) {
-//                    jsonWriter.key("valid.until").value(sdf.format(license.getValidUntil()));
-//                } else {
-//                    jsonWriter.key("valid.until").value(null);
-//                }
-//                jsonWriter.key("license.holder").value(license.getHolderOrganisation());
-//                jsonWriter.key("cluster").value(license.isClusterEnabled());
-//                jsonWriter.endObject();
-//            }
-//        };
-//    }
-
     @Uri(value="/xenit/care4alf/monitoring/license", defaultFormat = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public LicenseInfo getLicenseInfo(){
@@ -104,47 +70,46 @@ public class LicenseMetric extends AbstractMonitoredSource {
             return new LicenseInfo(license.getRemainingDays(), license.getValidUntil(), license.getHolderOrganisation(),
                     license.isClusterEnabled());
         }
-
     }
 
-    public final class LicenseInfo {
-        @JsonProperty("days")
+    public class LicenseInfo {
         private Integer remainingDays;
-        @JsonProperty("valid.until")
         private String validUntil;
-        @JsonProperty("license.holder")
         private String holderOrganisation;
-        @JsonProperty("cluster")
         private boolean clusterEnabled;
 
-        private LicenseInfo(Integer remainingDays, Date validUntil, String holderOrganisation, boolean clusterEnabled){
-            this.remainingDays = remainingDays;
+        public LicenseInfo(Integer remainingDays, Date validUntil, String holderOrganisation, boolean clusterEnabled){
             if (validUntil != null) {
                 final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
                 this.validUntil = sdf.format(validUntil);
+                this.remainingDays = remainingDays;
             } else {
-                this.validUntil = null;
+                // This clause catches a perpetual license.
+                // Normal Alfresco behaviour would be to return null for both fields.
+                // Now hardcoded to 9999 to avoid unnecessary alerts.
+                this.validUntil = "perpetual";
+                this.remainingDays = 9999;
             }
             this.holderOrganisation = holderOrganisation;
             this.clusterEnabled = clusterEnabled;
         }
 
+        @JsonProperty("days")
         public Integer getRemainingDays() {
             return remainingDays;
         }
-
+        @JsonProperty("valid.until")
         public String getValidUntil() {
             return validUntil;
         }
-
+        @JsonProperty("license.holder")
         public String getHolderOrganisation () {
             return holderOrganisation;
         }
-
+        @JsonProperty("cluster")
         public boolean isClusterEnabled () {
             return clusterEnabled;
         }
     }
-
 }
 
