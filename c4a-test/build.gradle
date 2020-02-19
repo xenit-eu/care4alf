@@ -119,6 +119,7 @@ allprojects {
                         + '!com.google.apphosting.api,'
                         + '!com.google.gson,'
                         + '!com.thoughtworks.xstream,'
+                        + '!org.codehaus.jackson.*,'
                         // These are the fault of groovy
                         + '!org.apache.commons.cli,'
                         + '!org.apache.ivy.*,'
