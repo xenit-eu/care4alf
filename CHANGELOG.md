@@ -1,5 +1,22 @@
 # Changelog
 
+## Realease 2.2.1 (Unreleased)
+
+## Release 2.2.0 (2020-02-20)
+### GENERIC
+- Upgraded Gradle plugin to v5.0.2
+- Changed com.fasterxml.jackson.core:jackson-databind:2.3.2 from shadowDeps to alfrescoProvided
+
+### ALFREDOPS
+- [391](https://xenitsupport.jira.com/browse/ALFREDOPS-391): Parallelize Jenkins build
+- [395](https://xenitsupport.jira.com/browse/ALFREDOPS-395): Bulk Module: Add "Disable Auditable Policies" to File and Metadata mode
+- [432](https://xenitsupport.jira.com/browse/ALFREDOPS-432): Fix Java 8 and 11 compatibility
+- [431](https://xenitsupport.jira.com/browse/ALFREDOPS-431): Fix dummymail configuration instructions
+- [433](https://xenitsupport.jira.com/browse/ALFREDOPS-433): PermissionImport: CompanyHome permissions aren't removed when using removeFirst=true
+
+### USGNL
+- [773](https://xenitsupport.jira.com/browse/USGNLSLA-773): Added support for perpetual licenses
+
 ## Release 2.1.3 (2019-12-06)
 ### ALFREDOPS
 - [399](https://xenitsupport.jira.com/browse/ALFREDOPS-399): Fix missing cache metrics due to guava classpath conflicts

@@ -100,6 +100,7 @@ allprojects {
         }
 
         alfrescoProvided group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
+        alfrescoProvided('com.fasterxml.jackson.core:jackson-databind:2.3.2')
 
         alfrescoProvided("eu.xenit.de:annotations:${deVersion}") { transitive = false }
         alfrescoProvided("eu.xenit.de:annotations-runtime:${deVersion}") { transitive = false }
@@ -114,10 +115,11 @@ allprojects {
         shadowDeps('javax.servlet:servlet-api:2.5')
         shadowDeps('org.apache.commons:commons-csv:20110211')
 
-        shadowDeps('com.fasterxml.jackson.core:jackson-databind:2.3.2')
         shadowDeps('org.apache.commons:commons-lang3:3.7')
         shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
         shadowDeps('commons-codec:commons-codec:1.10')
+
+        testImplementation "org.mockito:mockito-core:3.2.4"
     }
 
     lesscss {
