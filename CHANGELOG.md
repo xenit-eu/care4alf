@@ -1,6 +1,8 @@
 # Changelog
 
-## Release 2.2.0 (Unreleased)
+## Realease 2.2.1 (Unreleased)
+
+## Release 2.2.0 (2020-02-20)
 ### GENERIC
 - Upgraded Gradle plugin to v5.0.2
 - Changed com.fasterxml.jackson.core:jackson-databind:2.3.2 from shadowDeps to alfrescoProvided
