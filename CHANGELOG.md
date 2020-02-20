@@ -1,6 +1,8 @@
 # Changelog
+## Release 2.2.2 (Unreleased)
 
-## Realease 2.2.1 (Unreleased)
+## Release 2.2.1 (2020-02-20)
+- [443](https://xenitsupport.jira.com/browse/ALFREDOPS-443): Removed obsolete <tt> tags for javadoc
 
 ## Release 2.2.0 (2020-02-20)
 ### GENERIC
