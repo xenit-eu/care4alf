@@ -120,9 +120,9 @@ public class BetterBatchProcessor<T> implements BatchMonitor
      * @param batchSize
      *            the number of entries we process at a time in a transaction
      * @param applicationEventPublisher
-     *            the application event publisher (may be <tt>null</tt>)
+     *            the application event publisher (may be <code>null</code>)
      * @param logger
-     *            the logger to use (may be <tt>null</tt>)
+     *            the logger to use (may be <code>null</code>)
      * @param loggingInterval
      *            the number of entries to process before reporting progress
      * @param solrAdmin
