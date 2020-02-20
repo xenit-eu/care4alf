@@ -2,20 +2,18 @@ package eu.xenit.care4alf.permissionimport.writer;
 
 import eu.xenit.care4alf.AuthorityHelper;
 import eu.xenit.care4alf.permissionimport.reader.PermissionSetting;
+import java.util.Arrays;
+import java.util.List;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.model.Repository;
 import org.alfresco.service.cmr.model.FileFolderService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.AccessPermission;
 import org.alfresco.service.cmr.security.AuthorityService;
 import org.alfresco.service.cmr.security.PermissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class PermissionWriter {
 
@@ -39,18 +37,20 @@ public class PermissionWriter {
     }
 
 
+    /**
+     * Removed all the locally set permissions on a node by path.
+     * Does not touch inheritance.
+     * @param path The path of the node
+     */
     public void removePermissions(String[] path) {
-        if (path == null || path.length == 0)  {
+        if (path == null) {
             return;
         }
         LOG.debug("Remove all permissions for Path: " + Arrays.toString(path));
         NodeRef nodeRef = folderNodeRef(path);
-        permissionService.setInheritParentPermissions(nodeRef, true);
-        for (AccessPermission perm : permissionService.getAllSetPermissions(nodeRef)) {
-            permissionService.clearPermission(nodeRef, perm.getAuthority());
-        }
+        permissionService.deletePermissions(nodeRef);
     }
-    
+
     public void write(PermissionSetting permissionSetting) {
         if (permissionSetting.getPath() == null) {
             LOG.error("The path is null");
@@ -81,11 +81,9 @@ public class PermissionWriter {
     }
 
     /**
-     * returns the folder noderef based on path. If folder does not exists it is
-     * created.
-     * 
-     * @param path
-     *            of folder
+     * returns the folder noderef based on path. If folder does not exists it is created.
+     *
+     * @param path of folder
      * @return NodeRef of folder
      */
     private NodeRef folderNodeRef(String[] path) {

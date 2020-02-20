@@ -10,6 +10,7 @@
 - [395](https://xenitsupport.jira.com/browse/ALFREDOPS-395): Bulk Module: Add "Disable Auditable Policies" to File and Metadata mode
 - [432](https://xenitsupport.jira.com/browse/ALFREDOPS-432): Fix Java 8 and 11 compatibility
 - [431](https://xenitsupport.jira.com/browse/ALFREDOPS-431): Fix dummymail configuration instructions
+- [433](https://xenitsupport.jira.com/browse/ALFREDOPS-433): PermissionImport: CompanyHome permissions aren't removed when using removeFirst=true
 
 ### USGNL
 - [773](https://xenitsupport.jira.com/browse/USGNLSLA-773): Added support for perpetual licenses
