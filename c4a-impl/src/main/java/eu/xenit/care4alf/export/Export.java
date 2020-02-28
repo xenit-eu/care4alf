@@ -441,6 +441,9 @@ public class Export {
      *
      * This version of the function rectifies that by being aware of the user-configured separator as well as
      * considering semicolon a separator by default.
+     * @param str data string
+     * @param separator column separator
+     * @return Returns data string in which separator strings are surrounded with quotes
      */
     public String escapeCsv(String str, String separator) {
         char[] searchChars;
