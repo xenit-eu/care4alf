@@ -162,6 +162,8 @@ allprojects {
                         + 'com.google.appengine.api;resolution:=optional,'
                         + 'com.google.apphosting.api;resolution:=optional,'
                         + 'com.google.common.reflect;resolution:=optional,'
+                        + 'com.google.common.cache;version="[1,99999999)",'
+                        + 'com.google.common.collect;version="[1,99999999)",'
                         + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
                         + "*",
                 'Export-Package': "!${configureRelocateDependencies.prefix}.*"
