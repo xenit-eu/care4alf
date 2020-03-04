@@ -109,11 +109,11 @@ public class PermissionImport {
     /**
      * used for integration tests.
      * 
-     * @param path
-     * @param request
-     * @param response
-     * @throws IOException
-     * @throws JSONException
+     * @param path path
+     * @param request request
+     * @param response response
+     * @throws IOException Path does not exist
+     * @throws JSONException JSON exception
      */
     @Uri(value = "permissions", method = HttpMethod.GET)
     public void permissions(@RequestParam(required = true) String path, WebScriptRequest request,
@@ -124,7 +124,7 @@ public class PermissionImport {
         for (String folder : path.split("\\/")) {
             folderNodeRef = nodeService.getChildByName(folderNodeRef, ContentModel.ASSOC_CONTAINS, folder);
             if (folderNodeRef == null)
-                throw new IOException("Path does not exists!");
+                throw new IOException("Path does not exist!");
         }
         Set<AccessPermission> perms = permissionService.getAllSetPermissions(folderNodeRef);
 
