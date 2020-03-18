@@ -1,5 +1,7 @@
 # Changelog
-## Release 2.2.2 (Unreleased)
+## Release 2.3.0 (Unreleased)
+### ALFREDOPS
+- [468](https://xenitsupport.jira.com/browse/ALFREDOPS-468): Added support for unlimited users licenses and changed return values in case of a missing license.
 
 ## Release 2.2.1 (2020-02-20)
 - [443](https://xenitsupport.jira.com/browse/ALFREDOPS-443): Removed obsolete <tt> tags for javadoc
