@@ -15,9 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,22 +31,22 @@ public class LicenseMetric extends AbstractMonitoredSource {
     private RepoAdminService repoAdminService;
 
     @Autowired
-    public LicenseMetric(LicenseService licenseService, RepoAdminService repoAdminService){
+    public LicenseMetric(LicenseService licenseService, RepoAdminService repoAdminService) {
         this.licenseService = licenseService;
         this.repoAdminService = repoAdminService;
     }
 
     @Override
     public Map<String, Long> getMonitoringMetrics() {
+        LicenseInfo licenseInfo = getLicenseInfo();
         Map<String, Long> map = new HashMap<>();
-        if(licenseService == null || licenseService.getLicense() == null)
-            map.put("license.valid", -1L);
-        else {
-            map.put("license.valid", Long.valueOf(licenseService.getLicense().getRemainingDays()));
-            if(licenseService.getLicense().getMaxUsers() == null)
-                map.put("license.users.max", -1L);
-            else
-                map.put("license.users.max", licenseService.getLicense().getMaxUsers());
+        if (licenseInfo != null) {
+            map.put("license.valid", licenseInfo.getRemainingDays());
+            map.put("license.users.max", licenseInfo.getMaxUsers());
+        } else {
+            // No Active License found
+            map.put("license.valid", -255L);
+            map.put("license.users.max", -255L);
         }
         Long userCount = AuthenticationUtil.runAsSystem(new AuthenticationUtil.RunAsWork<Long>() {
             @Override
@@ -62,46 +60,45 @@ public class LicenseMetric extends AbstractMonitoredSource {
 
     @Uri(value="/xenit/care4alf/monitoring/license", defaultFormat = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public LicenseInfo getLicenseInfo(){
-        if (licenseService == null || licenseService.getLicense() == null){
+    public LicenseInfo getLicenseInfo() {
+        if (licenseService == null || licenseService.getLicense() == null) {
             return null;
         } else {
-            final LicenseDescriptor license = licenseService.getLicense();
-            return new LicenseInfo(license.getRemainingDays(), license.getValidUntil(), license.getHolderOrganisation(),
-                    license.isClusterEnabled());
+            return new LicenseInfo(licenseService.getLicense());
         }
     }
 
     public static class LicenseInfo {
-        private Integer remainingDays;
+        private Long remainingDays;
+        private Long maxUsers;
         private String validUntil;
         private String holderOrganisation;
         private boolean clusterEnabled;
 
-        public LicenseInfo(Integer remainingDays, Date validUntil, String holderOrganisation, boolean clusterEnabled){
-            if (validUntil != null) {
+        public LicenseInfo(LicenseDescriptor licenseDescriptor) {
+            this.holderOrganisation = licenseDescriptor.getHolderOrganisation();
+            this.clusterEnabled = licenseDescriptor.isClusterEnabled();
+            if (licenseDescriptor.getValidUntil() != null) {
                 final SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy");
-                this.validUntil = sdf.format(validUntil);
-                this.remainingDays = remainingDays;
+                this.validUntil = sdf.format(licenseDescriptor.getValidUntil());
+                this.remainingDays = Long.valueOf(licenseDescriptor.getRemainingDays());
             } else {
                 // This clause catches a perpetual license.
                 // Normal Alfresco behaviour would be to return null for both fields.
-                // Now hardcoded to 9999 to avoid unnecessary alerts.
+                // Now hardcoded to 999999999 to avoid unnecessary alerts and because cabot cannot check on multiple metrics.
                 this.validUntil = "perpetual";
-                this.remainingDays = 9999;
+                this.remainingDays = 999999999L;
             }
-            this.holderOrganisation = holderOrganisation;
-            this.clusterEnabled = clusterEnabled;
+            if (licenseDescriptor.getMaxUsers() != null) {
+                this.maxUsers = licenseDescriptor.getMaxUsers();
+            } else {
+                // This clause catches a license with no maximum users.
+                // Normal Alfresco behaviour would be to return null.
+                // Now hardcoded to 999999999 to avoid unnecessary alerts and because cabot cannot check on multiple metrics.
+                this.maxUsers = 999999999L;
+            }
         }
 
-        @JsonProperty("days")
-        public Integer getRemainingDays() {
-            return remainingDays;
-        }
-        @JsonProperty("valid.until")
-        public String getValidUntil() {
-            return validUntil;
-        }
         @JsonProperty("license.holder")
         public String getHolderOrganisation () {
             return holderOrganisation;
@@ -109,6 +106,18 @@ public class LicenseMetric extends AbstractMonitoredSource {
         @JsonProperty("cluster")
         public boolean isClusterEnabled () {
             return clusterEnabled;
+        }
+        @JsonProperty("days")
+        public Long getRemainingDays() {
+            return remainingDays;
+        }
+        @JsonProperty("valid.until")
+        public String getValidUntil() {
+            return validUntil;
+        }
+        @JsonProperty("users.max")
+        public Long getMaxUsers() {
+            return maxUsers;
         }
     }
 }
