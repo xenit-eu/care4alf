@@ -1,5 +1,7 @@
 # Changelog
-## Release 2.3.0 (Unreleased)
+## Release 2.3.1 (Unreleased)
+
+## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS
 - [468](https://xenitsupport.jira.com/browse/ALFREDOPS-468): Added support for unlimited users licenses and changed return values in case of a missing license.
 
