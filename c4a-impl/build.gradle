@@ -107,6 +107,10 @@ allprojects {
         alfrescoProvided("eu.xenit.de:webscripts:${deVersion}") { transitive = false }
 
         alfrescoProvided("org.osgi:org.osgi.core:4.3.1")
+        
+//        compile('com.orbitz.consul:consul-client:1.4.2')
+        // Can possibly be replaced by openjdk native impl in the future (https://bugs.openjdk.java.net/browse/JDK-8238588)
+        implementation 'com.kohlschutter.junixsocket:junixsocket-dist:2.3.2'
 
         shadowDeps('joda-time:joda-time:2.10.3')
         shadowDeps('org.joda:joda-convert:2.2.1')

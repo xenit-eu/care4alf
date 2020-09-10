@@ -2,10 +2,29 @@ package eu.xenit.care4alf.search;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.orbitz.consul.AgentClient;
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.model.health.Service;
 import eu.xenit.care4alf.Config;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
 import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
@@ -23,6 +42,8 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.newsclub.net.unix.AFUNIXSocket;
+import org.newsclub.net.unix.AFUNIXSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +56,14 @@ public class SolrClientImpl implements SolrClient {
 
     private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
 
+    private static final int SOLRDEFAULTPORT = 8080;
+    private static final String DNS_RESOLUTION_STRATEGY_SYSTEM = "SYSTEM";
+    private static final String DNS_RESOLUTION_STRATEGY_CONSUL = "CONSUL";
+    private static final String DNS_RESOLUTION_STRATEGY_HAPROXY = "HAPROXY";
+    private static final String DNS_RESOLUTION_STRATEGY_DIRECT = "DIRECT";
+    // NOTE socket command needs to be terminated correctly with a `\n`
+    private static final String HAPROXY_SOCKETCMD_SHOWSTAT = "show stat\n";
+
     @Autowired
     private Config config;
 
@@ -46,7 +75,11 @@ public class SolrClientImpl implements SolrClient {
     @Qualifier("solr4")
     SolrChildApplicationContextFactory solr4HttpClientFactory;
 
-    private HttpClient getHttpClient() {
+    String targetHost;
+    int targetPort;
+    Map<String, Integer> availableHosts;
+
+    private HttpClientFactory getHttpClientFactory() {
         String searchSubsystemKey = "index.subsystem.name";
         String searchSubSystemValue = config.getProperty(searchSubsystemKey).toLowerCase();
 
@@ -58,9 +91,15 @@ public class SolrClientImpl implements SolrClient {
         logger.info("Configured '{}'='{}' -> solrHttpClientFactory.typeName='{}'.",
                 searchSubsystemKey, searchSubSystemValue, clientFactory.getTypeName());
 
+        return (HttpClientFactory) clientFactory.getApplicationContext().getBean("solrHttpClientFactory");
+    }
 
-        Object httpClientFactory = clientFactory.getApplicationContext().getBean("solrHttpClientFactory");
-        return ((HttpClientFactory) httpClientFactory).getHttpClient();
+    private HttpClient getHttpClient() {
+        if (Boolean.parseBoolean(config.getProperty("xenit.care4alf.solr.loadbalanced"))) {
+            return getHttpClientFactory().getHttpClient(targetHost, targetPort);
+        } else {
+            return getHttpClientFactory().getHttpClient();
+        }
     }
 
     @Override
@@ -132,7 +171,7 @@ public class SolrClientImpl implements SolrClient {
         if (body == null) {
             body = "{}";
         }
-        post.setRequestEntity(new ByteArrayRequestEntity(body.toString().getBytes("UTF-8"),
+        post.setRequestEntity(new ByteArrayRequestEntity(body.getBytes(StandardCharsets.UTF_8),
                 body.startsWith("{") ? "application/json" : "text/xml"));
 
         try {
@@ -217,4 +256,116 @@ public class SolrClientImpl implements SolrClient {
         }
     }
 
+    private void queryForAvailableHosts() throws IOException, ExecutionException, InterruptedException {
+        String dnsResolutionStrategy = config.getProperty("xenit.care4alf.solr.dnsresolutionstrategy", DNS_RESOLUTION_STRATEGY_SYSTEM);
+        Map<String, Integer> solrIpAdresses = null;
+        switch(dnsResolutionStrategy) {
+            case DNS_RESOLUTION_STRATEGY_CONSUL:
+                solrIpAdresses = queryConsulForHosts();
+                break;
+            case DNS_RESOLUTION_STRATEGY_HAPROXY:
+                solrIpAdresses = queryHAproxyForHosts();
+                break;
+            //TODO switch DIRECT and SYSTEM for backwards compatibility?
+            case DNS_RESOLUTION_STRATEGY_DIRECT:
+                solrIpAdresses = directResolution();
+                break;
+            case DNS_RESOLUTION_STRATEGY_SYSTEM:
+            default:
+                solrIpAdresses = querySystemForHosts();
+        }
+
+    }
+
+    private Map<String, Integer> directResolution(){
+        HashMap<String, Integer> response = new HashMap<>();
+        response.put(config.getProperty("solr.host"), Integer.parseInt(config.getProperty("solr.port")));
+        return response;
+    }
+
+    private Map<String, Integer> queryHAproxyForHosts() throws IOException, ExecutionException, InterruptedException {
+        SocketAddress socketAddress= new AFUNIXSocketAddress(new File(config.getProperty("xenit.care4alf.solr.proxy.socket")));
+        try (AFUNIXSocket socket = AFUNIXSocket.newInstance()) {
+            socket.connect(socketAddress);
+            logger.debug("connected to socket {}", socketAddress);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<String> socketResponseAsFuture = executor.submit(new UnixSocketRead(socket));
+            OutputStream socketOutputStream = socket.getOutputStream();
+            socketOutputStream.write(HAPROXY_SOCKETCMD_SHOWSTAT.getBytes());
+            socketOutputStream.flush();
+            String rawSocketResponse = socketResponseAsFuture.get();
+            return parseRawSocketResponse(rawSocketResponse);
+        }
+    }
+
+    private Map<String, Integer> parseRawSocketResponse(String rawResponse) {
+        return null;
+    }
+
+    private Map<String, Integer> queryConsulForHosts() {
+        Consul baseClient = Consul.builder().build();
+        AgentClient agentClient = baseClient.agentClient();
+        return agentClient.getServices()
+                .entrySet().stream()
+                .filter(this::isSolrService).filter(this::isProjectService)
+                .map(Entry::getValue)
+                .collect(Collectors.toMap(Service::getAddress, Service::getPort));
+    }
+
+    private Map<String, Integer> querySystemForHosts() {
+        String hostName = config.getProperty("xenit.solr.hostname", "solr");
+        try {
+            Map<String, Integer> hostsmap = Arrays.stream(InetAddress.getAllByName(hostName))
+                    .collect(Collectors.toMap(InetAddress::getHostAddress, inetAddress -> SOLRDEFAULTPORT));
+        } catch (UnknownHostException e) {
+            logger.warn("Cannot find hosts by name {}", hostName);
+        }
+        return new HashMap<>();
+    }
+
+    private boolean isSolrService(Entry<String, Service> serviceEntry) {
+        return serviceEntry.getKey().contains("solr");
+    }
+
+    private boolean isProjectService(Entry<String, Service> serviceEntry) {
+        return serviceEntry.getKey().contains(config.getProperty("xenit.projectname", ""));
+    }
+
+    public String getTargetHost() {
+        return targetHost;
+    }
+
+    public void setTargetHost(String targetHost) {
+        this.targetHost = targetHost;
+    }
+
+    public int getTargetPort() {
+        return targetPort;
+    }
+
+    public void setTargetPort(int targetPort) {
+        this.targetPort = targetPort;
+    }
+
+    protected class UnixSocketRead implements Callable<String> {
+
+        private StringBuffer stringBuffer;
+        private AFUNIXSocket socket;
+
+        public UnixSocketRead(AFUNIXSocket connectedSocket) {
+            this.stringBuffer = new StringBuffer();
+            this.socket = connectedSocket;
+        }
+
+        @Override
+        public String call() throws Exception {
+            int readBytes;
+            byte[] byteBuffer = new byte[socket.getReceiveBufferSize()];
+            InputStream socketInputStream = socket.getInputStream();
+            while ((readBytes = socketInputStream.read(byteBuffer)) != -1) {
+                stringBuffer.append(new String(byteBuffer));
+            }
+            return stringBuffer.toString();
+        }
+    }
 }

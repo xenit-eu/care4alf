@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import org.alfresco.model.ContentModel;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -61,6 +62,20 @@ public class SolrAdmin {
 
     @Autowired
     Solr6AdminClientImpl solr6AdminClient;
+
+    Map<String, String> hostToIpMap;
+    String targetHost;
+
+    // TODO
+    /**
+     * Method to load in all solr instance ips for direct conection
+     * @return map containing hostnames mapped to ip addresses as Strings
+     */
+    public Map<String, String> getSolrHosts() {
+        // If CONSUL_SERVICEREGISTRY: request services form consul at address retrieved from envar and parse contents
+        // else request DNS resolution from system (eg docker overlay) through InetAddress.getAllHosts()
+        return null;
+    }
 
     public AbstractSolrAdminClient getSolrAdminClient() {
         String searchSubSystem = getSearchSubSystemName().toLowerCase();
