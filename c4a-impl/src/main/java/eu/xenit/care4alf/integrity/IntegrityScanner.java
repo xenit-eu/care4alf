@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
+import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeEntity;
@@ -46,6 +47,10 @@ import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.lock.LockService;
+import org.alfresco.service.cmr.lock.LockStatus;
+import org.alfresco.service.cmr.lock.LockType;
+import org.alfresco.service.cmr.lock.UnableToAquireLockException;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -75,6 +80,8 @@ public class IntegrityScanner implements Task {
     private DictionaryService dictionaryService;
     @Autowired
     private ContentService contentService;
+    @Autowired
+    private LockService lockService;
     @Autowired
     private SOLRTrackingComponent solrTrackingComponent;
     @Autowired
@@ -111,7 +118,7 @@ public class IntegrityScanner implements Task {
         logger.info("Beginning Metadata Integrity Scan");
         // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
         // OR until one of the calls to handleNode returns with false — which it does in case of a cancel
-        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(nodeCounter, knownFileNames, inProgressReport));
+        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(lockService, nodeCounter, knownFileNames, inProgressReport));
         if (shouldCancel) {
             return nodeCounter.get();
         }
@@ -162,7 +169,7 @@ public class IntegrityScanner implements Task {
         logger.info("Starting scan of subset...");
 
         IntegrityReport subsetReport = new IntegrityReport();
-        CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
+        CallbackHandler handler = new CallbackHandler(lockService, new AtomicInteger(0), new HashSet<String>(), subsetReport);
         while (nodeIter.hasNext()) {
             // make a fake "node" out of the next noderef, pass it to the handler that does the actual verification
             // if this returns false, the operation has been cancelled
@@ -206,11 +213,16 @@ public class IntegrityScanner implements Task {
     }
 
     private class CallbackHandler implements NodeQueryCallback {
+
+        private LockService lockService;
+
         private AtomicInteger nodeCounter;
         private Set<String> knownFileNames;
         private IntegrityReport inProgressReport;
 
-        public CallbackHandler(AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+        public CallbackHandler(LockService lockService, AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+            this.lockService = lockService;
+
             this.inProgressReport = report;
             this.nodeCounter = nodeCounter;
             this.knownFileNames = knownFileNames;
@@ -227,6 +239,31 @@ public class IntegrityScanner implements Task {
             }
 
             NodeRef noderef = node.getNodeRef();
+            int lockTryCount = 20;
+            boolean hasLock = false;
+            while (!hasLock && lockTryCount > 0) {
+                String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
+                LockStatus lockStatus = lockService.getLockStatus(noderef, currentUser);
+                switch (lockStatus) {
+                    case LOCKED:
+                        try {
+                            Thread.sleep(1000 * 10);
+                        } catch (InterruptedException e) {
+                            logger.error("Integrityscan callback thread interrupted when sleeping after failed lock try on node {}", noderef, e);
+                        }
+                        lockTryCount--;
+                        break;
+                    case LOCK_EXPIRED:
+                    case NO_LOCK:
+                        lockService.lock(noderef, LockType.READ_ONLY_LOCK);
+                    case LOCK_OWNER:
+                        hasLock = true;
+                }
+            }
+            if (!hasLock) {
+                String message = String.format("Could not aquire lock on node %s for a integrityscan", noderef);
+                throw new AlfrescoRuntimeException(message);
+            }
             // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
             // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
             boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
@@ -268,6 +305,8 @@ public class IntegrityScanner implements Task {
                         dae.getClass().getSimpleName());
                 inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
             }
+
+            lockService.unlock(noderef);
 
             int count = nodeCounter.incrementAndGet();
             if (count % 10000 == 0) {
