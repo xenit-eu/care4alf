@@ -267,8 +267,7 @@ public class IntegrityScanner implements Task {
                     }
                 }
                 if (!hasLock) {
-                    String message = String.format("Could not aquire lock on node %s for a integrityscan", noderef);
-                    throw new AlfrescoRuntimeException(message);
+                    throw new UnableToAquireLockException(noderef);
                 }
                 // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
                 // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
@@ -311,14 +310,20 @@ public class IntegrityScanner implements Task {
                             dae.getClass().getSimpleName());
                     inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
                 }
+            }
+            // not stopping iteration over returned list of nodes by not propagating exceptions.
+            catch (UnableToAquireLockException unableToAcquireLockException) {
+                logger.error("Could not acquire lock for noderef {} during integrityscan. Skipping.", noderef, unableToAcquireLockException);
+            } catch (Exception e) {
+                logger.error("Encountered exception for node {} during integrityscan. Skipping node.", noderef, e);
             } finally {
                 if (hasLock) {
                     lockService.unlock(noderef);
                 }
-            }
-            int count = nodeCounter.incrementAndGet();
-            if (count % 10000 == 0) {
-                logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
+                int count = nodeCounter.incrementAndGet();
+                if (count % 10000 == 0) {
+                    logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
+                }
             }
             return true;
         }
