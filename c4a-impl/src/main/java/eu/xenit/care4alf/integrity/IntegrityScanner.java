@@ -233,87 +233,100 @@ public class IntegrityScanner implements Task {
             if (shouldCancel) {
                 return false;
             }
-            if (node.getDeleted(qNameDAO)
-                    || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)) {
+            if (checkDeleted(node)) {
                 return true; // continue to next node
             }
 
             NodeRef noderef = node.getNodeRef();
-            int lockTryCount = 20;
             boolean hasLock = false;
-            while (!hasLock && lockTryCount > 0) {
-                String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
-                LockStatus lockStatus = lockService.getLockStatus(noderef, currentUser);
-                switch (lockStatus) {
-                    case LOCKED:
-                        try {
-                            Thread.sleep(1000 * 10);
-                        } catch (InterruptedException e) {
-                            logger.error("Integrityscan callback thread interrupted when sleeping after failed lock try on node {}", noderef, e);
-                        }
-                        lockTryCount--;
-                        break;
-                    case LOCK_EXPIRED:
-                    case NO_LOCK:
-                        lockService.lock(noderef, LockType.READ_ONLY_LOCK);
-                    case LOCK_OWNER:
-                        hasLock = true;
-                }
-            }
-            if (!hasLock) {
-                String message = String.format("Could not aquire lock on node %s for a integrityscan", noderef);
-                throw new AlfrescoRuntimeException(message);
-            }
-            // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
-            // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
-            boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
-            MLPropertyInterceptor.setMLAware(true);
             try {
-                Map<QName, Serializable> props = nodeService.getProperties(noderef);
-                for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
-                    verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+                int lockTryCount = 20;
+                while (!hasLock && lockTryCount > 0) {
+                    // Add deleted check in whileloop to guarantee that waits due to LOCKED status were not caused by delete operations.
+                    if (checkDeleted(node)) {
+                        return true; // continue to next node
+                    }
+                    String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
+                    LockStatus lockStatus = lockService.getLockStatus(noderef, currentUser);
+                    switch (lockStatus) {
+                        case LOCKED:
+                            try {
+                                Thread.sleep(1000 * 10);
+                            } catch (InterruptedException e) {
+                                logger.error(
+                                        "Integrityscan callback thread interrupted when sleeping after failed lock try on node {}",
+                                        noderef, e);
+                            }
+                            lockTryCount--;
+                            break;
+                        case LOCK_EXPIRED:
+                        case NO_LOCK:
+                            lockService.lock(noderef, LockType.READ_ONLY_LOCK);
+                        case LOCK_OWNER:
+                            hasLock = true;
+                    }
                 }
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get properties for {} from database, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
-            } catch (Exception e) {
-                logger.error("Error {} when retrieving + verifying properties for node {}",
-                        e.getClass().getSimpleName(), noderef);
-                throw e;
+                if (!hasLock) {
+                    String message = String.format("Could not aquire lock on node %s for a integrityscan", noderef);
+                    throw new AlfrescoRuntimeException(message);
+                }
+                // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
+                // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
+                boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
+                MLPropertyInterceptor.setMLAware(true);
+                try {
+                    Map<QName, Serializable> props = nodeService.getProperties(noderef);
+                    for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
+                        verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+                    }
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get properties for {} from database, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
+                } catch (Exception e) {
+                    logger.error("Error {} when retrieving + verifying properties for node {}",
+                            e.getClass().getSimpleName(), noderef);
+                    throw e;
+                } finally {
+                    // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
+                    MLPropertyInterceptor.setMLAware(wasMultiLangAware);
+                }
+
+                try {
+                    List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
+                    // sys:store_root doesn't have a parent, this is normal and should not be reported
+                    if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
+                        inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                    }
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
+                }
+
+                try {
+                    verifyContentData(noderef, inProgressReport, knownFileNames);
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
+                }
             } finally {
-                // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
-                MLPropertyInterceptor.setMLAware(wasMultiLangAware);
-            }
-
-            try {
-                List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-                // sys:store_root doesn't have a parent, this is normal and should not be reported
-                if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
-                    inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                if (hasLock) {
+                    lockService.unlock(noderef);
                 }
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
             }
-
-            try {
-                verifyContentData(noderef, inProgressReport, knownFileNames);
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
-            }
-
-            lockService.unlock(noderef);
-
             int count = nodeCounter.incrementAndGet();
             if (count % 10000 == 0) {
                 logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
             }
             return true;
         }
+    }
+
+    private boolean checkDeleted(Node node) {
+        return node.getDeleted(qNameDAO)
+                || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
     }
 
     private void verifyProperty(NodeRef noderef, QName property, Serializable value, IntegrityReport report) {
