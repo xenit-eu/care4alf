@@ -77,6 +77,15 @@ allprojects {
         maven {
             url 'https://artifacts.alfresco.com/nexus/content/repositories/public'
         }
+        if (project.hasProperty("eu.xenit.artifactory.username")) {
+            maven {
+                url 'https://artifactory.xenit.eu/artifactory/libs-release'
+                credentials {
+                    username findProperty("eu.xenit.artifactory.username") ?: ""
+                    password findProperty("eu.xenit.artifactory.password") ?: ""
+                }
+            }
+        }
     }
 
     configurations {
