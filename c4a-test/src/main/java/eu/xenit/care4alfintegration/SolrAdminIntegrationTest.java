@@ -5,6 +5,7 @@ import eu.xenit.care4alf.search.SolrAdmin;
 import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
 import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ public class SolrAdminIntegrationTest {
     public void testReindexNode() throws Exception {
         AbstractSolrAdminClient client = this.solrAdmin.getSolrAdminClient();
         JSONObject result = client.reindex(10);
+        Assert.assertNotNull(result);
     }
 
 }
