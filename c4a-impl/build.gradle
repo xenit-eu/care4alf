@@ -174,7 +174,6 @@ allprojects {
                         + 'com.google.common.cache;version="[1,99999999)",'
                         + 'com.google.common.collect;version="[1,99999999)",'
                         + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
-                        + 'org.apache.poi.ooxml;resolution:=optional,'
                         + "*",
                 'Export-Package': "!${configureRelocateDependencies.prefix}.*"
                         + ", !eu.xenit.care4alf.web.js.*"
