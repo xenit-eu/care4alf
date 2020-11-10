@@ -81,7 +81,7 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
         }
 
         {
-            Pattern secondsPattern = Pattern.compile("(\\d*) [\"s\"|\"Seconds\"]");
+            Pattern secondsPattern = Pattern.compile("(\\d+) (s|Seconds)");
             Matcher matcher = secondsPattern.matcher(value);
             if (matcher.find())
                 return Long.parseLong(matcher.group(1));
