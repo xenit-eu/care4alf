@@ -17,15 +17,15 @@ public class SolrSummaryMetricsTest {
     public void testFlatten() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Map<String,String> map = SolrSummaryMetrics.flatten(mapper.readTree("" +
-                "{_:" +
-                "   {1:" +
-                "       {2:" +
-                "           {3:value1}" +
+                "{\"_\":" +
+                "   {\"1\":" +
+                "       {\"2\":" +
+                "           {\"3\":\"value1\"}" +
                 "       }" +
                 "   }," +
-                "  2:value2," +
-                "  3:" +
-                "     {2:value3}}"));
+                "  \"2\":\"value2\"," +
+                "  \"3\":" +
+                "     {\"2\":\"value3\"}}"));
         Assert.assertEquals(3,map.keySet().size());
         Assert.assertEquals("value1",map.get("_.1.2.3"));
         Assert.assertEquals("value2",map.get("2"));
@@ -35,7 +35,7 @@ public class SolrSummaryMetricsTest {
     @Test
     public void testTransform() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{a:5}"));
+        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{\"a\":5}"));
         Assert.assertEquals(1,map.keySet().size());
         Assert.assertEquals((Long)5L,map.get("solr.summary.a"));
     }
@@ -43,14 +43,14 @@ public class SolrSummaryMetricsTest {
     @Test
     public void testIgnoreNonNumber() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{a:ignore}"));
+        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{\"a\":\"ignore\"}"));
         Assert.assertEquals(0,map.keySet().size());
     }
 
     @Test
     public void testCleanupSpace() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{alfresco.Alfresco Error Nodes in Index:0}"));
+        Map<String,Long> map = SolrSummaryMetrics.flattenAndCleanup(mapper.readTree("{\"alfresco.Alfresco Error Nodes in Index\":0}"));
         Assert.assertEquals(1,map.keySet().size());
         Assert.assertEquals((Long)0L, map.get("solr.summary.alfresco.AlfrescoErrorNodesinIndex"));
     }
