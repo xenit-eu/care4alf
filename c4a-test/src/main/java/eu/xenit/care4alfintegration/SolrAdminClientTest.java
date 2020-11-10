@@ -1,5 +1,7 @@
 package eu.xenit.care4alfintegration;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import eu.xenit.care4alf.search.*;
 import org.json.JSONObject;
@@ -29,7 +31,8 @@ public class SolrAdminClientTest {
 
     @Test
     public void testParseSolr1ErrorsJson() throws Exception {
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JSONObject.class))).thenReturn(new JSONObject(solrErrors1));
+        JsonNode jsonSolr1Errors = new ObjectMapper().readTree(solrErrors1);
+        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr1Errors);
         AbstractSolrAdminClient client = new Solr1AdminClientImpl();
         client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
@@ -44,7 +47,8 @@ public class SolrAdminClientTest {
 
     @Test
     public void testParseSolr4ErrorsJson() throws Exception {
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JSONObject.class))).thenReturn(new JSONObject(solrErrors4));
+        JsonNode jsonSolr4Errors = new ObjectMapper().readTree(solrErrors4);
+        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr4Errors);
         AbstractSolrAdminClient client = new Solr4AdminClientImpl();
         client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();

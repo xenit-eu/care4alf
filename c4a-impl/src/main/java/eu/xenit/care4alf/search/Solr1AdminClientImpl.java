@@ -1,11 +1,10 @@
 package eu.xenit.care4alf.search;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.codec.EncoderException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,7 +18,7 @@ import java.util.List;
 public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
 
     @Override
-    public JSONObject getSolrErrorsJson(int start, int rows) throws JSONException, EncoderException, IOException {
+    public JsonNode getSolrErrorsJson(int start, int rows) throws EncoderException, IOException {
         Multimap<String, String> parameters = ArrayListMultimap.create();
         parameters.put("wt", "json");
         parameters.put("q", "ID:ERROR-*");
@@ -29,18 +28,17 @@ public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
     }
 
     @Override
-    public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, JSONException, EncoderException {
+    public List<SolrErrorDoc> getSolrErrorDocs(int rows) throws IOException, EncoderException {
         List<SolrErrorDoc> errorDocs = new ArrayList<SolrErrorDoc>();
-        JSONObject json = this.getSolrErrorsJson(0, rows);
-        JSONArray docs = json.getJSONObject("response").getJSONArray("docs");
-        for (int i = 0; i < docs.length(); i++) {
-            JSONObject doc = docs.getJSONObject(i);
+        JsonNode json = this.getSolrErrorsJson(0, rows);
+        ArrayNode docs = (ArrayNode) json.get("response").get("docs");
+        for (JsonNode doc : docs) {
             SolrErrorDoc errorDoc = new SolrErrorDoc(
-                    doc.has("INTXID") ? Long.parseLong(doc.getJSONArray("INTXID").getString(0)) : -1,
-                    doc.has("EXCEPTIONMESSAGE") ? doc.getJSONArray("EXCEPTIONMESSAGE").getString(0) : "",
-                    doc.has("ID") ? doc.getJSONArray("ID").getString(0) : "",
-                    doc.has("DBID") ? Long.parseLong(doc.getJSONArray("DBID").getString(0)) : -1,
-                    doc.has("EXCEPTIONSTACK") ? doc.getJSONArray("EXCEPTIONSTACK").getString(0) : ""
+                    doc.hasNonNull("INTXID") ? doc.get("INTXID").get(0).asLong() : -1,
+                    doc.hasNonNull("EXCEPTIONMESSAGE") ? doc.get("EXCEPTIONMESSAGE").get(0).asText() : "",
+                    doc.hasNonNull("ID") ? doc.get("ID").get(0).asText() : "",
+                    doc.hasNonNull("DBID") ? doc.get("DBID").get(0).asLong() : -1,
+                    doc.hasNonNull("EXCEPTIONSTACK") ? doc.get("EXCEPTIONSTACK").get(0).asText() : ""
             );
             errorDocs.add(errorDoc);
         }
