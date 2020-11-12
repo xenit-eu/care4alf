@@ -72,6 +72,7 @@ allprojects {
 
         compileOnly(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
+            exclude group: 'org.springframework.social'
         }
         compileOnly(group: 'org.alfresco', name: 'alfresco-remote-api', version: alfresco_remote_api_version) {
             transitive = false
