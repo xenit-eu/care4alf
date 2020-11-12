@@ -68,12 +68,6 @@ public class SolrClientImpl implements SolrClient {
             throws IOException, EncoderException {
         ObjectMapper mapper = new ObjectMapper();
         try {
-            StringBuilder builder = new StringBuilder("{");
-            for (Map.Entry<String, String> entry : parameters.entries()) {
-                builder.append("\t").append(entry.getKey()).append(" : ").append(entry.getValue());
-            }
-            builder.append("}");
-            logger.error("Parameters: \n{}", builder.toString());
             String response = basePost(url, parameters, body == null ? null : body.toString());
             logger.error("Payload: {}", response);
             return mapper.readTree(response);
