@@ -97,6 +97,7 @@ allprojects {
     dependencies {
         alfrescoProvided(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
+            exclude group: 'org.springframework.social'
         }
 
         alfrescoProvided group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version

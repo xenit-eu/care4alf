@@ -36,6 +36,9 @@ public class ContentStoreTest {
     @Test
     public void getIntegrityResults(){
         List<MissingContent> missingContent = this.contentStore.getIntegrityCheckResults();
+        for (MissingContent content : missingContent) {
+            System.out.println("missingContent: " + content.getContentUrl() + " (" + content.getCause() + ")");
+        }
         Assert.assertTrue(missingContent.size() <= 1);
     }
 }
