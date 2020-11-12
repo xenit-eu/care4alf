@@ -1,5 +1,7 @@
 package eu.xenit.care4alf.search;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import eu.xenit.care4alf.Config;
@@ -21,8 +23,6 @@ import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,13 +64,16 @@ public class SolrClientImpl implements SolrClient {
     }
 
     @Override
-    public JSONObject postJSON(String url, Multimap<String, String> parameters, JSONObject body)
-            throws IOException, EncoderException, JSONException {
+    public JsonNode postJSON(String url, Multimap<String, String> parameters, JsonNode body)
+            throws IOException, EncoderException {
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            return new JSONObject(basePost(url, parameters, body == null ? null : body.toString()));
+            String response = basePost(url, parameters, body == null ? null : body.toString());
+            logger.error("Payload: {}", response);
+            return mapper.readTree(response);
         } catch (ConnectException ce) {
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
-            return new JSONObject("{\"Summary\": {\"Error\": -2}}");
+            return mapper.readTree("{\"Summary\": {\"Error\": -2}}");
         }
     }
 
