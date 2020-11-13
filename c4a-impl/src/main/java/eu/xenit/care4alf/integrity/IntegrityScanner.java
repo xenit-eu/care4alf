@@ -251,7 +251,7 @@ public class IntegrityScanner implements Task {
                     switch (lockStatus) {
                         case LOCKED:
                             try {
-                                Thread.sleep(1000 * 10);
+                                Thread.sleep(1000 * 3);
                             } catch (InterruptedException e) {
                                 logger.error(
                                         "Integrityscan callback thread interrupted when sleeping after failed lock try on node {}",
