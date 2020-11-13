@@ -35,8 +35,9 @@ public class SolrAdminTest {
     @Test
     public void testNodesToIndex() throws Exception {
         long nodesToIndex = this.solrAdmin.getNodesToIndex();
-        Assert.assertTrue("nodesToIndex was " + nodesToIndex + ", expected between 0 and 100",
-                nodesToIndex >= 0 && nodesToIndex <= 100);
+        int max = 1000;
+        Assert.assertTrue("nodesToIndex was " + nodesToIndex + ", expected between 0 and " + max,
+                nodesToIndex >= 0 && nodesToIndex <= max);
     }
 
     @Test
