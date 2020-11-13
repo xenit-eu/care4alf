@@ -1,3 +1,46 @@
+def sendEmailNotifications() {
+    def color = 'purple'
+    switch (currentBuild.currentResult) {
+        case 'FAILURE': case 'UNSTABLE':
+            color = 'red'
+            break
+        case 'SUCCESS':
+            color = 'green'
+            break
+    }
+    subject = "C4A monthly build ${env.JOB_NAME} #${env.BUILD_NUMBER}: ${currentBuild.currentResult}"
+    body = """<html><body>
+        <p>
+            <b>Monthly C4A build in Job ${env.JOB_NAME} #${env.BUILD_NUMBER}: <span style="color: ${color};">${currentBuild.currentResult}</span></b>
+        </p>
+        <p>
+            Check console output at <a href='${env.BUILD_URL}'>${env.JOB_NAME}</a>
+        </p></body></html>"""
+    emailext(
+            subject: subject,
+            body: body,
+            mimeType: 'text/html',
+            to: 'team-coolguys@xenit.eu',
+            recipientProviders: [requestor(), culprits(), brokenBuildSuspects()]
+    )
+}
+
+def isJobStartedByCronJob() {
+    return currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').size() != 0
+}
+
+if (isJobStartedByCronJob() && "${env.BRANCH_NAME}" != "master") {
+    echo "Aborting build because build was triggered by cron trigger and this is not the master branch"
+    currentBuild.result = 'ABORTED'
+    return
+}
+
+properties(
+        [
+                pipelineTriggers([cron('H H(0-6) */28 * *')])
+        ]
+)
+
 node {
     def buildNr = "SNAPSHOT"
 
@@ -15,13 +58,13 @@ node {
         }
 
         stage('Integration Tests') {
-            parallel (
-                'Testing 5.x': {
-                    sh "./gradlew :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
-                },
-                'Testing 6.x': {
-                    sh "./gradlew :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
-                }
+            parallel(
+                    'Testing 5.x': {
+                        sh "./gradlew :c4a-test:test-5x:integrationTest -PbuildNumber=${buildNr} -i"
+                    },
+                    'Testing 6.x': {
+                        sh "./gradlew :c4a-test:test-6x:integrationTest -PbuildNumber=${buildNr} -i"
+                    }
             )
         }
 
@@ -55,6 +98,9 @@ node {
     } catch (err) {
         echo "Exception: ${err.getMessage()}"
         currentBuild.result = "FAILED"
+        if (isJobStartedByCronJob()) {
+            sendEmailNotifications()
+        }
     } finally {
         junit '**/build/**/TEST-*.xml'
         sh "./gradlew :c4a-test:test-5x:composeDownForced -i"
