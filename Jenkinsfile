@@ -1,4 +1,4 @@
-def sendEmailNotifications() {
+def sendEmailNotifications(List addressees) {
     def color = 'purple'
     switch (currentBuild.currentResult) {
         case 'FAILURE': case 'UNSTABLE':
@@ -20,13 +20,19 @@ def sendEmailNotifications() {
             subject: subject,
             body: body,
             mimeType: 'text/html',
-            to: 'team-coolguys@xenit.eu',
+            to: "${addressees.join(", ")}",
             recipientProviders: [requestor(), culprits(), brokenBuildSuspects()]
     )
 }
 
 def isJobStartedByCronJob() {
     return currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').size() != 0
+}
+
+String getLastAuthorMailAddress() {
+    def lastAuthorMail = sh(script: "git show -s --pretty=\"%ae\" ${GIT_COMMIT}", returnStdout: true)
+    echo 'mail: ' + lastAuthorMail
+    return lastAuthorMail
 }
 
 if (isJobStartedByCronJob() && "${env.BRANCH_NAME}" != "master") {
@@ -37,7 +43,7 @@ if (isJobStartedByCronJob() && "${env.BRANCH_NAME}" != "master") {
 
 properties(
         [
-                pipelineTriggers([cron('H H(0-6) */28 * *')])
+                pipelineTriggers([cron('H H(0-6) 28 * *')])
         ]
 )
 
@@ -98,13 +104,15 @@ node {
     } catch (err) {
         echo "Exception: ${err.getMessage()}"
         currentBuild.result = "FAILED"
-        if (isJobStartedByCronJob()) {
-            sendEmailNotifications()
-        }
     } finally {
         junit '**/build/**/TEST-*.xml'
         sh "./gradlew :c4a-test:test-5x:composeDownForced -i"
         sh "./gradlew :c4a-test:test-6x:composeDownForced -i"
+        if (env.BRANCH_NAME == "release" || env.BRANCH_NAME == "master") {
+            sendEmailNotifications(['team-coolguys@xenit.eu', "${getLastAuthorMailAddress()}"])
+        } else {
+            sendEmailNotifications(["${getLastAuthorMailAddress()}"])
+        }
         cleanWs()
     }
 }
