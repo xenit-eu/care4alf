@@ -1,4 +1,4 @@
-def sendEmailNotifications(List addressees) {
+def sendEmailNotifications(boolean isMasterOrRelease) {
     def color = 'purple'
     switch (currentBuild.currentResult) {
         case 'FAILURE': case 'UNSTABLE':
@@ -8,31 +8,34 @@ def sendEmailNotifications(List addressees) {
             color = 'green'
             break
     }
-    subject = "C4A monthly build ${env.JOB_NAME} #${env.BUILD_NUMBER}: ${currentBuild.currentResult}"
+    subject = "C4A build ${env.JOB_NAME} #${env.BUILD_NUMBER}: ${currentBuild.currentResult}"
     body = """<html><body>
         <p>
-            <b>Monthly C4A build in Job ${env.JOB_NAME} #${env.BUILD_NUMBER}: <span style="color: ${color};">${currentBuild.currentResult}</span></b>
+            <b>C4A build in Job ${env.JOB_NAME} #${env.BUILD_NUMBER}: <span style="color: ${color};">${currentBuild.currentResult}</span></b>
         </p>
         <p>
             Check console output at <a href='${env.BUILD_URL}'>${env.JOB_NAME}</a>
         </p></body></html>"""
-    emailext(
-            subject: subject,
-            body: body,
-            mimeType: 'text/html',
-            to: "${addressees.join(", ")}",
-            recipientProviders: [requestor(), culprits(), brokenBuildSuspects()]
-    )
+    if (isMasterOrRelease) {
+        emailext(
+                subject: subject,
+                body: body,
+                mimeType: 'text/html',
+                to: 'team-coolguys@xenit.eu',
+                recipientProviders: [requestor(), developers(), culprits(), brokenBuildSuspects()]
+        )
+    } else {
+        emailext(
+                subject: subject,
+                body: body,
+                mimeType: 'text/html',
+                recipientProviders: [requestor(), developers(), culprits(), brokenBuildSuspects()]
+        )
+    }
 }
 
 def isJobStartedByCronJob() {
     return currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').size() != 0
-}
-
-String getLastAuthorMailAddress() {
-    def lastAuthorMail = sh(script: "git show -s --pretty=\"%ae\" ${GIT_COMMIT}", returnStdout: true)
-    echo 'mail: ' + lastAuthorMail
-    return lastAuthorMail
 }
 
 if (isJobStartedByCronJob() && "${env.BRANCH_NAME}" != "master") {
@@ -108,11 +111,8 @@ node {
         junit '**/build/**/TEST-*.xml'
         sh "./gradlew :c4a-test:test-5x:composeDownForced -i"
         sh "./gradlew :c4a-test:test-6x:composeDownForced -i"
-        if (env.BRANCH_NAME == "release" || env.BRANCH_NAME == "master") {
-            sendEmailNotifications(['team-coolguys@xenit.eu', "${getLastAuthorMailAddress()}"])
-        } else {
-            sendEmailNotifications(["${getLastAuthorMailAddress()}"])
-        }
+        boolean isMasterOrRelease = env.BRANCH_NAME == "release" || env.BRANCH_NAME == "master"
+        sendEmailNotifications(isMasterOrRelease)
         cleanWs()
     }
 }
