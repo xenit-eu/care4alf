@@ -36,14 +36,22 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
 
     $scope.addProperty = (qname, value, multi) => {
         $scope.fieldInfo[qname] = { multiValue: multi, updateState: UpdateState.Loading }
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + qname, {value: value, multi: multi})
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + $scope.node.noderef.protocol + "/"
+            + $scope.node.noderef.identifier + "/"
+            + $scope.node.noderef.id
+            + "/properties/" + qname, {value: value, multi: multi})
             .success(() => { $scope.fieldInfo[qname].updateState = UpdateState.Success })
             .error(() => { $scope.fieldInfo[qname].updateState = UpdateState.Failure });
     };
 
     $scope.deleteProperty = (property) => {
         if ($window.confirm("Are you sure you want to delete this property?")) {
-            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property).then(() => {
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+                + $scope.node.noderef.protocol + "/"
+                + $scope.node.noderef.identifier + "/"
+                + $scope.node.noderef.id
+                + "/properties/" + property).then(() => {
                 delete $scope.node.properties[property];
             })
         }
@@ -52,30 +60,50 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     $scope.saveProperty = (property) => {
         let multi = $scope.fieldInfo[property].multiValue
         $scope.fieldInfo[property].updateState = UpdateState.Loading
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property], multi: multi})
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + $scope.node.noderef.protocol + "/"
+            + $scope.node.noderef.identifier + "/"
+            + $scope.node.noderef.id
+            + "/properties/" + property, {value: $scope.node.properties[property], multi: multi})
             .success(() => { $scope.fieldInfo[property].updateState = UpdateState.Success })
             .error(() => { $scope.fieldInfo[property].updateState = UpdateState.Failure })
     };
 
     $scope.addAspect = (aspect) => {
-        $http.post(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects", {aspect: aspect}).success(() => {
+        $http.post(serviceUrl + "/xenit/care4alf/browser/"
+            + $scope.node.noderef.protocol + "/"
+            + $scope.node.noderef.identifier + "/"
+            + $scope.node.noderef.id
+            + "/aspects", {aspect: aspect}).success(() => {
             $scope.node.aspects.push(aspect);
         });
     };
 
     $scope.removeAspect = (aspect) => {
-        $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects/" + aspect).success(() => {
+        $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+            + $scope.node.noderef.protocol + "/"
+            + $scope.node.noderef.identifier + "/"
+            + $scope.node.noderef.id
+            + "/aspects/" + aspect).success(() => {
            $scope.node.aspects = _.without($scope.node.aspects, aspect);
         });
     };
 
     $scope.setType = (newType) => {
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/type", {type: newType});
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + $scope.node.noderef.protocol + "/"
+            + $scope.node.noderef.identifier + "/"
+            + $scope.node.noderef.id
+            + "/type", {type: newType});
     };
 
     $scope.deleteNode = (node) => {
         if ($window.confirm("Are you sure you want to delete " + node.name + " ?")) {
-            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + node.noderef).success(() => {
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+                + $scope.node.noderef.protocol + "/"
+                + $scope.node.noderef.identifier + "/"
+                + $scope.node.noderef.id
+            ).success(() => {
                 $scope.node.children = _.without($scope.node.children, node);
             });
             $window.history.back();

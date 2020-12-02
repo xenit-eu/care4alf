@@ -257,8 +257,9 @@ public class Browser @Autowired constructor(
         return converted
     }
 
-    @Uri("/{noderef}/properties/{qname}", method = HttpMethod.PUT)
-    fun saveProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName, body: JSONObject) {
+    @Uri("/{protocol}/{identifier}/{id}/properties/{qname}", method = HttpMethod.PUT)
+    fun saveProperty(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String, @UriVariable qname: QName, body: JSONObject) {
+        val noderef: NodeRef = NodeRef(protocol, identifier, id)
         policyBehaviourFilter.disableBehaviour(noderef, ContentModel.ASPECT_AUDITABLE)
         val originalValue: Serializable? = nodeService.getProperty(noderef, qname)
         try {
@@ -281,8 +282,9 @@ public class Browser @Autowired constructor(
         }
     }
 
-    @Uri("/{noderef}/properties/{qname}", method = HttpMethod.DELETE)
-    fun deleteProperty(@UriVariable noderef: NodeRef, @UriVariable qname: QName) {
+    @Uri("/{protocol}/{identifier}/{id}/properties/{qname}", method = HttpMethod.DELETE)
+    fun deleteProperty(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String, @UriVariable qname: QName) {
+        val noderef: NodeRef = NodeRef(protocol, identifier, id)
         nodeService.removeProperty(noderef, qname)
     }
 
@@ -324,29 +326,33 @@ public class Browser @Autowired constructor(
         }
     }
 
-    @Uri("/{noderef}/aspects", method = HttpMethod.POST)
-    fun addAspect(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
+    @Uri("/{protocol}/{identifier}/{id}/aspects", method = HttpMethod.POST)
+    fun addAspect(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String, jsonBody: JSONObject) {
         // need a new transaction, so any on-commit handler can throw errors now and be properly intercepted
         transactionService.getRetryingTransactionHelper().doInTransaction({
             // bug in DE 1.1.3 causes direct QName binding to fail
+            val noderef: NodeRef = NodeRef(protocol, identifier, id)
             nodeService.addAspect(noderef, QName.createQName(jsonBody.getString("aspect")), null)
         }, false, true)
     }
 
-    @Uri("{noderef}/aspects/{aspect}", method = HttpMethod.DELETE)
-    fun removeAspect(@UriVariable noderef: NodeRef, @UriVariable aspect: String) {
+    @Uri("/{protocol}/{identifier}/{id}/aspects/{aspect}", method = HttpMethod.DELETE)
+    fun removeAspect(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String, @UriVariable aspect: String) {
         transactionService.getRetryingTransactionHelper().doInTransaction({
+            val noderef: NodeRef = NodeRef(protocol, identifier, id)
             nodeService.removeAspect(noderef, QName.createQName(aspect))
         }, false, true)
     }
 
-    @Uri("{noderef}/type", method = HttpMethod.PUT)
-    fun setType(@UriVariable noderef: NodeRef, jsonBody: JSONObject) {
+    @Uri("/{protocol}/{identifier}/{id}/type", method = HttpMethod.PUT)
+    fun setType(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String, jsonBody: JSONObject) {
+        val noderef: NodeRef = NodeRef(protocol, identifier, id)
         nodeService.setType(noderef, QName.createQName(jsonBody.getString("type")))
     }
 
-    @Uri("{noderef}", method = HttpMethod.DELETE)
-    fun deleteNode(@UriVariable noderef: NodeRef) {
+    @Uri("/{protocol}/{identifier}/{id}", method = HttpMethod.DELETE)
+    fun deleteNode(@UriVariable protocol: String, @UriVariable identifier: String, @UriVariable id: String) {
+        val noderef: NodeRef = NodeRef(protocol, identifier, id)
         nodeService.addAspect(noderef, ContentModel.ASPECT_TEMPORARY, null)
         nodeService.deleteNode(noderef)
     }
