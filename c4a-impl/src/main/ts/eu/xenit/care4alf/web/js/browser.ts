@@ -222,7 +222,7 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     }
 });
 
-
+// Split noderef into components to use with the reworked browser endpoints
 function noderefToComponents(fullNodeRef) {
     return fullNodeRef.split(/(\w+):\/\/(\w+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/ig)
 }
