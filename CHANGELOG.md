@@ -1,5 +1,7 @@
 # Changelog
 ## Release 2.3.1 (Unreleased)
+### ALFREDOPS
+- [423](https://xenitsupport.jira.com/browse/ALFREDOPS-423): Change browser to accept noderefs as component parts
 
 ## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS
