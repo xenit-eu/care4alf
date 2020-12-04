@@ -3,6 +3,9 @@
 ### ALFREDOPS
 - [423](https://xenitsupport.jira.com/browse/ALFREDOPS-423): Change browser to accept noderefs as component parts
 
+### ALFREDOPS
+- [566](https://xenitsupport.jira.com/browse/ALFREDOPS-566): Fix export function for custom content model types and properties
+
 ## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS
 - [468](https://xenitsupport.jira.com/browse/ALFREDOPS-468): Added support for unlimited users licenses and changed return values in case of a missing license.
