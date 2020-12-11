@@ -9,6 +9,8 @@ import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.permissions.impl.AllowPermissionServiceImpl;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
+import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.dictionary.TypeDefinition;
 import org.alfresco.service.cmr.repository.*;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
@@ -172,9 +174,13 @@ public class Export {
                             if (hardcodedNames.containsKey(el)) {
                                 outputStreamWriter.write(el);
                             } else {
-                                outputStreamWriter.write(escapeCsv(dictionaryService.getProperty(
-                                        QName.createQName(el, namespaceService)).getTitle(dictionaryService),
-                                        separator));
+                                QName qName = QName.createQName(el, namespaceService);
+                                PropertyDefinition propDef = dictionaryService.getProperty(qName);
+                                String headerString = propDef.getTitle(dictionaryService);
+                                if (headerString == null || headerString.isEmpty()) {
+                                     headerString = propDef.getName().toPrefixString();
+                                }
+                                outputStreamWriter.write(escapeCsv(headerString, separator));
                             }
                             if (i != column.length - 1) {
                                 outputStreamWriter.write(separator);
@@ -204,7 +210,12 @@ public class Export {
                                                 nodeService, new AllowPermissionServiceImpl()), separator));
                                     } else if ("type".equals(element)) {
                                         QName type = nodeService.getType(nRef);
-                                        result.append(dictionaryService.getType(type).getTitle());
+                                        TypeDefinition typeDef = dictionaryService.getType(type);
+                                        String typeString = typeDef.getTitle();
+                                        if (typeString == null || typeString.isEmpty()) {
+                                            typeString = typeDef.getName().toPrefixString();
+                                        }
+                                        result.append(typeString);
                                     } else if ("noderef".equals(element)) {
                                         result.append(nRef);
                                     } else if ("permissions".equals(element)) {
