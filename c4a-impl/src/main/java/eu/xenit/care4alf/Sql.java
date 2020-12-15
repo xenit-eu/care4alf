@@ -66,6 +66,7 @@ public class Sql {
         final Connection connection = dataSource.getConnection();
         try {
             final Statement stmt = connection.createStatement();
+            stmt.setQueryTimeout(600);
             final ResultSet rs = stmt.executeQuery(query);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columns = rsmd.getColumnCount();
