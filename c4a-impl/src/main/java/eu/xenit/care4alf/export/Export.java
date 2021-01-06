@@ -2,8 +2,36 @@ package eu.xenit.care4alf.export;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.RequestParam;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Transaction;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import eu.xenit.care4alf.helpers.NodeHelper;
+import eu.xenit.care4alf.helpers.contentdata.ContentDataComponent;
+import eu.xenit.care4alf.helpers.contentdata.ContentDataHelper;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Serializable;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.content.MimetypeMap;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
@@ -11,11 +39,21 @@ import org.alfresco.repo.security.permissions.impl.AllowPermissionServiceImpl;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
 import org.alfresco.service.cmr.dictionary.TypeDefinition;
-import org.alfresco.service.cmr.repository.*;
+import org.alfresco.service.cmr.repository.ContentData;
+import org.alfresco.service.cmr.repository.ContentService;
+import org.alfresco.service.cmr.repository.ContentWriter;
+import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.repository.NodeService;
+import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.cmr.search.ResultSet;
 import org.alfresco.service.cmr.search.SearchParameters;
 import org.alfresco.service.cmr.search.SearchService;
-import org.alfresco.service.cmr.security.*;
+import org.alfresco.service.cmr.security.AccessPermission;
+import org.alfresco.service.cmr.security.AccessStatus;
+import org.alfresco.service.cmr.security.AuthorityService;
+import org.alfresco.service.cmr.security.AuthorityType;
+import org.alfresco.service.cmr.security.PermissionService;
+import org.alfresco.service.cmr.security.PersonService;
 import org.alfresco.service.namespace.NamespaceService;
 import org.alfresco.service.namespace.QName;
 import org.jetbrains.annotations.NotNull;
@@ -27,18 +65,11 @@ import org.springframework.extensions.webscripts.WebScriptResponse;
 import org.springframework.extensions.webscripts.WrappingWebScriptResponse;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Serializable;
-import java.io.Writer;
-import java.util.*;
-import java.util.concurrent.*;
-
 @Component
 @Authentication(AuthenticationType.ADMIN)
 @WebScript(baseUri = "/xenit/care4alf/export", families = {"care4alf"}, description = "Export Alfresco")
 public class Export {
+
     public static final String PROPS_PREFIX = "eu.xenit.care4alf.export.";
     private final static Set<String> NON_RESOLVED_AUTHORITIES = new HashSet<String>(
             Arrays.asList("GROUP_EVERYONE", "GROUP_ALFRESCO_ADMINISTRATORS", "guest"));
@@ -64,6 +95,8 @@ public class Export {
     private NodeHelper nodeHelper;
     @Autowired
     private ContentService contentService;
+    @Autowired
+    private ContentDataHelper contentDataHelper;
     @Autowired
     @AlfrescoService(ServiceType.LOW_LEVEL)
     private DictionaryService dictionaryService;
@@ -93,15 +126,15 @@ public class Export {
 
     @Uri(value = "/query", method = HttpMethod.GET)
     @Transaction(readOnly = false)
-    public void exportQuery(@RequestParam(required = false)                    String query,
-                            @RequestParam(defaultValue = ",")            final String separator,
-                            @RequestParam(defaultValue = "null")         final String nullValue,
-                            @RequestParam(defaultValue = "no_name.csv")  final String documentName,
-                            @RequestParam(defaultValue = "cm:name,path") final String columns,
-                            @RequestParam(defaultValue = "-1")           final String amountDoc,
-                            @RequestParam(required = false)                    String path, // unused?
-                            @RequestParam(defaultValue = "false") final boolean localSave,
-                            WebScriptResponse wsResponse) throws IOException {
+    public void exportQuery(@RequestParam(required = false) String query,
+            @RequestParam(defaultValue = ",") final String separator,
+            @RequestParam(defaultValue = "null") final String nullValue,
+            @RequestParam(defaultValue = "no_name.csv") final String documentName,
+            @RequestParam(defaultValue = "cm:name,path") final String columns,
+            @RequestParam(defaultValue = "-1") final String amountDoc,
+            @RequestParam(required = false) String path, // unused?
+            @RequestParam(defaultValue = "false") final boolean localSave,
+            WebScriptResponse wsResponse) throws IOException {
         /* The WrappingWebScriptResponse messes up with the interaction with client request making it impossible
            to buffer response, we need to access the wrapped WebScriptResponse and write directly to it in order
            to avoid having timeouts on the client side. Note: doing this implicitly returns a '200 OK' response,
@@ -122,6 +155,7 @@ public class Export {
         hardcodedNames.put("text", true);
         hardcodedNames.put("type", true);
         hardcodedNames.put("noderef", true);
+        hardcodedNames.put("content-string-components", true);
         hardcodedNames.put("permissions", true);
         hardcodedNames.put("permissions-breakdown", true);
         hardcodedNames.put("direct-permissions", true);
@@ -143,6 +177,7 @@ public class Export {
 
         // OutputHandler is the consumer thread that will read from the nodeQueue and write to CSV
         class OutputHandler implements Callable<Void> {
+
             @Override
             public Void call() {
                 // This needs to be here so this thread has the correct permissions to access the services we need
@@ -172,13 +207,25 @@ public class Export {
                         for (int i = 0; i < column.length; i++) {
                             String el = column[i].trim();
                             if (hardcodedNames.containsKey(el)) {
-                                outputStreamWriter.write(el);
+                                if (el.equals("content-string-components")) {
+                                    outputStreamWriter.write("content.contentUrl");
+                                    outputStreamWriter.write(separator);
+                                    outputStreamWriter.write("content.encoding");
+                                    outputStreamWriter.write(separator);
+                                    outputStreamWriter.write("content.locale");
+                                    outputStreamWriter.write(separator);
+                                    outputStreamWriter.write("content.mimetype");
+                                    outputStreamWriter.write(separator);
+                                    outputStreamWriter.write("content.size");
+                                } else {
+                                    outputStreamWriter.write(el);
+                                }
                             } else {
                                 QName qName = QName.createQName(el, namespaceService);
                                 PropertyDefinition propDef = dictionaryService.getProperty(qName);
                                 String headerString = propDef.getTitle(dictionaryService);
                                 if (headerString == null || headerString.isEmpty()) {
-                                     headerString = propDef.getName().toPrefixString();
+                                    headerString = propDef.getName().toPrefixString();
                                 }
                                 outputStreamWriter.write(escapeCsv(headerString, separator));
                             }
@@ -218,6 +265,20 @@ public class Export {
                                         result.append(typeString);
                                     } else if ("noderef".equals(element)) {
                                         result.append(nRef);
+                                    } else if ("content-string-components".equals(element)) {
+                                        QName contentQname = ContentModel.PROP_CONTENT;
+                                        ContentData cData = (ContentData) nodeService.getProperty(nRef, contentQname);
+                                        if (ContentData.hasContent(cData)) {
+                                            List<ContentDataComponent> components =
+                                                    contentDataHelper
+                                                            .getContentDataComponents(contentQname.getPrefixString(),
+                                                                    cData);
+                                            components.sort(Comparator.comparing(ContentDataComponent::getName));
+                                            for (ContentDataComponent component : components) {
+                                                result.append(escapeCsv(component.getValue().toString(), separator));
+                                                result.append(separator);
+                                            }
+                                        }
                                     } else if ("permissions".equals(element)) {
                                         // All permissions
                                         Set<AccessPermission> permissions = permissionService
@@ -280,6 +341,7 @@ public class Export {
 
         // QueryRunner is the producer thread that executes the query and places the results in nodeQueue
         class QueryRunner implements Callable<Void> {
+
             int totalDocsProcessed = 0;
             ResultSet resultSet = null;
             int start = 0;
@@ -452,6 +514,7 @@ public class Export {
      *
      * This version of the function rectifies that by being aware of the user-configured separator as well as
      * considering semicolon a separator by default.
+     *
      * @param str data string
      * @param separator column separator
      * @return Returns data string in which separator strings are surrounded with quotes
@@ -548,11 +611,9 @@ public class Export {
         }
 
         /**
-         * At what position in the inheritance chain for permissions is this permission set?
-         * = 0 -> Set direct on the object.
-         * > 0 -> Inherited
-         * < 0 -> We don't know and are using this object for reporting (e.g. the actual permissions that apply to a
-         *        node for the current user)
+         * At what position in the inheritance chain for permissions is this permission set? = 0 -> Set direct on the
+         * object. > 0 -> Inherited < 0 -> We don't know and are using this object for reporting (e.g. the actual
+         * permissions that apply to a node for the current user)
          */
         @Override
         public int getPosition() {
