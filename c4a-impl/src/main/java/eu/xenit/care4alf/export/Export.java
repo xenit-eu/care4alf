@@ -78,6 +78,7 @@ public class Export {
     final NodeRef STOP_INDICATOR = new NodeRef("workspace://STOP_INDICATOR/STOP_INDICATOR");
     final int QUEUE_SIZE = 50000;
     final int MAX_QUERY_SIZE = 1000;
+    final String CONTENTDATACOMPONENT_PREFIX = "content.";
     private final Logger logger = LoggerFactory.getLogger(Export.class);
     @Autowired
     private SearchService searchService;
@@ -113,7 +114,7 @@ public class Export {
     // Flag to indicate if permissions breakdown column should be CSV escaped
     private Boolean escapePermissionBreakdown;
 
-    private final List<String> availableContentDataComponents = new ArrayList<>();
+//    private final List<String> availableContentDataComponents = new ArrayList<>();
 
     @PostConstruct
     private void init() {
@@ -126,11 +127,11 @@ public class Export {
         escapePermissionBreakdown = Boolean
                 .valueOf(globalProps.getProperty(PROPS_PREFIX + "escapePermissionBreakdown", "true"));
         //The available elements are hardcoded to these in order to guarantee basic functionality with all possible contentdata subtypes
-        availableContentDataComponents.add("contentUrl");
-        availableContentDataComponents.add("encoding");
-        availableContentDataComponents.add("locale");
-        availableContentDataComponents.add("mimetype");
-        availableContentDataComponents.add("size");
+//        availableContentDataComponents.add("contentUrl");
+//        availableContentDataComponents.add("encoding");
+//        availableContentDataComponents.add("locale");
+//        availableContentDataComponents.add("mimetype");
+//        availableContentDataComponents.add("size");
     }
 
     @Uri(value = "/query", method = HttpMethod.GET)
@@ -164,7 +165,7 @@ public class Export {
         hardcodedNames.put("text", true);
         hardcodedNames.put("type", true);
         hardcodedNames.put("noderef", true);
-        hardcodedNames.put("content-string-components", true);
+//        hardcodedNames.put("content-string-components", true);
         hardcodedNames.put("permissions", true);
         hardcodedNames.put("permissions-breakdown", true);
         hardcodedNames.put("direct-permissions", true);
@@ -215,20 +216,19 @@ public class Export {
 
                         for (int i = 0; i < column.length; i++) {
                             String el = column[i].trim();
-                            if (hardcodedNames.containsKey(el)) {
-                                if (el.equals("content-string-components")) {
-                                    outputStreamWriter.write("content.contentUrl");
-                                    outputStreamWriter.write(separator);
-                                    outputStreamWriter.write("content.encoding");
-                                    outputStreamWriter.write(separator);
-                                    outputStreamWriter.write("content.locale");
-                                    outputStreamWriter.write(separator);
-                                    outputStreamWriter.write("content.mimetype");
-                                    outputStreamWriter.write(separator);
-                                    outputStreamWriter.write("content.size");
-                                } else {
+                            if (hardcodedNames.containsKey(el) || el.startsWith(CONTENTDATACOMPONENT_PREFIX)) {
+//                                if (el.equals("content-string-components")) {
+//                                    outputStreamWriter.write("content.contentUrl");
+//                                    outputStreamWriter.write(separator);
+//                                    outputStreamWriter.write("content.encoding");
+//                                    outputStreamWriter.write(separator);
+//                                    outputStreamWriter.write("content.locale");
+//                                    outputStreamWriter.write(separator);
+//                                    outputStreamWriter.write("content.mimetype");
+//                                    outputStreamWriter.write(separator);
+//                                    outputStreamWriter.write("content.size");
+//                                } else {
                                     outputStreamWriter.write(el);
-                                }
                             } else {
                                 QName qName = QName.createQName(el, namespaceService);
                                 PropertyDefinition propDef = dictionaryService.getProperty(qName);
@@ -258,6 +258,8 @@ public class Export {
                                 break;
                             }
                             StringBuilder result = new StringBuilder();
+                            Map<String, ContentDataComponent> cDataCached = null;
+                            boolean hasContentData = true;
                             for (int i = 0; i < column.length; i++) {
                                 try {
                                     String element = column[i].trim();
@@ -274,20 +276,28 @@ public class Export {
                                         result.append(typeString);
                                     } else if ("noderef".equals(element)) {
                                         result.append(nRef);
-                                    } else if ("content-string-components".equals(element)) {
-                                        QName contentQname = ContentModel.PROP_CONTENT;
-                                        ContentData cData = (ContentData) nodeService.getProperty(nRef, contentQname);
-                                        if (ContentData.hasContent(cData)) {
-                                            Map<String, ContentDataComponent> components = contentDataHelper
-                                                    .getContentDataComponents(contentQname.getPrefixString(), cData);
-                                            for (String componentName : availableContentDataComponents) {
-                                                ContentDataComponent component = components.get(componentName);
-                                                if (componentName != null) {
-                                                    result.append(
-                                                            escapeCsv(component.getValue().toString(), separator));
-                                                    result.append(separator);
-                                                }
+                                    } else if (element.startsWith(CONTENTDATACOMPONENT_PREFIX)) {
+                                        String targetComponent = element.split("\\.", 2)[1];
+                                        if (cDataCached == null && hasContentData) {
+                                            QName contentQname = ContentModel.PROP_CONTENT;
+                                            ContentData cData = (ContentData) nodeService.getProperty(nRef, contentQname);
+                                            if (cData != null) {
+                                                cDataCached = contentDataHelper.getContentDataComponents(contentQname.getPrefixString(), cData);
+                                            } else {
+                                                hasContentData = false;
                                             }
+                                        }
+                                        if (hasContentData) {
+                                            ContentDataComponent retrievedComponent = cDataCached.get(targetComponent);
+                                            if (retrievedComponent != null) {
+                                                result.append(
+                                                        escapeCsv(retrievedComponent.getValue().toString(), separator));
+                                            } else {
+                                                result.append(escapeCsv("Unable to retrieve contentdata component",
+                                                        separator));
+                                            }
+                                        } else {
+                                            result.append(escapeCsv("N/A", separator));
                                         }
                                     } else if ("permissions".equals(element)) {
                                         // All permissions

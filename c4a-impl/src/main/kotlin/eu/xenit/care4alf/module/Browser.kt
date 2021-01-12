@@ -164,7 +164,7 @@ public class Browser @Autowired constructor(
                                     val contentDataComponents = contentDataHelper.getContentDataComponents(qnameString, propertyValue)
                                     for (component in contentDataComponents.entries) {
                                         immutableFields.add(component.value.qnamestring)
-                                        entry(component.value.qnamestring, component.value)
+                                        entry(component.value.qnamestring, component.value.value)
                                     }
                                 }
                             } else {
