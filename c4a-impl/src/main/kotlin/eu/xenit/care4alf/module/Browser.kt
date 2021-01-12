@@ -162,9 +162,9 @@ public class Browser @Autowired constructor(
                                     hyperlinkedFields.add(qnameString)
                                     immutableFields.add(qnameString);
                                     val contentDataComponents = contentDataHelper.getContentDataComponents(qnameString, propertyValue)
-                                    for (component in contentDataComponents) {
-                                        immutableFields.add(component.qnamestring)
-                                        entry(component.qnamestring, component.value)
+                                    for (component in contentDataComponents.entries) {
+                                        immutableFields.add(component.value.qnamestring)
+                                        entry(component.value.qnamestring, component.value)
                                     }
                                 }
                             } else {
