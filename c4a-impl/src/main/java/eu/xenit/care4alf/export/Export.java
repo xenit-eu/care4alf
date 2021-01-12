@@ -114,8 +114,6 @@ public class Export {
     // Flag to indicate if permissions breakdown column should be CSV escaped
     private Boolean escapePermissionBreakdown;
 
-//    private final List<String> availableContentDataComponents = new ArrayList<>();
-
     @PostConstruct
     private void init() {
         aclStart = globalProps.getProperty(PROPS_PREFIX + "aclStart", aclStart);
@@ -126,12 +124,6 @@ public class Export {
         includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX + "includeAccessStatus", "false"));
         escapePermissionBreakdown = Boolean
                 .valueOf(globalProps.getProperty(PROPS_PREFIX + "escapePermissionBreakdown", "true"));
-        //The available elements are hardcoded to these in order to guarantee basic functionality with all possible contentdata subtypes
-//        availableContentDataComponents.add("contentUrl");
-//        availableContentDataComponents.add("encoding");
-//        availableContentDataComponents.add("locale");
-//        availableContentDataComponents.add("mimetype");
-//        availableContentDataComponents.add("size");
     }
 
     @Uri(value = "/query", method = HttpMethod.GET)
@@ -165,7 +157,6 @@ public class Export {
         hardcodedNames.put("text", true);
         hardcodedNames.put("type", true);
         hardcodedNames.put("noderef", true);
-//        hardcodedNames.put("content-string-components", true);
         hardcodedNames.put("permissions", true);
         hardcodedNames.put("permissions-breakdown", true);
         hardcodedNames.put("direct-permissions", true);
@@ -217,17 +208,6 @@ public class Export {
                         for (int i = 0; i < column.length; i++) {
                             String el = column[i].trim();
                             if (hardcodedNames.containsKey(el) || el.startsWith(CONTENTDATACOMPONENT_PREFIX)) {
-//                                if (el.equals("content-string-components")) {
-//                                    outputStreamWriter.write("content.contentUrl");
-//                                    outputStreamWriter.write(separator);
-//                                    outputStreamWriter.write("content.encoding");
-//                                    outputStreamWriter.write(separator);
-//                                    outputStreamWriter.write("content.locale");
-//                                    outputStreamWriter.write(separator);
-//                                    outputStreamWriter.write("content.mimetype");
-//                                    outputStreamWriter.write(separator);
-//                                    outputStreamWriter.write("content.size");
-//                                } else {
                                     outputStreamWriter.write(el);
                             } else {
                                 QName qName = QName.createQName(el, namespaceService);
