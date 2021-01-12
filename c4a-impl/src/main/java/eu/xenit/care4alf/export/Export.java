@@ -16,13 +16,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -112,6 +113,8 @@ public class Export {
     // Flag to indicate if permissions breakdown column should be CSV escaped
     private Boolean escapePermissionBreakdown;
 
+    private final List<String> availableContentDataComponents = new ArrayList<>();
+
     @PostConstruct
     private void init() {
         aclStart = globalProps.getProperty(PROPS_PREFIX + "aclStart", aclStart);
@@ -122,6 +125,12 @@ public class Export {
         includeAccessStatus = Boolean.valueOf(globalProps.getProperty(PROPS_PREFIX + "includeAccessStatus", "false"));
         escapePermissionBreakdown = Boolean
                 .valueOf(globalProps.getProperty(PROPS_PREFIX + "escapePermissionBreakdown", "true"));
+        //The available elements are hardcoded to these in order to guarantee basic functionality with all possible contentdata subtypes
+        availableContentDataComponents.add("contentUrl");
+        availableContentDataComponents.add("encoding");
+        availableContentDataComponents.add("locale");
+        availableContentDataComponents.add("mimetype");
+        availableContentDataComponents.add("size");
     }
 
     @Uri(value = "/query", method = HttpMethod.GET)
@@ -269,14 +278,15 @@ public class Export {
                                         QName contentQname = ContentModel.PROP_CONTENT;
                                         ContentData cData = (ContentData) nodeService.getProperty(nRef, contentQname);
                                         if (ContentData.hasContent(cData)) {
-                                            List<ContentDataComponent> components =
-                                                    contentDataHelper
-                                                            .getContentDataComponents(contentQname.getPrefixString(),
-                                                                    cData);
-                                            components.sort(Comparator.comparing(ContentDataComponent::getName));
-                                            for (ContentDataComponent component : components) {
-                                                result.append(escapeCsv(component.getValue().toString(), separator));
-                                                result.append(separator);
+                                            Map<String, ContentDataComponent> components = contentDataHelper
+                                                    .getContentDataComponents(contentQname.getPrefixString(), cData);
+                                            for (String componentName : availableContentDataComponents) {
+                                                ContentDataComponent component = components.get(componentName);
+                                                if (componentName != null) {
+                                                    result.append(
+                                                            escapeCsv(component.getValue().toString(), separator));
+                                                    result.append(separator);
+                                                }
                                             }
                                         }
                                     } else if ("permissions".equals(element)) {
@@ -611,9 +621,10 @@ public class Export {
         }
 
         /**
-         * At what position in the inheritance chain for permissions is this permission set? = 0 -> Set direct on the
-         * object. > 0 -> Inherited < 0 -> We don't know and are using this object for reporting (e.g. the actual
-         * permissions that apply to a node for the current user)
+         * At what position in the inheritance chain for permissions is this permission set?
+         * = 0 -> Set direct on the object.
+         * > 0 -> Inherited
+         * < 0 -> We don't know and are using this object for reporting (e.g. the actual permissions that apply to a node for the current user)
          */
         @Override
         public int getPosition() {

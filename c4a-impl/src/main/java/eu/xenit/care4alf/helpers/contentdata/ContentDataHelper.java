@@ -3,7 +3,9 @@ package eu.xenit.care4alf.helpers.contentdata;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.alfresco.service.cmr.repository.ContentData;
@@ -13,10 +15,10 @@ import org.springframework.util.ReflectionUtils;
 @Component
 public class ContentDataHelper {
 
-    public List<ContentDataComponent> getContentDataComponents(String contentDataQnameString,
+    public Map<String, ContentDataComponent> getContentDataComponents(String contentDataQnameString,
             ContentData targetContentData) throws ClassNotFoundException {
         Class<?> contentDataClass = Class.forName("org.alfresco.service.cmr.repository.ContentData");
-        List<ContentDataComponent> components = new ArrayList<>();
+        Map<String, ContentDataComponent> components = new HashMap<>();
         List<Field> fieldList = new ArrayList<>();
         List<Method> getterMethodsList = new ArrayList<>();
         ReflectionUtils.doWithFields(contentDataClass, field -> fieldList.add(field));
@@ -39,7 +41,7 @@ public class ContentDataHelper {
                         break;
                     }
                 }
-                components.add(component);
+                components.put(field.getName(), component);
             }
         }
         return components;
