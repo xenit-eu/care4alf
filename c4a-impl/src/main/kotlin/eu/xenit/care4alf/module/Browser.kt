@@ -2,6 +2,7 @@ package eu.xenit.care4alf.module
 
 import com.github.dynamicextensionsalfresco.webscripts.annotations.*
 import eu.xenit.care4alf.JsonRoot
+import eu.xenit.care4alf.helpers.contentdata.ContentDataHelper
 import eu.xenit.care4alf.json
 import eu.xenit.care4alf.web.RestErrorHandling
 import org.alfresco.model.ContentModel
@@ -32,10 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.extensions.webscripts.WebScriptRequest
 import org.springframework.extensions.webscripts.WebScriptResponse
 import org.springframework.stereotype.Component
-import org.springframework.util.ReflectionUtils
 import java.io.Serializable
-import java.lang.reflect.Field
-import java.lang.reflect.Method
 import java.util.*
 
 /**
@@ -53,7 +51,8 @@ public class Browser @Autowired constructor(
         private val transactionService: TransactionService,
         private val policyBehaviourFilter: BehaviourFilter,
         private val permissionService: PermissionService,
-        private val aclDAO: AclDAO
+        private val aclDAO: AclDAO,
+        private val contentDataHelper: ContentDataHelper
 ) : RestErrorHandling {
     override var logger: Logger = LoggerFactory.getLogger(javaClass)
     private val serializer = DefaultTypeConverter.INSTANCE
@@ -77,7 +76,7 @@ public class Browser @Autowired constructor(
             val nodeRef = nodeService.getNodeRef(dbid)
             obj {
                 key("nodes") {
-            iterable(listOf(nodeRef), nodesToBasicJson())
+                    iterable(listOf(nodeRef), nodesToBasicJson())
                 }
             }
         } else if (query.toLowerCase().matches("^(workspace|archive|system|user)://.*".toRegex())) {
@@ -158,27 +157,14 @@ public class Browser @Autowired constructor(
                                     }
                                 }
                             } else if (propertyValue is ContentData) {
-                                entry(qnameString, format(propertyValue))
-                                hyperlinkedFields.add(qnameString)
-                                immutableFields.add(qnameString);
-                                //reflectionUtils does not have methods for base-class-only manipulation in the used version, so we target the class directly
-                                val contentDataClass = Class.forName("org.alfresco.service.cmr.repository.ContentData")
-                                val fieldList = ArrayList<Field>()
-                                val methodList = ArrayList<Method>()
-                                ReflectionUtils.doWithFields(contentDataClass, ReflectionUtils.FieldCallback { field ->  fieldList.add(field)})
-                                ReflectionUtils.doWithMethods(contentDataClass, ReflectionUtils.MethodCallback { method -> methodList.add(method)})
-                                for(field in fieldList) {
-                                    if(!field.name.equals("serialVersionUID") && !field.name.equals("INVALID_CONTENT_URL_CHARS")){
-                                        val fieldQName = qnameString + ":" + field.name
-                                        immutableFields.add(fieldQName)
-                                        for(method in methodList){
-                                            val regex = ("get" + field.name + "()").toRegex(RegexOption.IGNORE_CASE)
-                                            if(method.name.contains(regex)){
-                                                val fieldValue = ReflectionUtils.invokeMethod(method, propertyValue)
-                                                entry(fieldQName, fieldValue)
-                                                break
-                                            }
-                                        }
+                                if (ContentData.hasContent(propertyValue)) {
+                                    entry(qnameString, format(propertyValue))
+                                    hyperlinkedFields.add(qnameString)
+                                    immutableFields.add(qnameString);
+                                    val contentDataComponents = contentDataHelper.getContentDataComponents(qnameString, propertyValue)
+                                    for (component in contentDataComponents.entries) {
+                                        immutableFields.add(component.value.qnamestring)
+                                        entry(component.value.qnamestring, component.value.value)
                                     }
                                 }
                             } else {

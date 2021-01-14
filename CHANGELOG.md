@@ -2,9 +2,8 @@
 ## Release 2.3.1 (Unreleased)
 ### ALFREDOPS
 - [423](https://xenitsupport.jira.com/browse/ALFREDOPS-423): Change browser to accept noderefs as component parts
-
-### ALFREDOPS
 - [566](https://xenitsupport.jira.com/browse/ALFREDOPS-566): Fix export function for custom content model types and properties
+- [588](https://xenitsupport.jira.com/browse/ALFREDOPS-588): Add basic content data components to export options
 
 ## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS
