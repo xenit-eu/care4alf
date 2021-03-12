@@ -50,26 +50,10 @@ public class SolrAdmin {
     private DataSource dataSource;
 
     @Autowired
-    private Config config;
-
-    @Autowired
-    Solr1AdminClientImpl solr1AdminClient;
-
-    @Autowired
-    Solr4AdminClientImpl solr4AdminClient;
-
-    @Autowired
-    Solr6AdminClientImpl solr6AdminClient;
+    AbstractSolrAdminClient solrAdminClient;
 
     public AbstractSolrAdminClient getSolrAdminClient() {
-        String searchSubSystem = getSearchSubSystemName().toLowerCase();
-        if (searchSubSystem.equals("solr4")) {
-            return solr4AdminClient;
-        }
-        if (searchSubSystem.equals("solr6")) {
-            return solr6AdminClient;
-        }
-        return solr1AdminClient;
+        return solrAdminClient;
     }
 
     @Uri("errors")
@@ -78,10 +62,6 @@ public class SolrAdmin {
         JsonNode json = this.getSolrAdminClient().getSolrErrorsJson(Integer.parseInt(start), Integer.parseInt(rows));
         response.setContentType("application/json");
         response.getWriter().write(json.toString());
-    }
-
-    private String getSearchSubSystemName() {
-        return config.getProperty("index.subsystem.name");
     }
 
     public JsonNode getSolrSummaryJson() throws EncoderException, IOException {

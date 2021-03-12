@@ -94,8 +94,8 @@ allprojects {
         compile group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
         compile group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
         compile group: 'org.json', name: 'json', version: '20090211'
-        if (subproject_alfresco_version == '61') {
-            compileOnly group: 'com.google.guava', name: 'guava', version: '27.1-jre'
+        if (subproject_alfresco_version == '62') {
+            compileOnly group: 'com.google.guava', name: 'guava', version: '28.0-jre'
         } else {
             compileOnly group: 'com.google.guava', name: 'guava', version: '11.0.2'
         }
@@ -144,8 +144,8 @@ allprojects {
         baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
         alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${de_version}@amp"
         alfrescoAmp project(path: "${c4a_dependency}", configuration: 'amp')
-        if (subproject_alfresco_version == '61') {
-            alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.1@amp"
+        if (subproject_alfresco_version == '62') {
+            alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.2@amp"
         }
     }
 

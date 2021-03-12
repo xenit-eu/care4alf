@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.codec.EncoderException;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.List;
  * Created by willem on 9/26/16.
  */
 @Component
+@Conditional(SolrSubsystemConditions.Solr1Condition.class)
 public class Solr1AdminClientImpl extends AbstractSolrAdminClient {
 
     @Override
