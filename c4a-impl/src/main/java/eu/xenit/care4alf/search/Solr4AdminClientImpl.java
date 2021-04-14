@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import eu.xenit.care4alf.search.subsystemconditions.Solr4Condition;
 import org.apache.commons.codec.EncoderException;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.List;
  * Created by willem on 9/26/16.
  */
 @Component
-@Conditional(SolrSubsystemConditions.Solr4Condition.class)
+@Conditional(Solr4Condition.class)
 public class Solr4AdminClientImpl extends AbstractSolrAdminClient{
 
     @Override
