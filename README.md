@@ -20,6 +20,8 @@ containers, use `DOCKER_ALF_PORT=8080 ./gradlew:c4a-test:test-5x:composeUp`, fol
 Add new module webscripts to the `xenit.care4alf.module` package. Make sure to annotate with the `care4alf` family.
 Provide html (named <classname>.html) in the resources/eu/xenit/care4alf/web/partials directory.
 
+Additionally, add your module id and description to `c4a-impl/src/main/resources/eu/xenit/care4alf/web/js/c4a/c4aModules.js`
+
 ## Monitoring
 
 There are 2 ways to integrate monitoring:
