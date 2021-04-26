@@ -31,19 +31,8 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
         val version = bundleContext.bundle.version
 
         return mapOf(
-                "modules" to getModuleWebScripts().toSortedMap().map { entry ->
-                    val description = entry.value.javaClass.getAnnotation(WebScript::class.java).description
-                    mapOf("id" to entry.key.toLowerCase(), "description" to description)
-                },
                 "versionDate" to lastModified.toLong(),
                 "version" to version.toString()
         )
-    }
-
-    fun getModuleWebScripts(): Map<String, Any> {
-        return applicationContext?.getBeansWithAnnotation(WebScript::class.java)?.filter { entry ->
-            entry.value.javaClass != Care4Alf::class.java &&
-            entry.value.javaClass.getAnnotation(WebScript::class.java).families.contains("care4alf")
-        } ?: mapOf()
     }
 }

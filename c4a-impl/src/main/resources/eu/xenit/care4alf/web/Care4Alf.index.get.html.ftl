@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="care4alf">
+<html lang="en" ng-app="care4alf" ng-csp>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self';">
     <title>Care4Alf</title>
     <#assign cached = url.serviceContext + "/xenit/care4alf/cached/" + versionDate?c!"1">
     <#assign resources = url.serviceContext + "/xenit/care4alf/resources">
@@ -19,13 +21,11 @@
     <script type="text/javascript" src="${resources}/js/ui-bootstrap-tpls-1.1.2.cached.min.js"></script>
     <script type="text/javascript" src="${resources}/js/angular-loading-bar/loading-bar.js"></script>
     <script type="text/javascript" src="${cached}/js/care4alf.js"></script>
-    <script type="text/javascript">
-        var care4alfModules = [<#list modules as module>{id: '${module.id}', description: '${module.description}'}<#if module_has_next>,</#if></#list>];
-        var serviceUrl = "${url.serviceContext}";
-    </script>
+    <script type="text/javascript" src="${resources}/js/c4a/c4aModules.js"></script>
     <link rel="stylesheet" href="${resources}/css/bootstrap.3.1.1.cached.min.css">
     <link rel="stylesheet" href="${resources}/js/angularjs-toaster/toaster.css">
     <link rel="stylesheet" href="${resources}/js/angular-loading-bar/loading-bar.css">
+    <link rel="stylesheet" href="${resources}/js/angular/angular-csp.css">
     <link rel="stylesheet" href="${cached}/css/care4alf.css">
     <!-- Icon by DinoSoftLabs on Flaticon.com -->
     <link rel="icon" href="${resources}/img/fire-extinguisher16.png" sizes="16x16" type="image/png" />
