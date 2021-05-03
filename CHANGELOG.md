@@ -5,6 +5,7 @@
 - [566](https://xenitsupport.jira.com/browse/ALFREDOPS-566): Fix export function for custom content model types and properties
 - [588](https://xenitsupport.jira.com/browse/ALFREDOPS-588): Add basic content data components to export options
 - [656](https://xenitsupport.jira.com/browse/ALFREDOPS-656): Comply with stricter content-security-policy
+- [733](https://xenitsupport.jira.com/browse/ALFREDOPS-733): Add section on the company to the Readme
 
 ## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS

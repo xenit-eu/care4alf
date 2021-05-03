@@ -1,5 +1,12 @@
 # Care4Alf
 
+> [![Xenit Logo](https://xenit.eu/wp-content/uploads/2017/09/XeniT_Website_Logo.png)](https://xenit.eu/open-source)
+> 
+> Care4alf is a part of the Xenit Open Source Tooling around Alfresco.
+> Xenit is company with high expertise and a strong team centered around Alfresco.
+> If you'd like to learn more about our [tools](https://xenit.eu/open-source), [services](https://xenit.eu/alfresco) and [products](https://xenit.eu/alfresco-products)
+> please visit our [website](https://xenit.eu).
+
 ## Build
 
 Run `./gradlew :c4a-impl:care4alf-5x:assemble` to build a jar for Alfresco 5.0/5.1/5.2 and
