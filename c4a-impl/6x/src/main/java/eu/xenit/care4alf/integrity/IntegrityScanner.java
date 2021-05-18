@@ -1,6 +1,10 @@
 package eu.xenit.care4alf.integrity;
 
-import static org.alfresco.repo.action.executer.MailActionExecuter.*;
+import static org.alfresco.repo.action.executer.MailActionExecuter.NAME;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_FROM;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_SUBJECT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TEXT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TO_MANY;
 
 import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import com.github.dynamicextensionsalfresco.schedule.Task;
