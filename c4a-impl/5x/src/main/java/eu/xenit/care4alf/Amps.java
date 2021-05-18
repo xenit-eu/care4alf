@@ -2,9 +2,19 @@ package eu.xenit.care4alf;
 
 import com.github.dynamicextensionsalfresco.annotations.AlfrescoService;
 import com.github.dynamicextensionsalfresco.annotations.ServiceType;
-import com.github.dynamicextensionsalfresco.webscripts.annotations.*;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Authentication;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.AuthenticationType;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.HttpMethod;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Transaction;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
+import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.sql.DataSource;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
@@ -16,12 +26,6 @@ import org.json.JSONWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.sql.DataSource;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Component
 @WebScript(baseUri = "/xenit/care4alf/amps", families = {"care4alf"}, description = "Update AMP module versions")
