@@ -1,11 +1,16 @@
 package eu.xenit.care4alf.jmx;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.springframework.stereotype.Component;
-
-import java.lang.management.*;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by Thomas.Straetmans on 24/11/2016.
