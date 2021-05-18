@@ -1,7 +1,0 @@
-plugins {
-    id 'eu.xenit.alfresco'
-}
-
-dependencies {
-    alfrescoProvided('org.apache.commons:commons-lang3:3.12.0')
-}

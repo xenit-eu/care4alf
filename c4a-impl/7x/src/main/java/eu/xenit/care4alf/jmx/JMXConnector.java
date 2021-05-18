@@ -9,7 +9,7 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 
 /**
