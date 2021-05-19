@@ -1,4 +1,5 @@
 ext {
+    c4a_dependency = ':c4a-impl:care4alf-7x'
     subproject_alfresco_version = '70'
     alfresco_repo_version = '8.424'
     alfresco_remote_api_version = '8.424'
@@ -6,6 +7,8 @@ ext {
     alfresco_img_version = '7.0.0'
     alfresco_dm_version = '8.424'
     de_version = '2.1.0'
-    http_version = '4.5.2'
-    http_core_version = '4.4.5'
+    http_fluent_version = '4.5.13'
+    http_client_version = '4.5.13'
+    http_core_version = '4.4.14'
+    http_mime_version = '4.5.13'
 }

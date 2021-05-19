@@ -1,0 +1,74 @@
+version: '2'
+
+services:
+  alfresco-core:
+    image: ${DOCKER_IMAGE}
+    ports:
+      - "${DOCKER_IP}:${DOCKER_ALF_PORT}:8080"
+    volumes:
+      - alfresco:/opt/alfresco/alf_data
+    restart: unless-stopped
+    environment:
+      - SOLR_HOST=solr
+      - ALFRESCO_HOST=alfresco-core
+      - GLOBAL_audit.enabled = true
+      - GLOBAL_audit.alfresco-access.enabled=true
+      - GLOBAL_audit.alfresco-access.sub-actions.enabled=true
+      # Define mail host settings explicitly for tests involving mailactionexecuter
+      - GLOBAL_mail.host=localhost
+      - GLOBAL_mail.port=2500
+      - GLOBAL_heartbeat.enabled=false
+      - GLOBAL_transform.service.enabled=false
+      - GLOBAL_local.transform.service.enabled=false
+      - GLOBAL_legacy.transform.service.enabled=false
+      - GLOBAL_messaging.broker.url=failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true
+
+  solr:
+    image: hub.xenit.eu/alfresco-enterprise/alfresco-solr6:2.0.1
+    volumes:
+      - solr:/opt/alfresco/alf_data
+    restart: unless-stopped
+    environment:
+      - ALFRESCO_HOST=alfresco-core
+
+  postgresql:
+    image: docker.io/xenit/postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=alfresco
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=alfresco
+      - "PGCONF_log_line_prefix='%t [%p]: [%l-1] db=%d,user=%u,app=%a,client=%h '"
+      - PGCONF_log_checkpoints=on
+      - PGCONF_log_connections=on
+      - PGCONF_log_disconnections=on
+      - PGCONF_log_lock_waits=on
+      - PGCONF_log_temp_files=0
+      - PGCONF_log_autovacuum_min_duration=0
+      - PGCONF_log_error_verbosity=default
+      - PGCONF_log_min_duration_statement=100
+    #     - PGCONF_log_duration=on
+    restart: unless-stopped
+  #   authentication-proxy:
+  #     build:
+  #         context: nginx-proxy
+  #     ports:
+  #       - ${DOCKER_IP}::80
+  #     restart: unless-stopped
+  #     command: 'nginx'
+
+  activemq:
+    image: alfresco/alfresco-activemq:5.16.1
+    mem_limit: 1g
+#    ports:
+#      - "8161:8161" # Web Console
+#      - 5672:5672 # AMQP
+#      - 61616:61616 # OpenWire
+#      - 61613:61613
+
+
+volumes:
+  alfresco:
+  solr:
+  postgres:
