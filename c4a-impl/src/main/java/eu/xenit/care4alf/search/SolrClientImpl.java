@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import eu.xenit.care4alf.Config;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.alfresco.httpclient.HttpClientFactory;
-import org.alfresco.repo.search.impl.solr.SolrChildApplicationContextFactory;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.Header;
@@ -36,31 +34,11 @@ public class SolrClientImpl implements SolrClient {
     private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
 
     @Autowired
-    private Config config;
-
-    @Autowired(required = false)
-    @Qualifier("solr")
-    SolrChildApplicationContextFactory solr1HttpClientFactory;
-
-    @Autowired(required = false)
-    @Qualifier("solr4")
-    SolrChildApplicationContextFactory solr4HttpClientFactory;
+    @Qualifier("solrHttpClientFactory")
+    private HttpClientFactory solrHttpClientFactory;
 
     private HttpClient getHttpClient() {
-        String searchSubsystemKey = "index.subsystem.name";
-        String searchSubSystemValue = config.getProperty(searchSubsystemKey).toLowerCase();
-
-        // Default factory is Solr (meaning Solr 1), which means it is also used when 'solr6' is configured.
-        SolrChildApplicationContextFactory clientFactory = solr1HttpClientFactory;
-        if (searchSubSystemValue.equals("solr4")) {
-            clientFactory = solr4HttpClientFactory;
-        }
-        logger.info("Configured '{}'='{}' -> solrHttpClientFactory.typeName='{}'.",
-                searchSubsystemKey, searchSubSystemValue, clientFactory.getTypeName());
-
-
-        Object httpClientFactory = clientFactory.getApplicationContext().getBean("solrHttpClientFactory");
-        return ((HttpClientFactory) httpClientFactory).getHttpClient();
+        return solrHttpClientFactory.getHttpClient();
     }
 
     @Override

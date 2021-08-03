@@ -1,4 +1,4 @@
-package eu.xenit.care4alfintegration;
+package eu.xenit.care4alf.unittest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +19,6 @@ import static org.mockito.Mockito.*;
 /**
  * Created by willem on 9/27/16.
  */
-@Component
 public class SolrAdminClientTest {
     @Mock
     private SolrClient solrClient;
@@ -32,7 +31,7 @@ public class SolrAdminClientTest {
     @Test
     public void testParseSolr1ErrorsJson() throws Exception {
         JsonNode jsonSolr1Errors = new ObjectMapper().readTree(solrErrors1);
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr1Errors);
+        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),nullable(JsonNode.class))).thenReturn(jsonSolr1Errors);
         AbstractSolrAdminClient client = new Solr1AdminClientImpl();
         client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
@@ -48,7 +47,7 @@ public class SolrAdminClientTest {
     @Test
     public void testParseSolr4ErrorsJson() throws Exception {
         JsonNode jsonSolr4Errors = new ObjectMapper().readTree(solrErrors4);
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr4Errors);
+        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),nullable(JsonNode.class))).thenReturn(jsonSolr4Errors);
         AbstractSolrAdminClient client = new Solr4AdminClientImpl();
         client.setSolrClient(solrClient);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();

@@ -15,9 +15,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class PermissionImportTest {
 
@@ -25,7 +22,6 @@ public class PermissionImportTest {
     public static void setup() throws InterruptedException {
         String port = System.getProperty("alfresco.port");
         RestAssured.port = port == null ? 8080 : Integer.valueOf(port);
-
         String protocol = System.getProperty("alfresco.protocol");
         if (protocol == null) {
             protocol = "http";
@@ -182,6 +178,7 @@ public class PermissionImportTest {
     }
 
     private static void loadTestUsers() throws InterruptedException {
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         Response post = given().when()
                 .multiPart(new File("../src/main/resources/authorityimporter/ExampleUserUpload.csv"))
                 .post("/api/people/upload");

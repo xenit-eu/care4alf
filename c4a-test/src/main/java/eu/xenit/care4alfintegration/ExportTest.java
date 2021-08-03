@@ -1,11 +1,14 @@
 package eu.xenit.care4alfintegration;
 
 import eu.xenit.care4alf.export.Export;
+import eu.xenit.testing.integrationtesting.runner.AlfrescoTestRunner;
+import eu.xenit.testing.integrationtesting.runner.UseSpringContextOfBundle;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.stereotype.Component;
+import org.junit.runner.RunWith;
 
-@Component
+@RunWith(AlfrescoTestRunner.class)
+@UseSpringContextOfBundle(bundleId = "eu.xenit.care4alf")
 public class ExportTest {
     Export export = new Export();
 
