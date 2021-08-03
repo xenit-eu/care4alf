@@ -6,7 +6,6 @@ ext {
     alfresco_war = 'content-services:6.2.2'
     alfresco_img_version = '6.2.2'
     alfresco_dm_version = '8.50.2'
-    de_version = '2.1.0'
     http_fluent_version = '4.5.9'
     http_client_version = '4.5.9'
     http_core_version = '4.4.11'

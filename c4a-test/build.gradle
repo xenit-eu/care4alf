@@ -17,7 +17,6 @@ ext {
     alfresco_war = 'alfresco-enterprise:5.1.5'
     alfresco_img_version = '5.1'
     alfresco_dm_version = '6.16'
-    de_version = '2.0.1'
     http_fluent_version = '4.5.1'
     http_client_version = '4.5.1'
     http_core_version = '4.4.3'
@@ -35,10 +34,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        maven {
-            name 'Maven Central Snapshots'
-            url 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
         maven {
             url 'https://artifactory.xenit.eu/artifactory/libs-release'
             credentials {
@@ -84,7 +79,7 @@ allprojects {
             transitive = false
         }
         compileOnly group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
-        compileOnly group: 'eu.xenit.de', name: 'annotations', version: de_version
+        compileOnly group: 'eu.xenit.de', name: 'annotations', version: deVersion
         compileOnly group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
         
         integrationJar 'eu.xenit.testing.integration-testing:alfresco-remote-testrunner:2.0.0-rc.5'
@@ -156,7 +151,7 @@ allprojects {
         } else {
             baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
         }
-        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${de_version}@amp"
+        alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${deVersion}@amp"
         alfrescoAmp project(path: "${c4a_dependency}", configuration: 'amp')
         if (subproject_alfresco_version == '62') {
             alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.2@amp"

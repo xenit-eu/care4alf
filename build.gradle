@@ -25,6 +25,12 @@ plugins {
 allprojects {
     version = '2.3.0' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
     group = 'eu.xenit.care4alf'
+    repositories {
+        maven {
+            name 'Maven Central Snapshots'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
 }
 
 wrapper {
@@ -64,7 +70,7 @@ def importPackage() {
     return project("care4alf").file("importPackage").getText("UTF-8").replace("\n","")
 }
 
-ext.deVersion = '2.0.1'
+ext.deVersion = '2.1.1-SNAPSHOT'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber')?project.getProperty('buildNumber'):"SNAPSHOT";

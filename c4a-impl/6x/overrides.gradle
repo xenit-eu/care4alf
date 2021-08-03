@@ -4,7 +4,6 @@ ext {
     alfresco_remote_api_version = '7.34.25.0'
     alfresco_img_version = '6.1.1.2'
     alfresco_dm_version = '8.25.11.0'
-    de_version = '2.0.1'
     http_version = '4.5.2'
     http_core_version = '4.4.5'
 }
