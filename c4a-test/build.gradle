@@ -150,9 +150,9 @@ subprojects {
 
     // Docker dependencies
     dependencies {
-        // gradle plugin does a check on version between baseimage war and new war. since 7.0 the version of the product
-        // no longer matches the version of the war. to avoid the problem, we apply the java-platform plugin, depend on the
-        // alfresco platform, and delegate the war version from there.
+        // gradle plugin does a check on version between baseimage war and new war.
+        // Since 7.0 the version of the product no longer matches the version of the war.
+        // To avoid the problem, we depend on the alfresco platform, and delegate the war version from there.
         if (subproject_alfresco_version == '70') {
             baseAlfrescoWar platform("org.alfresco:acs-packaging:${alfresco_img_version}")
             baseAlfrescoWar 'org.alfresco:content-services@war'
@@ -169,9 +169,6 @@ subprojects {
     dockerAlfresco {
         baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
         leanImage = true
-        dockerBuild {
-            repository = "hub.xenit.eu/alfred-ops/care4alf-alfresco-repo-${subproject_alfresco_version}"
-        }
     }
 
     def composeUpTask = project.tasks.getByName("composeUp")
