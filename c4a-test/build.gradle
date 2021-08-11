@@ -1,5 +1,5 @@
 plugins {
-    id 'eu.xenit.alfresco-remote-testrunner' version '2.0.0-rc.6' apply false
+    id 'eu.xenit.alfresco-remote-testrunner' version '2.0.0' apply false
 }
 
 /*
@@ -46,9 +46,8 @@ allprojects {
         }
     }
 
-    compileJava {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
     }
 
     dependencies {
@@ -87,46 +86,10 @@ allprojects {
         integrationTestImplementationLocal "org.glassfish.hk2:osgi-resource-locator:1.0.1"
 
     }
-    jar {
-        bnd(
-                'Export-Package': 'eu.xenit.care4alfintegration.*',
-                'Include-Resource': includeResource(configurations.compile),
-                'Bundle-ClassPath': bundleClassPath(configurations.compile),
-                'Alfresco-Dynamic-Extension': 'true',
-                'Import-Package': ('eu.xenit.care4alf.*,'
-                        // We need to specify this very wide version range because otherwise the bnd tool will choose
-                        // a very specific version (I don't know why) that prevents deployment
-                        + 'org.json;resolution:=optional;version="[0,99999999)",'
-                        + 'javax.activation;version="[0,99999999)",'
-                        + '!COM.newmonics.PercClassLoader,'
-                        + '!android.os,'
-                        + '!com.github.scribejava.*,'
-                        + '!com.google.appengine.api,'
-                        + '!com.google.apphosting.api,'
-                        + '!com.google.gson,'
-                        + '!com.thoughtworks.xstream,'
-                        + '!org.codehaus.jackson.*,'
-                        // These are the fault of groovy
-                        + '!org.apache.commons.cli,'
-                        + '!org.apache.ivy.*,'
-                        + '!org.fusesource.jansi,'
-                        // This is the fault of commons-logging
-                        + '!org.apache.log,'
-                        // This is the fault of mockito
-                        + '!org.apache.tools.ant.*,'
-                        + '!org.junit.internal.runners.*,'
-                        + '!org.mockito.asm.signature,'
-                        + '!groovy.runtime.metaclass,'
-                        + '!jrockit.vm,'
-                        + '*')
-        )
-    }
 
     installBundle.enabled = false
 }
 subprojects {
-
-    jar.enabled = false
 
     // Docker dependencies
     dependencies {
@@ -167,14 +130,14 @@ subprojects {
         dependsOn composeUpTask
         doFirst {
             def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
-            if (serviceInfo != null) {
-                alfrescoDynamicExtensions {
-                    repository {
-                        endpoint {
-                            host = serviceInfo.host
-                            port = serviceInfo.ports[8080]
-                        }
-                    }
+            if(serviceInfo != null) {
+                def host = serviceInfo.host
+                def port = serviceInfo.ports[8080]
+            }
+            alfrescoDynamicExtensions {
+                repository {
+                    endpoint.host = project.hasProperty("host") ? project.host : host
+                    endpoint.port = project.hasProperty("port") ? project.port : port
                 }
             }
         }
@@ -186,7 +149,7 @@ subprojects {
             def serviceInfo = composeUpTask.servicesInfos
             def host = "localhost"
             def port = 8080
-            if (serviceInfo != null) {
+            if (serviceInfo != null && serviceInfo.get("alfresco-core") != null) {
                 host = serviceInfo.get("alfresco-core").getHost()
                 port = serviceInfo.get("alfresco-core").ports[8080]
             }
