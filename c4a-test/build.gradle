@@ -51,25 +51,6 @@ allprojects {
         targetCompatibility = 1.8
     }
 
-    sourceSets {
-        main {
-            java {
-                srcDirs = []
-            }
-            resources {
-                srcDirs = []
-            }
-        }
-        integrationTest {
-            java {
-                srcDirs = ["./src/main/java"]
-            }
-            resources {
-                srcDirs = ["./src/main/resources"]
-            }
-        }
-    }
-
     dependencies {
         alfrescoProvided project("${c4a_dependency}")
 
@@ -143,7 +124,6 @@ allprojects {
 
     installBundle.enabled = false
 }
-
 subprojects {
 
     jar.enabled = false
@@ -171,7 +151,12 @@ subprojects {
         leanImage = true
     }
 
+    buildDockerImage {
+        outputs.upToDateWhen { false }
+    }
+
     def composeUpTask = project.tasks.getByName("composeUp")
+    composeUpTask.dependsOn buildDockerImage
     def composeDownTask = project.tasks.getByName("composeDown")
 
     alfrescoIntegrationTest {
@@ -196,9 +181,17 @@ subprojects {
     }
 
     integrationTest {
+        finalizedBy composeDownTask
         doFirst {
-            def host = composeUpTask.servicesInfos.get("alfresco-core").getHost()
-            def port = composeUpTask.servicesInfos.get("alfresco-core").ports[8080]
+            def serviceInfo = composeUpTask.servicesInfos
+            def host = "localhost"
+            def port = 8080
+            if (serviceInfo != null) {
+                host = serviceInfo.get("alfresco-core").getHost()
+                port = serviceInfo.get("alfresco-core").ports[8080]
+            }
+            host = project.hasProperty("host") ? project.host : host
+            port = project.hasProperty("port") ? project.port : port
             systemProperty("alfresco.url", "http://admin:admin@" + host + ":" + port + "/alfresco")
             systemProperty("alfresco.protocol", "http")
             systemProperty("alfresco.host", host)
@@ -206,3 +199,4 @@ subprojects {
         }
     }
 }
+

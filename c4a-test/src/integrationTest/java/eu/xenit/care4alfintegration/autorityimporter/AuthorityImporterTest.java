@@ -75,7 +75,7 @@ public class AuthorityImporterTest {
                 .get("/xenit/care4alf/authorityexplorer/groups")
                 .then()
                 .statusCode(200)
-                //.contentType(ContentType.JSON)
+                .contentType(ContentType.JSON)
                 .body("name", hasItem(equalTo("GROUP_HELLO123")))
                 .body("find {it.name == 'GROUP_HELLO123'}.users", containsInAnyOrder("user1"));
     }
@@ -138,7 +138,7 @@ public class AuthorityImporterTest {
     private static void loadTestUsers() throws InterruptedException {
         Response post = given()
                 .when()
-                .multiPart(new File("../src/main/resources/authorityimporter/ExampleUserUpload.csv"))
+                .multiPart(new File("../src/integrationTest/resources/authorityimporter/ExampleUserUpload.csv"))
                 .post("/api/people/upload");
 
         post.then()
