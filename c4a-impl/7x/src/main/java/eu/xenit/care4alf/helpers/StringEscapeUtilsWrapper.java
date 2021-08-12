@@ -8,4 +8,8 @@ public class StringEscapeUtilsWrapper {
         return StringEscapeUtils.escapeJava(target);
     }
 
+    public static String escapeJavaScript(String target) {
+        return StringEscapeUtils.escapeEcmaScript(target);
+    }
+
 }

@@ -1,5 +1,6 @@
 package eu.xenit.care4alf.module.bulk.workers;
 
+import eu.xenit.care4alf.helpers.StringEscapeUtilsWrapper;
 import eu.xenit.care4alf.module.bulk.AbstractWorker;
 import eu.xenit.care4alf.module.bulk.Worker;
 import eu.xenit.care4alf.script.C4AStringScriptLocation;
@@ -14,7 +15,6 @@ import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.ScriptLocation;
 import org.alfresco.service.cmr.repository.StoreRef;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class JavaScriptWorker extends AbstractWorker {
         // in an escaped format using some tool like : http://www.freeformatter.com/javascript-escape.html
         // FIXME add support for textarea as a parameter formcontrol and remove the unnecessary escaping
         final String script = (this.parameters.has("script"))?
-                StringEscapeUtils.unescapeJavaScript(this.parameters.getString("script")):"";
+                StringEscapeUtilsWrapper.unescapeJavaScript(this.parameters.getString("script")):"";
 
         final String runAs = (this.parameters.has("runAs"))?this.parameters.getString("runAs"):"admin";
 
