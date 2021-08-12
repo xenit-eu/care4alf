@@ -65,25 +65,27 @@ allprojects {
         alfrescoProvided group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
 
 
-        integrationTestImplementationLocal group: 'org.apache.httpcomponents', name: 'fluent-hc', version: http_fluent_version
-        integrationTestImplementationLocal group: 'org.apache.httpcomponents', name: 'httpclient', version: http_client_version
-        integrationTestImplementationLocal group: 'org.apache.httpcomponents', name: 'httpcore', version: http_core_version
-        integrationTestImplementationLocal group: 'org.apache.httpcomponents', name: 'httpmime', version: http_mime_version
+        integrationTestImplementationRemote group: 'org.apache.httpcomponents', name: 'fluent-hc', version: http_fluent_version
+        integrationTestImplementationRemote group: 'org.apache.httpcomponents', name: 'httpclient', version: http_client_version
+        integrationTestImplementationRemote group: 'org.apache.httpcomponents', name: 'httpcore', version: http_core_version
+        integrationTestImplementationRemote group: 'org.apache.httpcomponents', name: 'httpmime', version: http_mime_version
         alfrescoProvided group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.3.2'
         alfrescoProvided group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2'
-        integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
-        integrationTestImplementationLocal group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
-        integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-        integrationTestImplementationLocal group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
-        integrationTestImplementationLocal group: 'org.json', name: 'json', version: '20090211'
+        integrationTestImplementationRemote group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+        integrationTestImplementationRemote group: 'org.json', name: 'json', version: '20090211'
         if (subproject_alfresco_version == '62' || subproject_alfresco_version == '70') {
             alfrescoProvided group: 'com.google.guava', name: 'guava', version: '27.1-jre'
         } else {
             alfrescoProvided group: 'com.google.guava', name: 'guava', version: '11.0.2'
         }
 
-        integrationTestImplementationLocal "javax.xml.bind:jaxb-api-osgi:2.2.7"
-        integrationTestImplementationLocal "org.glassfish.hk2:osgi-resource-locator:1.0.1"
+        integrationTestImplementationRemote "javax.xml.bind:jaxb-api-osgi:2.2.7"
+        integrationTestImplementationRemote "org.glassfish.hk2:osgi-resource-locator:1.0.1"
+
+        // Tests using restassured are not alfresco-remote integrationtests, in the regular way.
+        integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
+        integrationTestImplementationLocal group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
+        integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
 
     }
 
