@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.alfresco.httpclient.HttpClientFactory;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.httpclient.Header;
@@ -29,16 +28,16 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class SolrClientImpl implements SolrClient {
+public class SolrFacadeImpl implements SolrFacade {
 
-    private final static Logger logger = LoggerFactory.getLogger(SolrClientImpl.class);
+    private final static Logger logger = LoggerFactory.getLogger(SolrFacadeImpl.class);
 
     @Autowired
-    @Qualifier("solrHttpClientFactory")
-    private HttpClientFactory solrHttpClientFactory;
+//    @Qualifier("solrClientFactory")
+    private SolrClientFactory SolrClientFactory;
 
     private HttpClient getHttpClient() {
-        return solrHttpClientFactory.getHttpClient();
+        return SolrClientFactory.getHttpClient();
     }
 
     @Override
