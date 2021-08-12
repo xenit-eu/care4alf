@@ -130,9 +130,11 @@ subprojects {
         dependsOn composeUpTask
         doFirst {
             def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
+            def host = "localhost"
+            def port = 8080
             if(serviceInfo != null) {
-                def host = serviceInfo.host
-                def port = serviceInfo.ports[8080]
+                host = serviceInfo.host
+                port = serviceInfo.ports[8080]
             }
             alfrescoDynamicExtensions {
                 repository {
