@@ -10,6 +10,7 @@ import com.github.dynamicextensionsalfresco.webscripts.annotations.Uri;
 import com.github.dynamicextensionsalfresco.webscripts.annotations.WebScript;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.JsonWriterResolution;
 import com.github.dynamicextensionsalfresco.webscripts.resolutions.Resolution;
+import eu.xenit.care4alf.helpers.StringUtilsWrapper;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,6 @@ import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.namespace.QName;
 import org.alfresco.util.VersionNumber;
-import org.apache.commons.lang.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -78,7 +78,7 @@ public class Amps {
     }
 
     public List<NodeRef> getAmps() {
-        String versionIds = StringUtils.join(this.getVersionQnameIds(), ", ");
+        String versionIds = StringUtilsWrapper.join(this.getVersionQnameIds(), ", ");
         List<Long> ids = new JdbcTemplate(this.dataSource).queryForList(
                 "select distinct(node_id) from alf_node_properties where qname_id in (" + versionIds + ')',
                 Long.class);
