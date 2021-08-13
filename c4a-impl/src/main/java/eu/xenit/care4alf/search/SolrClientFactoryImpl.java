@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@AlfrescoPlatform(minVersion="6.2")
+@AlfrescoPlatform(minVersion="6.2.2")
 @Component
 public class SolrClientFactoryImpl implements SolrClientFactory {
 
