@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@AlfrescoPlatform(maxVersion="6.2.1")
+@AlfrescoPlatform(maxVersion="6.1.1")
 public class LegacySolrClientFactoryImpl implements SolrClientFactory {
 
     private final static Logger logger = LoggerFactory.getLogger(LegacySolrClientFactoryImpl.class);

@@ -33,7 +33,6 @@ public class SolrFacadeImpl implements SolrFacade {
     private final static Logger logger = LoggerFactory.getLogger(SolrFacadeImpl.class);
 
     @Autowired
-//    @Qualifier("solrClientFactory")
     private SolrClientFactory SolrClientFactory;
 
     private HttpClient getHttpClient() {
