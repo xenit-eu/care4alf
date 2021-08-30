@@ -23,7 +23,6 @@ import org.apache.commons.httpclient.params.HttpClientParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 
@@ -33,10 +32,10 @@ public class SolrFacadeImpl implements SolrFacade {
     private final static Logger logger = LoggerFactory.getLogger(SolrFacadeImpl.class);
 
     @Autowired
-    private SolrClientFactory SolrClientFactory;
+    private SolrClientFactory solrClientFactory;
 
     private HttpClient getHttpClient() {
-        return SolrClientFactory.getHttpClient();
+        return solrClientFactory.getHttpClient();
     }
 
     @Override

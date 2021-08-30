@@ -54,7 +54,7 @@ public class JMXConnector {
         Map<String, String> map = runtimeMXBean.getSystemProperties();
         report += "\nSystem Properties:";
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            report += "\n  - " + entry.getKey() + " : " + StringEscapeUtilsWrapper.escapeJava(entry.getKey());
+            report += "\n  - " + entry.getKey() + " : " + StringEscapeUtilsWrapper.escapeJava(entry.getValue());
         }
         report += "\n";
 
