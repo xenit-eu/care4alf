@@ -15,6 +15,7 @@ ext {
     subproject_alfresco_version = '51'
     alfresco_repo_version = '5.1.g'
     alfresco_remote_api_version = '5.1.g'
+    alfresco_platform = 'org.alfresco:alfresco-platform-enterprise:5.1.5'
     alfresco_war = 'alfresco-enterprise:5.1.5'
     alfresco_img_version = '5.1'
     alfresco_dm_version = '6.16'
@@ -98,12 +99,8 @@ subprojects {
         // gradle plugin does a check on version between baseimage war and new war.
         // Since 7.0 the version of the product no longer matches the version of the war.
         // To avoid the problem, we depend on the alfresco platform, and delegate the war version from there.
-        if (subproject_alfresco_version == '70') {
-            baseAlfrescoWar platform("org.alfresco:acs-packaging:${alfresco_img_version}")
-            baseAlfrescoWar 'org.alfresco:content-services@war'
-        } else {
-            baseAlfrescoWar "org.alfresco:${alfresco_war}@war"
-        }
+        baseAlfrescoWar platform("${alfresco_platform}")
+        baseAlfrescoWar "${alfresco_war}"
         alfrescoAmp "eu.xenit:alfresco-dynamic-extensions-repo-${subproject_alfresco_version}:${deVersion}@amp"
         alfrescoAmp project(path: "${c4a_dependency}", configuration: 'amp')
         if (subproject_alfresco_version == '62') {
