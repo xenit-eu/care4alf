@@ -3,7 +3,7 @@ ext {
     subproject_alfresco_version = '70'
     alfresco_platform = 'org.alfresco:acs-packaging:7.0.1.3'
     alfresco_war = 'org.alfresco:content-services@war'
-    alfresco_img_version = '7.0.0'
+    alfresco_img_version = '7.0.1.3'
     alfresco_dm_version = '8.424'
     alfresco_repo_version = '8.424'
     alfresco_remote_api_version = '8.424'
