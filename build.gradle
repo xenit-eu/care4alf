@@ -67,7 +67,7 @@ def importPackage() {
     return project("care4alf").file("importPackage").getText("UTF-8").replace("\n", "")
 }
 
-ext.deVersion = '2.1.1-SNAPSHOT'
+ext.deVersion = '2.1.1'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
 ext.buildNumber = project.hasProperty('buildNumber') ? project.getProperty('buildNumber') : "SNAPSHOT";
