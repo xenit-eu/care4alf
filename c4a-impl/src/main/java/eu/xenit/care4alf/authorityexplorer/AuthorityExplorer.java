@@ -34,6 +34,7 @@ public class AuthorityExplorer {
 
     public void groups(final WebScriptResponse response) throws IOException, JSONException {
 
+        response.setHeader("Content-Type", "application/json");
         final JSONWriter json = new JSONWriter(response.getWriter());
 
         final Set<String> rootAuthoritiesGroup = authorityService.getAllRootAuthoritiesInZone(AuthorityService.ZONE_APP_DEFAULT, AuthorityType.GROUP);

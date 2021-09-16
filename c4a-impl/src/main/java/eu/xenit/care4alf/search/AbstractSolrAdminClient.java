@@ -15,17 +15,17 @@ import java.util.List;
  */
 @Component
 public abstract class AbstractSolrAdminClient {
-    private SolrClient solrClient;
+    private SolrFacade solrFacade;
 
     private JsonNode solrSummaryActionJSON;
 
-    protected SolrClient getSolrClient() {
-        return this.solrClient;
+    protected SolrFacade getSolrClient() {
+        return this.solrFacade;
     }
 
     @Autowired
-    public void setSolrClient(SolrClient solrClient) {
-        this.solrClient = solrClient;
+    public void setSolrClient(SolrFacade solrFacade) {
+        this.solrFacade = solrFacade;
     }
 
     public List<SolrErrorDoc> getSolrErrorDocs() throws IOException, EncoderException{

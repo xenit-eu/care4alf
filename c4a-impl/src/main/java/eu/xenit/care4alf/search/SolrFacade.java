@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * @author Laurent Van der Linden
  */
-public interface SolrClient {
+public interface SolrFacade {
     JsonNode postJSON(String url, Multimap<String, String> parameters, JsonNode body) throws IOException, EncoderException;
     String postMessage(String url, Multimap<String, String> parameter, String message) throws IOException, EncoderException;
 

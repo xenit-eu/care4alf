@@ -1,16 +1,14 @@
-package eu.xenit.care4alfintegration;
+package eu.xenit.care4alf.unittest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import eu.xenit.care4alf.search.*;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -19,10 +17,9 @@ import static org.mockito.Mockito.*;
 /**
  * Created by willem on 9/27/16.
  */
-@Component
 public class SolrAdminClientTest {
     @Mock
-    private SolrClient solrClient;
+    private SolrFacade solrFacade;
 
     @Before
     public void setupMock() {
@@ -32,9 +29,9 @@ public class SolrAdminClientTest {
     @Test
     public void testParseSolr1ErrorsJson() throws Exception {
         JsonNode jsonSolr1Errors = new ObjectMapper().readTree(solrErrors1);
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr1Errors);
+        when(solrFacade.postJSON(anyString(),any(ArrayListMultimap.class),nullable(JsonNode.class))).thenReturn(jsonSolr1Errors);
         AbstractSolrAdminClient client = new Solr1AdminClientImpl();
-        client.setSolrClient(solrClient);
+        client.setSolrClient(solrFacade);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
         Assert.assertTrue(errorDocs.size() >= 2);
 
@@ -48,9 +45,9 @@ public class SolrAdminClientTest {
     @Test
     public void testParseSolr4ErrorsJson() throws Exception {
         JsonNode jsonSolr4Errors = new ObjectMapper().readTree(solrErrors4);
-        when(solrClient.postJSON(anyString(),any(ArrayListMultimap.class),any(JsonNode.class))).thenReturn(jsonSolr4Errors);
+        when(solrFacade.postJSON(anyString(),any(ArrayListMultimap.class),nullable(JsonNode.class))).thenReturn(jsonSolr4Errors);
         AbstractSolrAdminClient client = new Solr4AdminClientImpl();
-        client.setSolrClient(solrClient);
+        client.setSolrClient(solrFacade);
         List<SolrErrorDoc> errorDocs = client.getSolrErrorDocs();
         Assert.assertTrue(errorDocs.size() >= 1);
 

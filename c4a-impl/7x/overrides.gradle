@@ -1,0 +1,10 @@
+ext {
+    subproject_alfresco_version = '70'
+    alfresco_repo_version = '8.424'
+    alfresco_remote_api_version = '8.424'
+    alfresco_war = 'content-services:8.424'
+    alfresco_img_version = '7.0.0'
+    alfresco_dm_version = '8.424'
+    http_version = '4.5.2'
+    http_core_version = '4.4.5'
+}

@@ -1,10 +1,16 @@
 package eu.xenit.care4alf.integrity;
 
-import static org.alfresco.repo.action.executer.MailActionExecuter.*;
+import static org.alfresco.repo.action.executer.MailActionExecuter.NAME;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_FROM;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_SUBJECT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TEXT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TO_MANY;
 
 import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import com.github.dynamicextensionsalfresco.schedule.Task;
 import eu.xenit.care4alf.Config;
+import eu.xenit.care4alf.helpers.TrackingComponentWrapper;
+import eu.xenit.care4alf.helpers.TrackingComponentWrapper.NodeQueryCallbackWrapper;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.Buffer;
@@ -29,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
-import org.alfresco.error.AlfrescoRuntimeException;
 import org.alfresco.model.ContentModel;
 import org.alfresco.repo.domain.node.Node;
 import org.alfresco.repo.domain.node.NodeEntity;
@@ -40,8 +45,6 @@ import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
-import org.alfresco.repo.solr.SOLRTrackingComponent;
-import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
@@ -60,8 +63,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class IntegrityScanner implements Task {
     @Autowired
     private LockService lockService;
     @Autowired
-    private SOLRTrackingComponent solrTrackingComponent;
+    private TrackingComponentWrapper solrTrackingComponent;
     @Autowired
     private NodeService nodeService;
     @Autowired
@@ -212,7 +213,7 @@ public class IntegrityScanner implements Task {
         shouldCancel = true;
     }
 
-    private class CallbackHandler implements NodeQueryCallback {
+    private class CallbackHandler implements NodeQueryCallbackWrapper {
 
         private LockService lockService;
 
