@@ -1,23 +1,17 @@
 # Changelog
 
-## Release 2.4.0
+## Release 2.4.0 (2021-11-03)
 
 ### ALFREDOPS
-
-- [714](https://xenitsupport.jira.com/browse/ALFREDOPS-714): Change httpclient used for solr connections to work
-  around https://alfresco.atlassian.net/browse/SEARCH-2289
-- [746](https://xenitsupport.jira.com/browse/ALFREDOPS-746): Add alfresco 7 support
-
-## Release 2.3.1 (Unreleased)
-
-### ALFREDOPS
-
 - [423](https://xenitsupport.jira.com/browse/ALFREDOPS-423): Change browser to accept noderefs as component parts
 - [566](https://xenitsupport.jira.com/browse/ALFREDOPS-566): Fix export function for custom content model types and
   properties
 - [588](https://xenitsupport.jira.com/browse/ALFREDOPS-588): Add basic content data components to export options
 - [656](https://xenitsupport.jira.com/browse/ALFREDOPS-656): Comply with stricter content-security-policy
+- [714](https://xenitsupport.jira.com/browse/ALFREDOPS-714): Change httpclient used for solr connections to work
+  around https://alfresco.atlassian.net/browse/SEARCH-2289
 - [733](https://xenitsupport.jira.com/browse/ALFREDOPS-733): Add section on the company to the Readme
+- [746](https://xenitsupport.jira.com/browse/ALFREDOPS-746): Add Alfresco 7 support
 
 ## Release 2.3.0 (2020-03-19)
 ### ALFREDOPS
