@@ -43,7 +43,7 @@ class Care4Alf @Autowired constructor(private val bundleContext: BundleContext) 
     fun getModuleWebScripts(): Map<String, Any> {
         return applicationContext?.getBeansWithAnnotation(WebScript::class.java)?.filter { entry ->
             entry.value.javaClass != Care4Alf::class.java &&
-            entry.value.javaClass.getAnnotation(WebScript::class.java).families.contains("care4alf")
+                    entry.value.javaClass.getAnnotation(WebScript::class.java).families.contains("care4alf")
         } ?: mapOf()
     }
 }

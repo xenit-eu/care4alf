@@ -1,10 +1,16 @@
 package eu.xenit.care4alf.integrity;
 
-import static org.alfresco.repo.action.executer.MailActionExecuter.*;
+import static org.alfresco.repo.action.executer.MailActionExecuter.NAME;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_FROM;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_SUBJECT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TEXT;
+import static org.alfresco.repo.action.executer.MailActionExecuter.PARAM_TO_MANY;
 
 import com.github.dynamicextensionsalfresco.schedule.ScheduledTask;
 import com.github.dynamicextensionsalfresco.schedule.Task;
 import eu.xenit.care4alf.Config;
+import eu.xenit.care4alf.helpers.TrackingComponentWrapper;
+import eu.xenit.care4alf.helpers.TrackingComponentWrapper.NodeQueryCallbackWrapper;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.Buffer;
@@ -39,13 +45,15 @@ import org.alfresco.repo.node.MLPropertyInterceptor;
 import org.alfresco.repo.security.authentication.AuthenticationUtil;
 import org.alfresco.repo.security.authentication.AuthenticationUtil.RunAsWork;
 import org.alfresco.repo.solr.NodeParameters;
-import org.alfresco.repo.solr.SOLRTrackingComponent;
-import org.alfresco.repo.solr.SOLRTrackingComponent.NodeQueryCallback;
 import org.alfresco.service.cmr.action.Action;
 import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.dictionary.DataTypeDefinition;
 import org.alfresco.service.cmr.dictionary.DictionaryService;
 import org.alfresco.service.cmr.dictionary.PropertyDefinition;
+import org.alfresco.service.cmr.lock.LockService;
+import org.alfresco.service.cmr.lock.LockStatus;
+import org.alfresco.service.cmr.lock.LockType;
+import org.alfresco.service.cmr.lock.UnableToAquireLockException;
 import org.alfresco.service.cmr.repository.ChildAssociationRef;
 import org.alfresco.service.cmr.repository.ContentData;
 import org.alfresco.service.cmr.repository.ContentReader;
@@ -55,8 +63,6 @@ import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.repository.StoreRef;
 import org.alfresco.service.namespace.QName;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +82,9 @@ public class IntegrityScanner implements Task {
     @Autowired
     private ContentService contentService;
     @Autowired
-    private SOLRTrackingComponent solrTrackingComponent;
+    private LockService lockService;
+    @Autowired
+    private TrackingComponentWrapper solrTrackingComponent;
     @Autowired
     private NodeService nodeService;
     @Autowired
@@ -111,7 +119,7 @@ public class IntegrityScanner implements Task {
         logger.info("Beginning Metadata Integrity Scan");
         // This blocks until the callbackhandler has been called *and* returned for all discovered nodes
         // OR until one of the calls to handleNode returns with false — which it does in case of a cancel
-        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(nodeCounter, knownFileNames, inProgressReport));
+        solrTrackingComponent.getNodes(nodeParameters, new CallbackHandler(lockService, nodeCounter, knownFileNames, inProgressReport));
         if (shouldCancel) {
             return nodeCounter.get();
         }
@@ -162,7 +170,7 @@ public class IntegrityScanner implements Task {
         logger.info("Starting scan of subset...");
 
         IntegrityReport subsetReport = new IntegrityReport();
-        CallbackHandler handler = new CallbackHandler(new AtomicInteger(0), new HashSet<String>(), subsetReport);
+        CallbackHandler handler = new CallbackHandler(lockService, new AtomicInteger(0), new HashSet<String>(), subsetReport);
         while (nodeIter.hasNext()) {
             // make a fake "node" out of the next noderef, pass it to the handler that does the actual verification
             // if this returns false, the operation has been cancelled
@@ -205,12 +213,17 @@ public class IntegrityScanner implements Task {
         shouldCancel = true;
     }
 
-    private class CallbackHandler implements NodeQueryCallback {
+    private class CallbackHandler implements NodeQueryCallbackWrapper {
+
+        private LockService lockService;
+
         private AtomicInteger nodeCounter;
         private Set<String> knownFileNames;
         private IntegrityReport inProgressReport;
 
-        public CallbackHandler(AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+        public CallbackHandler(LockService lockService, AtomicInteger nodeCounter, Set<String> knownFileNames, IntegrityReport report) {
+            this.lockService = lockService;
+
             this.inProgressReport = report;
             this.nodeCounter = nodeCounter;
             this.knownFileNames = knownFileNames;
@@ -221,60 +234,105 @@ public class IntegrityScanner implements Task {
             if (shouldCancel) {
                 return false;
             }
-            if (node.getDeleted(qNameDAO)
-                    || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE)) {
+            if (checkDeleted(node)) {
                 return true; // continue to next node
             }
 
             NodeRef noderef = node.getNodeRef();
-            // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
-            // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
-            boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
-            MLPropertyInterceptor.setMLAware(true);
+            boolean hasLock = false;
             try {
-                Map<QName, Serializable> props = nodeService.getProperties(noderef);
-                for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
-                    verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+                int lockTryCount = 20;
+                while (!hasLock && lockTryCount > 0) {
+                    // Add deleted check in whileloop to guarantee that waits due to LOCKED status were not caused by delete operations.
+                    if (checkDeleted(node)) {
+                        return true; // continue to next node
+                    }
+                    String currentUser = AuthenticationUtil.getFullyAuthenticatedUser();
+                    LockStatus lockStatus = lockService.getLockStatus(noderef, currentUser);
+                    switch (lockStatus) {
+                        case LOCKED:
+                            try {
+                                Thread.sleep(1000 * 3);
+                            } catch (InterruptedException e) {
+                                logger.error(
+                                        "Integrityscan callback thread interrupted when sleeping after failed lock try on node {}",
+                                        noderef, e);
+                            }
+                            lockTryCount--;
+                            break;
+                        case LOCK_EXPIRED:
+                        case NO_LOCK:
+                            lockService.lock(noderef, LockType.READ_ONLY_LOCK);
+                        case LOCK_OWNER:
+                            hasLock = true;
+                    }
                 }
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get properties for {} from database, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
+                if (!hasLock) {
+                    throw new UnableToAquireLockException(noderef);
+                }
+                // We'll have to work with multilang text objects in this transaction, rather than letting the interceptor
+                // translate it to a string before giving it to us. We set this tx to 'ML aware', disabling the translation
+                boolean wasMultiLangAware = MLPropertyInterceptor.isMLAware();
+                MLPropertyInterceptor.setMLAware(true);
+                try {
+                    Map<QName, Serializable> props = nodeService.getProperties(noderef);
+                    for (Map.Entry<QName, Serializable> entry : props.entrySet()) {
+                        verifyProperty(noderef, entry.getKey(), entry.getValue(), inProgressReport);
+                    }
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get properties for {} from database, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "properties"));
+                } catch (Exception e) {
+                    logger.error("Error {} when retrieving + verifying properties for node {}",
+                            e.getClass().getSimpleName(), noderef);
+                    throw e;
+                } finally {
+                    // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
+                    MLPropertyInterceptor.setMLAware(wasMultiLangAware);
+                }
+
+                try {
+                    List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
+                    // sys:store_root doesn't have a parent, this is normal and should not be reported
+                    if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
+                        inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                    }
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
+                }
+
+                try {
+                    verifyContentData(noderef, inProgressReport, knownFileNames);
+                } catch (DataAccessException dae) {
+                    logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
+                            dae.getClass().getSimpleName());
+                    inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
+                }
+            }
+            // not stopping iteration over returned list of nodes by not propagating exceptions.
+            catch (UnableToAquireLockException unableToAcquireLockException) {
+                logger.error("Could not acquire lock for noderef {} during integrityscan. Skipping.", noderef, unableToAcquireLockException);
             } catch (Exception e) {
-                logger.error("Error {} when retrieving + verifying properties for node {}",
-                        e.getClass().getSimpleName(), noderef);
-                throw e;
+                logger.error("Encountered exception for node {} during integrityscan. Skipping node.", noderef, e);
             } finally {
-                // Set mlaware back to what it was before we set it ourselves. Not 100% sure this is necessary.
-                MLPropertyInterceptor.setMLAware(wasMultiLangAware);
-            }
-
-            try {
-                List<ChildAssociationRef> refList = nodeService.getParentAssocs(noderef);
-                // sys:store_root doesn't have a parent, this is normal and should not be reported
-                if (refList.isEmpty() && !nodeService.getType(noderef).equals(ContentModel.TYPE_STOREROOT)) {
-                    inProgressReport.addNodeProblem(new IsolatedNodeProblem(noderef));
+                if (hasLock) {
+                    lockService.unlock(noderef);
                 }
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get parent assocs for {} from database, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "parent assocs"));
-            }
-
-            try {
-                verifyContentData(noderef, inProgressReport, knownFileNames);
-            } catch (DataAccessException dae) {
-                logger.warn("Could not get ContentData property for {}, encountered {}", noderef,
-                        dae.getClass().getSimpleName());
-                inProgressReport.addNodeProblem(new NodeDataAccessProblem(noderef, "ContentData property"));
-            }
-
-            int count = nodeCounter.incrementAndGet();
-            if (count % 10000 == 0) {
-                logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
+                int count = nodeCounter.incrementAndGet();
+                if (count % 10000 == 0) {
+                    logger.debug("Metadata Integrity Scan handled {} nodes so far", count);
+                }
             }
             return true;
         }
+    }
+
+    private boolean checkDeleted(Node node) {
+        return node.getDeleted(qNameDAO)
+                || !node.getStore().getStoreRef().equals(StoreRef.STORE_REF_WORKSPACE_SPACESSTORE);
     }
 
     private void verifyProperty(NodeRef noderef, QName property, Serializable value, IntegrityReport report) {

@@ -3,12 +3,16 @@ rootProject.name='care4alf'
 include ':c4a-impl'
 include ':c4a-impl:care4alf-5x'
 include ':c4a-impl:care4alf-6x'
+include ':c4a-impl:care4alf-7x'
 include ':c4a-test'
 include ':c4a-test:test-5x'
 include ':c4a-test:test-6x'
+include ':c4a-test:test-7x'
 
 project(':c4a-impl:care4alf-5x').projectDir = "$rootDir/c4a-impl/5x" as File
 project(':c4a-impl:care4alf-6x').projectDir = "$rootDir/c4a-impl/6x" as File
+project(':c4a-impl:care4alf-7x').projectDir = "$rootDir/c4a-impl/7x" as File
 
 project(':c4a-test:test-5x').projectDir = "$rootDir/c4a-test/5x" as File
 project(':c4a-test:test-6x').projectDir = "$rootDir/c4a-test/6x" as File
+project(':c4a-test:test-7x').projectDir = "$rootDir/c4a-test/7x" as File

@@ -1,11 +1,16 @@
 package eu.xenit.care4alf.jmx;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.springframework.stereotype.Component;
-
-import java.lang.management.*;
+import eu.xenit.care4alf.helpers.StringEscapeUtilsWrapper;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by Thomas.Straetmans on 24/11/2016.
@@ -36,20 +41,20 @@ public class JMXConnector {
         }
 
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-        report += "\nDeadlocked threads: "+threadMXBean.findDeadlockedThreads();
+        report += "\nDeadlocked threads: " + threadMXBean.findDeadlockedThreads();
         report += "\n";
-        report += "Number of threads: "+threadMXBean.getThreadCount();
+        report += "Number of threads: " + threadMXBean.getThreadCount();
         report += "\n";
-        report += "Number of deamon threads: "+threadMXBean.getDaemonThreadCount();
+        report += "Number of deamon threads: " + threadMXBean.getDaemonThreadCount();
         report += "\n";
-        report += "Id's of currently running threads: "+threadMXBean.getAllThreadIds();
+        report += "Id's of currently running threads: " + threadMXBean.getAllThreadIds();
         report += "\n";
 
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
         Map<String, String> map = runtimeMXBean.getSystemProperties();
         report += "\nSystem Properties:";
-        for(Map.Entry<String, String> entry: map.entrySet()){
-            report += "\n  - "+entry.getKey()+" : "+ StringEscapeUtils.escapeJava(entry.getValue());
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            report += "\n  - " + entry.getKey() + " : " + StringEscapeUtilsWrapper.escapeJava(entry.getValue());
         }
         report += "\n";
 
@@ -60,7 +65,6 @@ public class JMXConnector {
         report += "\n";
 
         ManagementFactory.getPlatformMBeanServer();
-
 
         return report;
     }

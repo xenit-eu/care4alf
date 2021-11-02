@@ -24,7 +24,6 @@ ext {
     alfresco_remote_api_version = '5.1.g'
     alfresco_img_version = '5.1'
     alfresco_dm_version = '6.16'
-    de_version = '2.0.1'
     http_version = '4.3.3'
     http_core_version = '4.3.3'
 }
@@ -65,11 +64,8 @@ allprojects {
         }
     }
 
-    [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
-
-    compileJava {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
     }
 
     repositories {
@@ -97,6 +93,7 @@ allprojects {
     dependencies {
         alfrescoProvided(group: 'org.alfresco', name: 'alfresco-repository', version: alfresco_repo_version) {
             exclude group: 'maven-plugins'
+            exclude group: 'org.springframework.social'
         }
 
         alfrescoProvided group: 'org.alfresco', name: 'alfresco-data-model', version: alfresco_dm_version
@@ -118,7 +115,10 @@ allprojects {
         shadowDeps('org.apache.commons:commons-lang3:3.7')
         shadowDeps("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
         shadowDeps('commons-codec:commons-codec:1.10')
-
+        
+        if (project.name.contains("7x"))
+            shadowDeps('org.apache.commons:commons-text:1.9')
+        
         testImplementation "org.mockito:mockito-core:3.2.4"
     }
 
@@ -173,6 +173,11 @@ allprojects {
         dependsOn(relocateDependencies)
     }
 
+    def moduleAliases = "care4alf"
+    if(project.name.contains("6x"))
+        moduleAliases += ", eu.xenit.care4alf.care4alf-5x"
+    else if (project.name.contains("7x"))
+        moduleAliases += ", eu.xenit.care4alf.care4alf-6x, eu.xenit.care4alf.care4alf-5x"
     sourceSets {
         main {
             java.srcDirs += '../src/main/java'
@@ -184,7 +189,7 @@ allprojects {
                     "module.version": project.version,
                     "module.title": project.name,
                     "module.description": project.description,
-                    "module.aliases": "care4alf" + (project.name.contains("6x") ? ", eu.xenit.care4alf.care4alf-5x" : ""),
+                    "module.aliases": moduleAliases,
                 ])
                 dynamicExtension()
             }

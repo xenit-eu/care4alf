@@ -1,12 +1,12 @@
 ext {
     c4a_dependency = ':c4a-impl:care4alf-5x'
     subproject_alfresco_version = '51'
+    alfresco_platform = 'org.alfresco:alfresco-platform-enterprise:5.1.5'
+    alfresco_war = 'org.alfresco:alfresco-platform-enterprise@war'
+    alfresco_img_version = '5.1'
     alfresco_repo_version = '5.1.g'
     alfresco_remote_api_version = '5.1.g'
-    alfresco_war = 'alfresco-enterprise:5.1.5'
-    alfresco_img_version = '5.1'
     alfresco_dm_version = '6.16'
-    de_version = '2.0.1'
     http_version = '4.3.3'
     http_core_version = '4.3.3'
 }

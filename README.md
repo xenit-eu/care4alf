@@ -1,5 +1,12 @@
 # Care4Alf
 
+> [![Xenit Logo](https://xenit.eu/wp-content/uploads/2017/09/XeniT_Website_Logo.png)](https://xenit.eu/open-source)
+> 
+> Care4alf is a part of the Xenit Open Source Tooling around Alfresco.
+> Xenit is company with high expertise and a strong team centered around Alfresco.
+> If you'd like to learn more about our [tools](https://xenit.eu/open-source), [services](https://xenit.eu/alfresco) and [products](https://xenit.eu/alfresco-products)
+> please visit our [website](https://xenit.eu).
+
 ## Build
 
 Run `./gradlew :c4a-impl:care4alf-5x:assemble` to build a jar for Alfresco 5.0/5.1/5.2 and
@@ -19,6 +26,8 @@ containers, use `DOCKER_ALF_PORT=8080 ./gradlew:c4a-test:test-5x:composeUp`, fol
 
 Add new module webscripts to the `xenit.care4alf.module` package. Make sure to annotate with the `care4alf` family.
 Provide html (named <classname>.html) in the resources/eu/xenit/care4alf/web/partials directory.
+
+Additionally, add your module id and description to `c4a-impl/src/main/resources/eu/xenit/care4alf/web/js/c4a/c4aModules.js`
 
 ## Monitoring
 

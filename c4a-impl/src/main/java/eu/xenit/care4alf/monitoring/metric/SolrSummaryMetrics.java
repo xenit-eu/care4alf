@@ -1,7 +1,6 @@
 package eu.xenit.care4alf.monitoring.metric;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
@@ -10,8 +9,6 @@ import eu.xenit.care4alf.monitoring.AbstractMonitoredSource;
 import eu.xenit.care4alf.monitoring.Monitoring;
 import eu.xenit.care4alf.search.SolrAdmin;
 import org.apache.commons.codec.EncoderException;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,26 +36,22 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
     public Map<String, Long> getMonitoringMetrics() {
         try {
             this.solrAdmin.clearCache();
-            JSONObject summary = this.solrAdmin.getSolrSummaryJson();
-            Map<String,String> flattened = this.flatten(summary);
+            JsonNode summary = this.solrAdmin.getSolrSummaryJson();
+            Map<String,String> flattened = flatten(summary);
             Map<String, Long> r = transform(flattened);
             r.put("solr.errors", this.solrAdmin.getSolrErrors());
             r.put("solr.lag.time", this.solrAdmin.getSolrLag());
             r.put("solr.lag.nodes", this.solrAdmin.getNodesToIndex());
             r.put("solr.model.errors", this.solrAdmin.getModelErrors());
             return r;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (EncoderException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (NullPointerException | EncoderException | IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public static Map<String, Long> flattenAndCleanup(JSONObject jsonObject) throws IOException {
-        return transform(flatten(jsonObject));
+    public static Map<String, Long> flattenAndCleanup(JsonNode jsonNode) {
+        return transform(flatten(jsonNode));
     }
 
     private static Map<String,Long> transform(Map<String, String> map) {
@@ -88,7 +81,7 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
         }
 
         {
-            Pattern secondsPattern = Pattern.compile("(\\d*) [\"s\"|\"Seconds\"]");
+            Pattern secondsPattern = Pattern.compile("(\\d+) (s|Seconds)");
             Matcher matcher = secondsPattern.matcher(value);
             if (matcher.find())
                 return Long.parseLong(matcher.group(1));
@@ -112,9 +105,9 @@ public class SolrSummaryMetrics extends AbstractMonitoredSource {
         throw new NumberFormatException();
     }
 
-    public static Map<String,String> flatten(JSONObject jsonObject) throws IOException {
+    public static Map<String,String> flatten(JsonNode jsonNode) {
         Map<String, String> map = new HashMap<>();
-        addKeys("", new ObjectMapper().readTree(jsonObject.toString()), map);
+        addKeys("", jsonNode, map);
         return map;
     }
 

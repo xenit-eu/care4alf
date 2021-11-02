@@ -36,14 +36,24 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
 
     $scope.addProperty = (qname, value, multi) => {
         $scope.fieldInfo[qname] = { multiValue: multi, updateState: UpdateState.Loading }
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + qname, {value: value, multi: multi})
+        let noderefComponents =  noderefToComponents($scope.node.noderef)
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + noderefComponents[0] + "/"
+            + noderefComponents[1] + "/"
+            + noderefComponents[2]
+            + "/properties/" + qname, {value: value, multi: multi})
             .success(() => { $scope.fieldInfo[qname].updateState = UpdateState.Success })
             .error(() => { $scope.fieldInfo[qname].updateState = UpdateState.Failure });
     };
 
     $scope.deleteProperty = (property) => {
         if ($window.confirm("Are you sure you want to delete this property?")) {
-            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property).then(() => {
+            let noderefComponents =  noderefToComponents($scope.node.noderef)
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+                + noderefComponents[0] + "/"
+                + noderefComponents[1] + "/"
+                + noderefComponents[2]
+                + "/properties/" + property).then(() => {
                 delete $scope.node.properties[property];
             })
         }
@@ -52,30 +62,55 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
     $scope.saveProperty = (property) => {
         let multi = $scope.fieldInfo[property].multiValue
         $scope.fieldInfo[property].updateState = UpdateState.Loading
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/properties/" + property, {value: $scope.node.properties[property], multi: multi})
+        let noderefComponents =  noderefToComponents($scope.node.noderef)
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + noderefComponents[0] + "/"
+            + noderefComponents[1] + "/"
+            + noderefComponents[2]
+            + "/properties/" + property, {value: $scope.node.properties[property], multi: multi})
             .success(() => { $scope.fieldInfo[property].updateState = UpdateState.Success })
             .error(() => { $scope.fieldInfo[property].updateState = UpdateState.Failure })
     };
 
     $scope.addAspect = (aspect) => {
-        $http.post(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects", {aspect: aspect}).success(() => {
+        let noderefComponents =  noderefToComponents($scope.node.noderef)
+        $http.post(serviceUrl + "/xenit/care4alf/browser/"
+            + noderefComponents[0] + "/"
+            + noderefComponents[1] + "/"
+            + noderefComponents[2]
+            + "/aspects", {aspect: aspect}).success(() => {
             $scope.node.aspects.push(aspect);
         });
     };
 
     $scope.removeAspect = (aspect) => {
-        $http.delete(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/aspects/" + aspect).success(() => {
+        let noderefComponents =  noderefToComponents($scope.node.noderef)
+        $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+            + noderefComponents[0] + "/"
+            + noderefComponents[1] + "/"
+            + noderefComponents[2]
+            + "/aspects/" + aspect).success(() => {
            $scope.node.aspects = _.without($scope.node.aspects, aspect);
         });
     };
 
     $scope.setType = (newType) => {
-        $http.put(serviceUrl + "/xenit/care4alf/browser/" + $scope.node.noderef + "/type", {type: newType});
+        let noderefComponents =  noderefToComponents($scope.node.noderef)
+        $http.put(serviceUrl + "/xenit/care4alf/browser/"
+            + noderefComponents[0] + "/"
+            + noderefComponents[1] + "/"
+            + noderefComponents[2]
+            + "/type", {type: newType});
     };
 
     $scope.deleteNode = (node) => {
         if ($window.confirm("Are you sure you want to delete " + node.name + " ?")) {
-            $http.delete(serviceUrl + "/xenit/care4alf/browser/" + node.noderef).success(() => {
+            let noderefComponents =  noderefToComponents($scope.node.noderef)
+            $http.delete(serviceUrl + "/xenit/care4alf/browser/"
+                + noderefComponents[0] + "/"
+                + noderefComponents[1] + "/"
+                + noderefComponents[2]
+            ).success(() => {
                 $scope.node.children = _.without($scope.node.children, node);
             });
             $window.history.back();
@@ -186,3 +221,12 @@ care4alf.controller('browser', ($scope,$upload, $http, $routeParams,$window: Win
         $scope.search();
     }
 });
+
+// Split noderef into components to use with the reworked browser endpoints
+function noderefToComponents(fullNodeRef) {
+    //split off protocol; output ["workspace", "SpacesStore/12345678-1234-1234-1234-123456789012"]
+    var protocolSplit = fullNodeRef.split(/:\/\//)
+    //split storeIdentifier and id; output ["SpacesStore", "12345678-1234-1234-1234-123456789012"]
+    var storeIdentifierSplit = protocolSplit[1].split(/\//)
+    return [protocolSplit[0], storeIdentifierSplit[0], storeIdentifierSplit[1]]
+}
