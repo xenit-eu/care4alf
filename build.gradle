@@ -23,7 +23,7 @@ plugins {
 }
 
 allprojects {
-    version = '2.3.0' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
+    version = '2.4.0' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')
     group = 'eu.xenit.care4alf'
     repositories {
         maven {
