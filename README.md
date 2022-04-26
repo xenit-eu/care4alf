@@ -54,6 +54,6 @@ Optionally you can enable/disable specific metrics using:
     c4a.monitoring.metric.repository.enabled=false
     c4a.monitoring.metric.residualproperties.enabled=false
 
-### Acessing the Care4Alf Console
+### Accessing the Care4Alf Console
 
-Acess the Care4Alf console by acessing http://server:port/alfresco/s/xenit/care4alf
+Access the Care4Alf console by accessing http://server:port/alfresco/s/xenit/care4alf

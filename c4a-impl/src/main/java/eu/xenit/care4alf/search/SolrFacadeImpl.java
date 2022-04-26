@@ -44,7 +44,7 @@ public class SolrFacadeImpl implements SolrFacade {
         ObjectMapper mapper = new ObjectMapper();
         try {
             String response = basePost(url, parameters, body == null ? null : body.toString());
-            logger.error("Payload: {}", response);
+            logger.info("Payload: {}", response);
             return mapper.readTree(response);
         } catch (ConnectException ce) {
             logger.error("Solr connection issues. Please check Solr is started and connected correctly");
