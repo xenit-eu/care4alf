@@ -55,7 +55,6 @@ node {
 
     stage('Checkout') {
         checkout scm
-
         if (env.BRANCH_NAME == "release") {
             buildNr = env.BUILD_NUMBER
         }
@@ -81,9 +80,7 @@ node {
         }
 
         stage('Building AMP') {
-            sh "./gradlew :c4a-impl:care4alf-5x:amp -PbuildNumber=${buildNr} --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-6x:amp -PbuildNumber=${buildNr} --continue -i"
-            sh "./gradlew :c4a-impl:care4alf-7x:amp -PbuildNumber=${buildNr} --continue -i"
+            sh "./gradlew amp -PbuildNumber=${buildNr} --continue -i"
         }
 
         stage('Publishing') {
@@ -113,9 +110,7 @@ node {
         currentBuild.result = "FAILED"
     } finally {
         junit '**/build/**/TEST-*.xml'
-        sh "./gradlew :c4a-test:test-5x:composeDownForced -i"
-        sh "./gradlew :c4a-test:test-6x:composeDownForced -i"
-        sh "./gradlew :c4a-test:test-7x:composeDownForced -i"
+        sh "./gradlew composeDownForced -i"
         boolean isMasterOrRelease = env.BRANCH_NAME == "release" || env.BRANCH_NAME == "master"
         sendEmailNotifications(isMasterOrRelease)
         cleanWs()
