@@ -33,24 +33,6 @@ allprojects {
     }
 }
 
-def bundleClassPath(configuration) {
-    def list = ['.']
-    configuration.each {
-        list += 'lib/' + it.name
-    }
-    return list.join(',')
-}
-
-def includeResource(configuration) {
-    def list = []
-    configuration.each {
-        //We have to replace the backslashes with forward slashes because on windows the path will just be unseparated.
-        //For example when you have path "C\:Users\Someone\.gradle\caches" it will become "C\:UsersSomeone.gradlecaches"
-        def normalizedPath = it.path.replace("\\", "/")
-        list += 'lib/' + it.name + "=" + normalizedPath
-    }
-    return list.join(',')
-}
 
 def includeUnrolledResource(configuration) {
     def list = []
@@ -63,14 +45,10 @@ def includeUnrolledResource(configuration) {
     return list.join(',')
 }
 
-def importPackage() {
-    return project("care4alf").file("importPackage").getText("UTF-8").replace("\n", "")
-}
-
 ext.deVersion = '2.1.1'
 ext.springVersion = '3.0.5.RELEASE'
 ext.junitVersion = '4.12'
-ext.buildNumber = project.hasProperty('buildNumber') ? project.getProperty('buildNumber') : "SNAPSHOT";
+ext.buildNumber = project.hasProperty('buildNumber') ? project.getProperty('buildNumber') : "SNAPSHOT"
 
 subprojects {
     apply plugin: 'java'
