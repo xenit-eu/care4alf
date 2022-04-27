@@ -4,7 +4,7 @@ services:
   alfresco-core:
     image: ${DOCKER_IMAGE}
     ports:
-      - "${DOCKER_IP}:${DOCKER_ALF_PORT}:8080"
+      - "8080"
     volumes:
     - alfresco:/opt/alfresco/alf_data
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
     - GLOBAL_content.transformer.RemoteJODConverter.endpoint=http://jodconverter:8080/converter/service
     - GLOBAL_ooo.enabled=false
     - GLOBAL_jodconverter.enabled=false
-    - GLOBAL_audit.enabled = true
+    - GLOBAL_audit.enabled=true
     - GLOBAL_audit.alfresco-access.enabled=true
     - GLOBAL_audit.alfresco-access.sub-actions.enabled=true
     # Define mail host settings explicitly for tests involving mailactionexecuter
