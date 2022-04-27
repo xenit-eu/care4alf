@@ -5,6 +5,7 @@
 This release drops support for Alfresco versions in [7.0.0, 7.0.1.3).
 ### ALFREDOPS
 - [818](https://xenitsupport.jira.com/browse/ALFREDOPS-818): Fix support for Alfresco versions >=7.0.1.3
+- [820](https://xenitsupport.jira.com/browse/ALFREDOPS-820): Fix Jenkins build
 
 
 ## Release 2.4.0 (2021-11-03)
