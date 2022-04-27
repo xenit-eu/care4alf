@@ -19,8 +19,8 @@ These jars can be deployed on Alfresco with Dynamic Extensions 2.0.1 or later.
 You can run the integration tests with `./gradlew :c4a-test:test-5x:integrationTest` for Alfresco 5 and
 `./gradlew :c4a-test:test-6x:integrationTest` for Alfresco 6. The containers will automatically shut down after the
 tests are completed. If you want to run the integration tests several times without always needing to restart the
-containers, use `DOCKER_ALF_PORT=8080 ./gradlew:c4a-test:test-5x:composeUp`, followed by
-`./gradlew :c4a-test:test-5x:integrationTestLocal -Pport=8080`.
+containers, use `./gradlew:c4a-test:test-5x:composeUp`, followed by
+`./gradlew :c4a-test:test-5x:integrationTestLocal -Pport=<DOCKER-ASSIGNED PORT>`.
 
 ## Extend
 
