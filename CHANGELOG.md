@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 2.5.1 (Unreleased)
+### ALFREDOPS
+
+
 ## Release 2.5.0 (2022-04-27)
 This release drops support for Alfresco versions in [7.0.0, 7.0.1.3).
 ### ALFREDOPS
