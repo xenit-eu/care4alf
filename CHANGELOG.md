@@ -27,7 +27,7 @@ This release drops support for Alfresco versions in [7.0.0, 7.0.1.3).
 - [468](https://xenitsupport.jira.com/browse/ALFREDOPS-468): Added support for unlimited users licenses and changed return values in case of a missing license.
 
 ## Release 2.2.1 (2020-02-20)
-- [443](https://xenitsupport.jira.com/browse/ALFREDOPS-443): Removed obsolete <tt> tags for javadoc
+- [443](https://xenitsupport.jira.com/browse/ALFREDOPS-443): Removed obsolete \<tt> tags for javadoc
 - [457](https://xenitsupport.jira.com/browse/ALFREDOPS-457): Updated Alfresco 6.1 base war to 'org.alfresco:content-services:6.1.1@war'
 - [447](https://xenitsupport.jira.com/browse/ALFREDOPS-447): Updated documentation
 
