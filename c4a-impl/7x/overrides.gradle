@@ -1,5 +1,5 @@
 ext {
-    subproject_alfresco_version = '70'
+    subproject_alfresco_version = '73'
     alfresco_repo_version = '9.32'
     alfresco_remote_api_version = '9.32'
     alfresco_war = 'content-services:9.42'

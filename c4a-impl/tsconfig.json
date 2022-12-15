@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "sourceMap": false
+  },
+  "include": ["src/main/typescript"]
+}

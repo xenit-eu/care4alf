@@ -5,22 +5,25 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        gradlePluginPortal()
     }
     dependencies {
         classpath(group: 'eu.xenit.de', name: 'gradle-plugin', version: '2.0.5')
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'de.richsource.gradle.plugins:typescript-gradle-plugin:1.8.0'
+//        classpath "com.gradlets.gradle.typescript:gradle-typescript:1.4.1"
+//        classpath "com.gradlets.gradle.typescript:gradle-baseline-typescript:1.4.1"
         classpath 'de.obqo.gradle:gradle-lesscss-plugin:1.0-1.3.3'
-        classpath "com.moowork.gradle:gradle-node-plugin:0.13"
     }
 }
 
 plugins {
-    id 'eu.xenit.docker-alfresco' version '5.0.7' apply false
-    id 'eu.xenit.docker-compose' version '5.0.7' apply false
-    id 'eu.xenit.alfresco' version '1.0.0'
-    id 'eu.xenit.amp' version '1.0.0'
+    id 'eu.xenit.docker-alfresco' version '5.1.0' apply false
+    id 'eu.xenit.docker-compose' version '5.1.0' apply false
+    id 'eu.xenit.alfresco' version '1.1.0'
+    id 'eu.xenit.amp' version '1.1.0'
 }
+
+//apply plugin: "com.gradlets.baseline-typescript"
 
 allprojects {
     version = '2.5.1' + getVersionQualifier(System.env.BRANCH_NAME ?: 'local')

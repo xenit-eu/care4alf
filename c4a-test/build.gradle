@@ -3,7 +3,7 @@ plugins {
 }
 
 /*
-These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+These variables are overridden in 6x/overrides.gradle and 7x/overrides.gradle.
 During normal use of the collected build scripts, you never actually build any
 artifact that uses the values below and always those from an overrides.gradle.
 The reason these are here at all is to provide information to IntelliJ so that
@@ -11,26 +11,24 @@ it can do good syntax highlighting, because Intellij won't apply the overrides
 when it does highlighting for any Java files in the ./src/main/java directory.
  */
 ext {
-    c4a_dependency = ':c4a-impl'
-    subproject_alfresco_version = '51'
-    alfresco_repo_version = '5.1.g'
-    alfresco_remote_api_version = '5.1.g'
-    alfresco_platform = 'org.alfresco:alfresco-platform-enterprise:5.1.5'
-    alfresco_war = 'alfresco-enterprise:5.1.5'
-    alfresco_img_version = '5.1'
-    alfresco_dm_version = '6.16'
-    http_fluent_version = '4.5.1'
-    http_client_version = '4.5.1'
-    http_core_version = '4.4.3'
-    http_mime_version = '4.5.1'
+    c4a_dependency = ':c4a-impl:care4alf-6x'
+    subproject_alfresco_version = '62'
+    alfresco_repo_version = '7.134.1'
+    alfresco_remote_api_version = '7.107.1'
+    alfresco_platform = 'org.alfresco:acs-packaging:6.2.2.19'
+    alfresco_war = 'org.alfresco:content-services@war'
+    alfresco_img_version = '6.2.2'
+    alfresco_dm_version = '8.50.2'
+    http_fluent_version = '4.5.9'
+    http_client_version = '4.5.9'
+    http_core_version = '4.4.11'
+    http_mime_version = '4.5.8'
 }
 
 allprojects {
     apply plugin: 'eu.xenit.de'
     apply plugin: 'eu.xenit.alfresco'
     apply plugin: 'eu.xenit.alfresco-remote-testrunner'
-    apply plugin: 'eu.xenit.docker-compose'
-    apply plugin: 'eu.xenit.docker-alfresco'
 
     if (file("${project.projectDir}/overrides.gradle").exists()) {
         apply from: "${project.projectDir}/overrides.gradle"
@@ -81,11 +79,8 @@ allprojects {
         alfrescoProvided group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2'
         integrationTestImplementationRemote group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
         integrationTestImplementationRemote group: 'org.json', name: 'json', version: '20090211'
-        if (subproject_alfresco_version == '62' || subproject_alfresco_version == '70') {
-            alfrescoProvided group: 'com.google.guava', name: 'guava', version: '27.1-jre'
-        } else {
-            alfrescoProvided group: 'com.google.guava', name: 'guava', version: '11.0.2'
-        }
+        alfrescoProvided group: 'com.google.guava', name: 'guava', version: '27.1-jre'
+
 
         integrationTestImplementationRemote "javax.xml.bind:jaxb-api-osgi:2.2.7"
         integrationTestImplementationRemote "org.glassfish.hk2:osgi-resource-locator:1.0.1"
@@ -101,6 +96,9 @@ allprojects {
 }
 subprojects {
 
+    apply plugin: 'eu.xenit.docker-compose'
+    apply plugin: 'eu.xenit.docker-alfresco'
+
     // Docker dependencies
     dependencies {
         // gradle plugin does a check on version between baseimage war and new war.
@@ -115,10 +113,12 @@ subprojects {
         }
     }
 
-    dockerAlfresco {
-//        baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
-        baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
-        leanImage = true
+    dockerBuild {
+        alfresco {
+//            baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
+            baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
+            leanImage = true
+        }
     }
 
     buildDockerImage {
