@@ -56,4 +56,4 @@ Optionally you can enable/disable specific metrics using:
 
 ### Accessing the Care4Alf Console
 
-Access the Care4Alf console by accessing http://server:port/alfresco/s/xenit/care4alf
+Access the Care4Alf console by accessing `http://server:port/alfresco/s/xenit/care4alf/`

@@ -109,7 +109,7 @@ subprojects {
     }
 
     dockerAlfresco {
-        baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
+        baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
         leanImage = true
     }
 
