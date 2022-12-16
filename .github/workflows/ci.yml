@@ -33,6 +33,8 @@ jobs:
           registry: hub.xenit.eu
           username: ${{ secrets.XENIT_DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.XENIT_DOCKER_REGISTRY_PASSWORD }}
+      - name: pull image natively as test
+        run: docker pull hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:6.2.2
       - name: Unit tests
         uses: gradle/gradle-build-action@v2.3.0
         with:
