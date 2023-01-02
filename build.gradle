@@ -16,8 +16,8 @@ buildscript {
 }
 
 plugins {
-    id 'eu.xenit.docker-alfresco' version '5.0.2' apply false
-    id 'eu.xenit.docker-compose' version '5.0.2' apply false
+    id 'eu.xenit.docker-alfresco' version '5.0.7' apply false
+    id 'eu.xenit.docker-compose' version '5.0.7' apply false
     id 'eu.xenit.alfresco' version '1.0.0'
     id 'eu.xenit.amp' version '1.0.0'
 }

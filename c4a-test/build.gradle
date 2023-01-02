@@ -39,10 +39,17 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url 'https://artifactory.xenit.eu/artifactory/libs-release'
+            url "https://repo.xenit.eu/K8TBkpYRAtTc9flA/private/maven/"
             credentials {
-                username findProperty("eu.xenit.artifactory.username") ?: ""
-                password findProperty("eu.xenit.artifactory.password") ?: ""
+                username findProperty("eu.xenit.cloudsmith.username") ?: ""
+                password findProperty("eu.xenit.cloudsmith.password") ?: ""
+            }
+        }
+        maven {
+            url 'https://artifacts.alfresco.com/nexus/content/groups/private'
+            credentials {
+                username findProperty('org.alfresco.maven.nexus.username') ?: ""
+                password findProperty('org.alfresco.maven.nexus.password') ?: ""
             }
         }
     }
@@ -109,6 +116,7 @@ subprojects {
     }
 
     dockerAlfresco {
+//        baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
         baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
         leanImage = true
     }
