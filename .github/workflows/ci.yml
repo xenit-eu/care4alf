@@ -58,7 +58,7 @@ jobs:
           ORG_GRADLE_PROJECT_sonatype_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         with:
           arguments: >-
-            :c4a-impl:care4alf6x:publishMavenJavaPublicationToSonaTypeRepository 
+            :c4a-impl:care4alf-6x:publishMavenJavaPublicationToSonaTypeRepository 
             -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} 
             -PsigningKeyId=CDE3528F
             --info
@@ -72,7 +72,7 @@ jobs:
           ORG_GRADLE_PROJECT_sonatype_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
         with:
           arguments: >-
-            :c4a-impl:care4alf7x:publishMavenJavaPublicationToSonaTypeRepository 
+            :c4a-impl:care4alf-7x:publishMavenJavaPublicationToSonaTypeRepository 
             -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} 
             -PsigningKeyId=CDE3528F
             --info
