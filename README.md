@@ -9,18 +9,18 @@
 
 ## Build
 
-Run `./gradlew :c4a-impl:care4alf-5x:assemble` to build a jar for Alfresco 5.0/5.1/5.2 and
-`./gradlew :c4a-impl:care4alf-6x:assemble` for Alfresco 6.0/6.1.
+Run `./gradlew :c4a-impl:care4alf-6x:assemble` to build a jar for alfresco 6x.
+Change version number in module to 7 for alfresco 7
 
 These jars can be deployed on Alfresco with Dynamic Extensions 2.0.1 or later.
 
 ## Test
 
-You can run the integration tests with `./gradlew :c4a-test:test-5x:integrationTest` for Alfresco 5 and
-`./gradlew :c4a-test:test-6x:integrationTest` for Alfresco 6. The containers will automatically shut down after the
+You can run the integration tests with `./gradlew :c4a-test:test-6x:integrationTest` for Alfresco 6. 
+The containers will automatically shut down after the
 tests are completed. If you want to run the integration tests several times without always needing to restart the
-containers, use `./gradlew:c4a-test:test-5x:composeUp`, followed by
-`./gradlew :c4a-test:test-5x:integrationTestLocal -Pport=<DOCKER-ASSIGNED PORT>`.
+containers, use `./gradlew:c4a-test:test-6x:composeUp`, followed by
+`./gradlew :c4a-test:test-6x:integrationTestLocal -Pport=<DOCKER-ASSIGNED PORT>`.
 
 ## Extend
 

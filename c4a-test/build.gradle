@@ -3,7 +3,7 @@ plugins {
 }
 
 /*
-These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+These variables are overridden in version specific override.gradle files.
 During normal use of the collected build scripts, you never actually build any
 artifact that uses the values below and always those from an overrides.gradle.
 The reason these are here at all is to provide information to IntelliJ so that

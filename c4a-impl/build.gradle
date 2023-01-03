@@ -11,7 +11,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 /*
 Beginning of the IntelliJ-helping section.
-These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+These variables are overridden version specific overrides.gradle files.
 During normal use of the collected build scripts, you never actually build any
 artifact that uses the values below and always those from an overrides.gradle.
 The reason these are here at all is to provide information to IntelliJ so that
@@ -28,7 +28,7 @@ ext {
     http_core_version = '4.3.3'
 }
 // Give IntelliJ a default source of non-shared classes
-sourceSets.main.java.srcDirs += "5x/src/main/java"
+sourceSets.main.java.srcDirs += "6x/src/main/java"
 /* End of the IntelliJ-helping section. */
 
 subprojects {
