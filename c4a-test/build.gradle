@@ -1,5 +1,5 @@
 plugins {
-    id 'eu.xenit.alfresco-remote-testrunner' version '2.0.0' apply false
+    id 'eu.xenit.alfresco-remote-testrunner' version '2.0.1' apply false
 }
 
 /*
@@ -12,17 +12,17 @@ when it does highlighting for any Java files in the ./src/main/java directory.
  */
 ext {
     c4a_dependency = ':c4a-impl'
-    subproject_alfresco_version = '51'
-    alfresco_repo_version = '5.1.g'
-    alfresco_remote_api_version = '5.1.g'
-    alfresco_platform = 'org.alfresco:alfresco-platform-enterprise:5.1.5'
-    alfresco_war = 'alfresco-enterprise:5.1.5'
-    alfresco_img_version = '5.1'
-    alfresco_dm_version = '6.16'
-    http_fluent_version = '4.5.1'
-    http_client_version = '4.5.1'
-    http_core_version = '4.4.3'
-    http_mime_version = '4.5.1'
+    subproject_alfresco_version = '62'
+    alfresco_repo_version = '7.134.1'
+    alfresco_remote_api_version = '7.107.1'
+    alfresco_platform = 'org.alfresco:acs-packaging:6.2.2.19'
+    alfresco_war = 'org.alfresco:content-services@war'
+    alfresco_img_version = '6.2.2'
+    alfresco_dm_version = '8.50.2'
+    http_fluent_version = '4.5.9'
+    http_client_version = '4.5.9'
+    http_core_version = '4.4.11'
+    http_mime_version = '4.5.8'
 }
 
 allprojects {
@@ -81,11 +81,7 @@ allprojects {
         alfrescoProvided group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.3.2'
         integrationTestImplementationRemote group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
         integrationTestImplementationRemote group: 'org.json', name: 'json', version: '20090211'
-        if (subproject_alfresco_version == '62' || subproject_alfresco_version == '70') {
-            alfrescoProvided group: 'com.google.guava', name: 'guava', version: '27.1-jre'
-        } else {
-            alfrescoProvided group: 'com.google.guava', name: 'guava', version: '11.0.2'
-        }
+        alfrescoProvided group: 'com.google.guava', name: 'guava', version: '27.1-jre'
 
         integrationTestImplementationRemote "javax.xml.bind:jaxb-api-osgi:2.2.7"
         integrationTestImplementationRemote "org.glassfish.hk2:osgi-resource-locator:1.0.1"
@@ -94,7 +90,6 @@ allprojects {
         integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured', version: '3.0.1'
         integrationTestImplementationLocal group: 'io.rest-assured', name: 'json-path', version: '3.0.1'
         integrationTestImplementationLocal group: 'io.rest-assured', name: 'rest-assured-common', version: '3.0.1'
-
     }
 
     installBundle.enabled = false
@@ -116,8 +111,7 @@ subprojects {
     }
 
     dockerAlfresco {
-//        baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
-        baseImage = "hub.xenit.eu/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
+        baseImage = "docker.xenit.eu/private/alfresco-enterprise/alfresco-repository-enterprise:${alfresco_img_version}"
         leanImage = true
     }
 
@@ -135,19 +129,20 @@ subprojects {
 
     installIntegrationTestingBundle {
         dependsOn composeUpTask
-        doFirst {
-            def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
-            def host = "localhost"
-            def port = 8080
-            if(serviceInfo != null) {
-                host = serviceInfo.host
-                port = serviceInfo.ports[8080]
-            }
-            alfrescoDynamicExtensions {
-                repository {
-                    endpoint.host = project.hasProperty("host") ? project.host : host
-                    endpoint.port = project.hasProperty("port") ? project.port : port
-                }
+    }
+
+    composeUp.doLast {
+        def serviceInfo = composeUpTask.servicesInfos.get("alfresco-core")
+        def host = "localhost"
+        def port = 8080
+        if(serviceInfo != null) {
+            host = serviceInfo.host
+            port = serviceInfo.ports[8080]
+        }
+        alfrescoDynamicExtensions {
+            repository {
+                endpoint.host = project.hasProperty("host") ? project.host : host
+                endpoint.port = project.hasProperty("port") ? project.port : port
             }
         }
     }
