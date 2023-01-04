@@ -27,12 +27,12 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
-      - name: Login to Xenit Harbor docker registry
+      - name: Login to Xenit Cloudsmith docker registry
         uses: docker/login-action@v2
         with:
-          registry: hub.xenit.eu
-          username: ${{ secrets.XENIT_DOCKER_REGISTRY_USERNAME }}
-          password: ${{ secrets.XENIT_DOCKER_REGISTRY_PASSWORD }}
+          registry: private.docker.xenit.eu
+          username: ${{ secrets.CLOUDSMITH_USER }}
+          password: ${{ secrets.CLOUDSMITH_APIKEY }}
       - name: Generate build number
         id: buildNmbr-gen
         run: echo "buildnumber="$(date +%Y%m%d%H%M) >> $GITHUB_OUTPUT
