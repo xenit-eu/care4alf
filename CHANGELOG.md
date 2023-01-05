@@ -1,8 +1,10 @@
 # Changelog
 
-## Release 2.5.1 (Unreleased)
+## Release 3.0.0 (Unreleased)
+This release drops support for Alfresco 5.x.
+This release adds support for Alfresco 7.3
 ### ALFREDOPS
-
+- [839](https://xenitsupport.jira.com/browse/ALFREDOPS-839): Add support for Alfresco 7.3
 
 ## Release 2.5.0 (2022-04-27)
 This release drops support for Alfresco versions in [7.0.0, 7.0.1.3).

@@ -3,7 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - '**'
+      - 'master'
+      - 'release*'
     tags:
       - 'v*'
   pull_request:
@@ -27,6 +28,13 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
+      - name: Login to Xenit Cloudsmith docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: private.docker.xenit.eu
+          username: ${{ secrets.CLOUDSMITH_USER }}
+          password: ${{ secrets.CLOUDSMITH_APIKEY }}
+      # Required as long as jodconverter is required and not moved to cloudsmith
       - name: Login to Xenit Harbor docker registry
         uses: docker/login-action@v2
         with:

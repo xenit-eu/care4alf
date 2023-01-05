@@ -11,7 +11,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 /*
 Beginning of the IntelliJ-helping section.
-These variables are overridden in 5x/overrides.gradle and 6x/overrides.gradle.
+These variables are overridden version specific overrides.gradle files.
 During normal use of the collected build scripts, you never actually build any
 artifact that uses the values below and always those from an overrides.gradle.
 The reason these are here at all is to provide information to IntelliJ so that
@@ -19,20 +19,22 @@ it can do good syntax highlighting, because Intellij won't apply the overrides
 when it does highlighting for any Java files in the ./src/main/java directory.
  */
 ext {
-    subproject_alfresco_version = '51'
-    alfresco_repo_version = '5.1.g'
-    alfresco_remote_api_version = '5.1.g'
-    alfresco_img_version = '5.1'
-    alfresco_dm_version = '6.16'
-    http_version = '4.3.3'
-    http_core_version = '4.3.3'
+    subproject_alfresco_version = '62'
+    alfresco_repo_version = '7.33.42.0'
+    alfresco_remote_api_version = '7.34.25.0'
+    alfresco_img_version = '6.1.1.2'
+    alfresco_dm_version = '8.25.11.0'
+    http_version = '4.5.2'
+    http_core_version = '4.4.5'
 }
 // Give IntelliJ a default source of non-shared classes
-sourceSets.main.java.srcDirs += "5x/src/main/java"
+sourceSets.main.java.srcDirs += "6x/src/main/java"
 /* End of the IntelliJ-helping section. */
 
 subprojects {
-    apply from: "${project.projectDir}/overrides.gradle"
+    if (file("${project.projectDir}/overrides.gradle").exists()) {
+        apply from: "${project.projectDir}/overrides.gradle"
+    }
     apply from: "${rootProject.projectDir}/publish.gradle"
 }
 
@@ -149,6 +151,19 @@ allprojects {
         version = project.version.replace("SNAPSHOT", buildNumber)
         from(compileTypeScript.outputs)
 
+        def importPackageValue = 'org.json;version="0",'
+        importPackageValue += "!${configureRelocateDependencies.prefix}.*,"
+        importPackageValue += 'com.google.appengine.api;resolution:=optional,'
+        importPackageValue += 'com.google.apphosting.api;resolution:=optional,'
+        importPackageValue += 'com.google.common.reflect;resolution:=optional,'
+        importPackageValue += 'com.google.common.cache;version="1",'
+        importPackageValue += 'com.google.common.collect;version="1",'
+        importPackageValue += 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
+        if (subproject_alfresco_version == '73') {
+            importPackageValue += 'javax.annotation;version="1",'
+        }
+        importPackageValue += "*"
+
         bnd(
                 'Alfresco-Dynamic-Extension': 'true',
                 'Bundle-Description': 'Care4Alf: The Alfresco Swiss Army Knife',
@@ -157,15 +172,7 @@ allprojects {
                 'Alfresco-Spring-Configuration': 'eu.xenit.care4alf',
                 'DynamicImport-Package': '*',
                 'Include-Resource': includeUnrolledResource(configurations.embedDeps),
-                'Import-Package': 'org.json;version="[0,99999999)",'
-                        + "!${configureRelocateDependencies.prefix}.*,"
-                        + 'com.google.appengine.api;resolution:=optional,'
-                        + 'com.google.apphosting.api;resolution:=optional,'
-                        + 'com.google.common.reflect;resolution:=optional,'
-                        + 'com.google.common.cache;version="[1,99999999)",'
-                        + 'com.google.common.collect;version="[1,99999999)",'
-                        + 'org.apache.commons.logging;version="[1.0.0,2.0.0)",'
-                        + "*",
+                'Import-Package': importPackageValue,
                 'Export-Package': "!${configureRelocateDependencies.prefix}.*"
                         + ", !eu.xenit.care4alf.web.js.*"
                         + ", eu.xenit.care4alf.*;-noimport:=true"

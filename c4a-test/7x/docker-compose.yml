@@ -24,7 +24,7 @@ services:
       - GLOBAL_messaging.broker.url=failover:(nio://activemq:61616)?timeout=3000&jms.useCompression=true
 
   solr:
-    image: hub.xenit.eu/alfresco-enterprise/alfresco-solr6:2.0.1
+    image: private.docker.xenit.eu/alfresco-enterprise/alfresco-solr6:2.0.3
     volumes:
       - solr:/opt/alfresco/alf_data
     restart: unless-stopped
