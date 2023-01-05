@@ -34,6 +34,13 @@ jobs:
           registry: private.docker.xenit.eu
           username: ${{ secrets.CLOUDSMITH_USER }}
           password: ${{ secrets.CLOUDSMITH_APIKEY }}
+      # Required as long as jodconverter is required and not moved to cloudsmith
+      - name: Login to Xenit Harbor docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: hub.xenit.eu
+          username: ${{ secrets.XENIT_DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.XENIT_DOCKER_REGISTRY_PASSWORD }}
       - name: Generate build number
         id: buildNmbr-gen
         run: echo "buildnumber="$(date +%Y%m%d%H%M) >> $GITHUB_OUTPUT
