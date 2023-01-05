@@ -52,10 +52,24 @@ jobs:
         uses: gradle/gradle-build-action@v2.3.0
         with:
           arguments: :c4a-test:test-6x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
+      - name: Store Test Results integrationtest 6x
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-result-6x
+          path: /home/runner/work/**/6x/build/reports
+          retention-days: 2
       - name: Integration tests 7x
         uses: gradle/gradle-build-action@v2.3.0
         with:
           arguments: :c4a-test:test-7x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
+      - name: Store Test Results integrationtest 7x
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-result-7x
+          path: /home/runner/work/**/7x/build/reports
+          retention-days: 2
       - name: Publish 6x
         if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/tags/v') }}
         uses: gradle/gradle-build-action@v2.3.0
