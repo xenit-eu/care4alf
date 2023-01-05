@@ -54,6 +54,13 @@ allprojects {
         }
     }
 
+    sourceSets {
+        integrationTest {
+            java.srcDirs += '../src/integrationTest/java'
+            resources.srcDirs += '../src/integrationTest/resources'
+        }
+    }
+
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
     }
@@ -107,6 +114,17 @@ subprojects {
         alfrescoAmp project(path: "${c4a_dependency}", configuration: 'amp')
         if (subproject_alfresco_version == '62') {
             alfrescoAmp "eu.xenit.alfresco:alfresco-hotfix-MNT-20557:1.0.2@amp"
+        }
+    }
+
+    def subpath = '6x'
+    if (subproject_alfresco_version == '73') {
+        subpath = '7x'
+    }
+
+    sourceSets {
+        integrationTest {
+            resources.srcDirs += "../${subpath}/src/integrationTest/resources"
         }
     }
 
