@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'release*'
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+env:
+  GRADLE_OPTS: >-
+    -Dorg.gradle.project.eu.xenit.cloudsmith.username=${{ secrets.CLOUDSMITH_USER }}
+    -Dorg.gradle.project.eu.xenit.cloudsmith.password=${{ secrets.CLOUDSMITH_APIKEY }}
+    -Dorg.gradle.project.org.alfresco.maven.nexus.username=${{ secrets.ALFRESCO_NEXUS_USERNAME }}
+    -Dorg.gradle.project.org.alfresco.maven.nexus.password=${{ secrets.ALFRESCO_NEXUS_PASSWORD }}
+
+jobs:
+  build-Test-Publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: temurin
+      - name: Login to Xenit Cloudsmith docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: private.docker.xenit.eu
+          username: ${{ secrets.CLOUDSMITH_USER }}
+          password: ${{ secrets.CLOUDSMITH_APIKEY }}
+      # Required as long as jodconverter is required and not moved to cloudsmith
+      - name: Login to Xenit Harbor docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: hub.xenit.eu
+          username: ${{ secrets.XENIT_DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.XENIT_DOCKER_REGISTRY_PASSWORD }}
+      - name: Generate build number
+        id: buildNmbr-gen
+        run: echo "buildnumber="$(date +%Y%m%d%H%M) >> $GITHUB_OUTPUT
+      - name: Unit tests
+        uses: gradle/gradle-build-action@v2.3.0
+        with:
+          arguments: :c4a-impl:test -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
+      - name: Integration tests 6x
+        uses: gradle/gradle-build-action@v2.3.0
+        with:
+          arguments: :c4a-test:test-6x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
+      - name: Store Test Results integrationtest 6x
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-result-6x
+          path: /home/runner/work/**/6x/build/reports
+          retention-days: 2
+      - name: Integration tests 7x
+        uses: gradle/gradle-build-action@v2.3.0
+        with:
+          arguments: :c4a-test:test-7x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
+      - name: Store Test Results integrationtest 7x
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-result-7x
+          path: /home/runner/work/**/7x/build/reports
+          retention-days: 2
+      - name: Publish 6x
+        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/tags/v') }}
+        uses: gradle/gradle-build-action@v2.3.0
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_CENTRAL_GPG_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatype_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatype_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        with:
+          arguments: >-
+            :c4a-impl:care4alf-6x:publishMavenJavaPublicationToSonaTypeRepository 
+            -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} 
+            -PsigningKeyId=CDE3528F
+            --info
+      - name: Publish 7x
+        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/tags/v') }}
+        uses: gradle/gradle-build-action@v2.3.0
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_CENTRAL_GPG_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatype_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatype_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        with:
+          arguments: >-
+            :c4a-impl:care4alf-7x:publishMavenJavaPublicationToSonaTypeRepository 
+            -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} 
+            -PsigningKeyId=CDE3528F
+            --info
