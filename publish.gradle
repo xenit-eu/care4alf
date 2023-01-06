@@ -48,28 +48,21 @@ publishing {
     }
 }
 
-static def hasPublish(TaskExecutionGraph graph) {
-    graph.allTasks.any { it.name.startsWith("publish") }
-}
-static def shouldSign(Object version, TaskExecutionGraph graph) {
-    !version.endsWith("SNAPSHOT") && hasPublish(graph)
+tasks.withType(Sign) {
+    onlyIf { !version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publish") }
 }
 
-afterEvaluate {
+
+gradle.taskGraph.whenReady { taskGraph ->
+
     signing {
-        required { shouldSign(version, gradle.taskGraph) }
+        required { !version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publish") }
+        def signingKeyId = findProperty("signingKeyId") ?: ""
+        def signingKey = findProperty("signingKey") ?: ""
+        def signingPassword = findProperty("signingPassword") ?: ""
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications
     }
 }
 
-gradle.taskGraph.whenReady { graph ->
-    if (shouldSign(version, graph)) {
-        if (!project.hasProperty('keyId') || !project.hasProperty('secretKeyRingFile') || !project.hasProperty('password')) {
-            throw new GradleException('You need to provide signing params in order to sign artifacts')
-        }
 
-        ext."signing.keyId" = project.findProperty('keyId')
-        ext."signing.secretKeyRingFile" = project.findProperty('secretKeyRingFile')
-        ext."signing.password" =  project.findProperty('password')
-    }
-}
