@@ -48,17 +48,21 @@ publishing {
     }
 }
 
-static def hasPublish(TaskExecutionGraph graph) {
-    graph.allTasks.any { it.name.startsWith("publish") }
-}
-static def shouldSign(Object version, TaskExecutionGraph graph) {
-    !version.endsWith("SNAPSHOT") && hasPublish(graph)
+tasks.withType(Sign) {
+    onlyIf { !version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publish") }
 }
 
-afterEvaluate {
+
+gradle.taskGraph.whenReady { taskGraph ->
+
     signing {
-        required { shouldSign(version, gradle.taskGraph) }
-        useInMemoryPgpKeys(findProperty("signingKeyId"), findProperty("signingKey"), findProperty("signingPassword"))
+        required { !version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publish") }
+        def signingKeyId = findProperty("signingKeyId") ?: ""
+        def signingKey = findProperty("signingKey") ?: ""
+        def signingPassword = findProperty("signingPassword") ?: ""
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications
     }
 }
+
+
