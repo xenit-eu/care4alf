@@ -58,18 +58,7 @@ static def shouldSign(Object version, TaskExecutionGraph graph) {
 afterEvaluate {
     signing {
         required { shouldSign(version, gradle.taskGraph) }
+        useInMemoryPgpKeys(findProperty("signingKeyId"), findProperty("signingKey"), findProperty("signingPassword"))
         sign publishing.publications
-    }
-}
-
-gradle.taskGraph.whenReady { graph ->
-    if (shouldSign(version, graph)) {
-        if (!project.hasProperty('keyId') || !project.hasProperty('secretKeyRingFile') || !project.hasProperty('password')) {
-            throw new GradleException('You need to provide signing params in order to sign artifacts')
-        }
-
-        ext."signing.keyId" = project.findProperty('keyId')
-        ext."signing.secretKeyRingFile" = project.findProperty('secretKeyRingFile')
-        ext."signing.password" =  project.findProperty('password')
     }
 }
