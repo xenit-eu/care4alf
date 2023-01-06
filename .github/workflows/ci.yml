@@ -16,6 +16,7 @@ env:
     -Dorg.gradle.project.eu.xenit.cloudsmith.password=${{ secrets.CLOUDSMITH_APIKEY }}
     -Dorg.gradle.project.org.alfresco.maven.nexus.username=${{ secrets.ALFRESCO_NEXUS_USERNAME }}
     -Dorg.gradle.project.org.alfresco.maven.nexus.password=${{ secrets.ALFRESCO_NEXUS_PASSWORD }}
+  BRANCH_NAME: ${{ github.ref_name }}
 
 jobs:
   build-Test-Publish:
@@ -71,7 +72,7 @@ jobs:
           path: /home/runner/work/**/7x/build/reports
           retention-days: 2
       - name: Publish 6x
-        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') }}
         uses: gradle/gradle-build-action@v2.3.0
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
@@ -85,7 +86,7 @@ jobs:
             -PsigningKeyId=CDE3528F
             --info
       - name: Publish 7x
-        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') || startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') }}
         uses: gradle/gradle-build-action@v2.3.0
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
