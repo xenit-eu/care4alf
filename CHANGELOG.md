@@ -1,6 +1,6 @@
 # Changelog
 
-## Release 3.0.0 (2023-01-06)
+## Release 3.0.0 (2023-01-09)
 This release drops support for Alfresco 5.x.
 This release adds support for Alfresco 7.3
 ### ALFREDOPS
