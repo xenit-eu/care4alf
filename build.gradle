@@ -45,7 +45,7 @@ def includeUnrolledResource(configuration) {
     return list.join(',')
 }
 
-ext.deVersion = '3.0.0'
+ext.deVersion = '3.1.0'
 ext.buildNumber = project.hasProperty('buildNumber') ? project.getProperty('buildNumber') : "SNAPSHOT"
 
 subprojects {
