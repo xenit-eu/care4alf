@@ -1,5 +1,5 @@
 # Changelog
-- [MSMVV-11](https://xenitsupport.jira.com/browse/MSMVV-11): Add support for Alfresco 7.4 (by removing logging module)
+- [MSMVV-11](https://xenitsupport.jira.com/browse/MSMVV-11): Add support for Alfresco 7.4 (by removing logging module) & removed Harbor references
 
 
 ## Release 3.0.0 (2023-01-09)
