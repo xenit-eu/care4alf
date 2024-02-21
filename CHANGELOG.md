@@ -1,4 +1,6 @@
 # Changelog
+- [MSMVV-11](https://xenitsupport.jira.com/browse/MSMVV-11): Add support for Alfresco 7.4 (by removing logging module)
+
 
 ## Release 3.0.0 (2023-01-09)
 This release drops support for Alfresco 5.x.
