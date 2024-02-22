@@ -1,4 +1,9 @@
 # Changelog
+
+## Release 4.0.0 (2024-02-22)
+This release adds support for Alfresco 7.4.
+This release drops support for Alfresco 6.0, 6.1, 7.0, 7.1 & 7.2.
+### ALFREDOPS
 - [MSMVV-11](https://xenitsupport.jira.com/browse/MSMVV-11): Add support for Alfresco 7.4 (by removing logging module) & removed Harbor references
 
 

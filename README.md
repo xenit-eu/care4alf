@@ -7,6 +7,15 @@
 > If you'd like to learn more about our [tools](https://xenit.eu/open-source), [services](https://xenit.eu/alfresco) and [products](https://xenit.eu/alfresco-products)
 > please visit our [website](https://xenit.eu).
 
+## Important note regarding Care4Alf
+
+Version 4 marks the final release of Care4Alf. 
+As this version concludes the active maintenance and development of Care4Alf, we encourage users to transition to 
+[OOTBee Support Tools](https://github.com/OrderOfTheBee/ootbee-support-tools) as replacement for Care4Alf.
+
+Please be aware that while Care4Alf version 4.0.0 introduces support for Alfresco 7.4, it will no longer offer compatibility with earlier Alfresco versions such as 6.0, 6.1, 7.0, 7.1, and 7.2. 
+For these specific versions, we recommend continuing with Care4Alf version 3.x.
+
 ## Build
 
 Run `./gradlew :c4a-impl:care4alf-6x:assemble` to build a jar for alfresco 6x.
