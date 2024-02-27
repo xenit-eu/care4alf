@@ -55,7 +55,7 @@ services:
 
 
   jodconverter:
-    image: hub.xenit.eu/public/jodconverter-ws:build-201909241653-3
+    image: private.docker.xenit.eu/jodconverter-ws:latest
     restart: unless-stopped
 
 
