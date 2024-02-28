@@ -20,7 +20,6 @@
 /// <reference path="tickets.ts" />
 /// <reference path="contentstore.ts" />
 /// <reference path="actions.ts" />
-/// <reference path="logging.ts" />
 /// <reference path="browser.ts" />
 /// <reference path="bulk.ts" />
 /// <reference path="scheduledjobs.ts" />

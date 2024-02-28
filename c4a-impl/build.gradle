@@ -229,6 +229,7 @@ allprojects {
     }
     node {
         download = true
+        distBaseUrl = 'https://direct.nodejs.org/dist/' // 'ivy.xml not found' bug fix
         nodeModulesDir = file(project(":c4a-impl").projectDir)
     }
 
