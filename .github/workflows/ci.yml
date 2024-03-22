@@ -39,11 +39,11 @@ jobs:
         id: buildNmbr-gen
         run: echo "buildnumber="$(date +%Y%m%d%H%M) >> $GITHUB_OUTPUT
       - name: Unit tests
-        uses: gradle/gradle-build-action@v2.3.0
+        uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: :c4a-impl:test -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
       - name: Integration tests 6x
-        uses: gradle/gradle-build-action@v2.3.0
+        uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: :c4a-test:test-6x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
       - name: Store Test Results integrationtest 6x
@@ -54,7 +54,7 @@ jobs:
           path: /home/runner/work/**/6x/build/reports
           retention-days: 2
       - name: Integration tests 7x
-        uses: gradle/gradle-build-action@v2.3.0
+        uses: gradle/gradle-build-action@v2.4.2
         with:
           arguments: :c4a-test:test-7x:integrationTest -PBuildNumber=${{ steps.buildNmbr-gen.outputs.buildnumber }} --info
       - name: Store Test Results integrationtest 7x
@@ -66,7 +66,7 @@ jobs:
           retention-days: 2
       - name: Publish 6x
         if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') }}
-        uses: gradle/gradle-build-action@v2.3.0
+        uses: gradle/gradle-build-action@v2.4.2
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_CENTRAL_GPG_PASSWORD }}
@@ -80,7 +80,7 @@ jobs:
             --info
       - name: Publish 7x
         if: ${{ startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/release') }}
-        uses: gradle/gradle-build-action@v2.3.0
+        uses: gradle/gradle-build-action@v2.4.2
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_CENTRAL_GPG_PASSWORD }}
