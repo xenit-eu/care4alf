@@ -9,7 +9,8 @@
 
 ## Important note
 
-Version 4 marks the final release of Care4Alf. 
+Version 4 marks the final release of Care4Alf. This repository has now been archived and is no longer maintained.
+
 As this version concludes the active maintenance and development of Care4Alf, we encourage users to transition to 
 [OOTBee Support Tools](https://github.com/OrderOfTheBee/ootbee-support-tools) as replacement for Care4Alf.
 
